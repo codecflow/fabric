@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dnsdebug
+  namespace: default
+spec:
+  containers:
+  - name: dnsdebug
+    image: busybox
+    command: ["tail", "-f", "/dev/null"]

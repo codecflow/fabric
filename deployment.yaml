@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: captain
+  labels:
+    app: captain
+spec:
+  replicas: 3  # Number of desired replicas
+  selector:
+    matchLabels:
+      app: captain
+  template:
+    metadata:
+      labels:
+        app: captain
+    spec:
+      containers:
+      - name: conductor
+        image: ghcr.io/codecflow/captain:1.0.0
+        ports:
+        - containerPort: 9000
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "250m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
