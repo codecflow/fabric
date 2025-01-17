@@ -5,10 +5,14 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 type Server struct {
 	client *k8s.Client
+	logger *logrus.Logger
 }
 
 func NewServer(prefix, namespace, entrypoint, image string) (*Server, error) {
@@ -17,7 +21,13 @@ func NewServer(prefix, namespace, entrypoint, image string) (*Server, error) {
 		return nil, fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}
 
-	return &Server{client: client}, nil
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.JSONFormatter{
+		TimestampFormat: time.RFC3339,
+	})
+	logger.SetLevel(logrus.InfoLevel)
+
+	return &Server{client: client, logger: logger}, nil
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {

@@ -3,6 +3,7 @@ module captain
 go 1.23.3
 
 require (
+	github.com/sirupsen/logrus v1.9.3
 	k8s.io/api v0.32.1
 	k8s.io/apimachinery v0.32.1
 	k8s.io/client-go v0.32.1
