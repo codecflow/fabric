@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -109,6 +110,10 @@ func (s *Server) Connect(w http.ResponseWriter, r *http.Request) {
 	defer connection.Close()
 	logger.Info("Connected to pod successfully")
 
+	// Check if it's a WebSocket upgrade request
+	isWebSocket := strings.ToLower(r.Header.Get("Upgrade")) == "websocket"
+	logger = logger.WithField("is_websocket", isWebSocket)
+
 	// Hijack connection
 	hj, ok := w.(http.Hijacker)
 	if !ok {
@@ -126,19 +131,31 @@ func (s *Server) Connect(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 	logger.Info("Connection hijacked successfully")
 
-	// For CDP protocol, send proper WebSocket upgrade response
+	// Handle protocol-specific responses
 	if protocol == "cdp" {
-		upgradeResponse := "HTTP/1.1 101 Switching Protocols\r\n" +
-			"Upgrade: websocket\r\n" +
-			"Connection: Upgrade\r\n" +
-			"Sec-WebSocket-Accept: *\r\n" +
-			"\r\n"
-
-		if _, err := conn.Write([]byte(upgradeResponse)); err != nil {
-			logger.WithError(err).Error("Failed to write CDP upgrade response")
-			return
+		if isWebSocket {
+			// Send WebSocket upgrade response
+			upgradeResponse := "HTTP/1.1 101 Switching Protocols\r\n" +
+				"Upgrade: websocket\r\n" +
+				"Connection: Upgrade\r\n" +
+				"Sec-WebSocket-Accept: *\r\n" +
+				"\r\n"
+			if _, err := conn.Write([]byte(upgradeResponse)); err != nil {
+				logger.WithError(err).Error("Failed to write WebSocket upgrade response")
+				return
+			}
+			logger.Debug("Sent WebSocket upgrade response")
+		} else {
+			// Send HTTP/1.1 response for non-WebSocket requests
+			if _, err := conn.Write([]byte("HTTP/1.1 200 OK\r\n" +
+				"Content-Type: application/json\r\n" +
+				"Connection: close\r\n" +
+				"\r\n")); err != nil {
+				logger.WithError(err).Error("Failed to write HTTP response")
+				return
+			}
+			logger.Debug("Sent HTTP response")
 		}
-		logger.Debug("Sent CDP WebSocket upgrade response")
 	}
 
 	// Bidirectional copy with detailed logging
@@ -152,6 +169,7 @@ func (s *Server) Connect(w http.ResponseWriter, r *http.Request) {
 			"duration":      time.Since(copyStart),
 			"error":         err,
 		}).Debug("Client -> Pod copy ended")
+		connection.(*net.TCPConn).CloseWrite()
 		errChan <- err
 	}()
 
@@ -162,12 +180,13 @@ func (s *Server) Connect(w http.ResponseWriter, r *http.Request) {
 			"duration":      time.Since(copyStart),
 			"error":         err,
 		}).Debug("Pod -> Client copy ended")
+		conn.(net.Conn).(*net.TCPConn).CloseWrite()
 		errChan <- err
 	}()
 
 	// Wait for either copy to finish
 	err = <-errChan
-	if err != nil {
+	if err != nil && err != io.EOF {
 		logger.WithFields(logrus.Fields{
 			"error":    err,
 			"duration": time.Since(copyStart),
