@@ -6,7 +6,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -110,10 +109,6 @@ func (s *Server) Connect(w http.ResponseWriter, r *http.Request) {
 	defer connection.Close()
 	logger.Info("Connected to pod successfully")
 
-	// Check if it's a WebSocket upgrade request
-	isWebSocket := strings.ToLower(r.Header.Get("Upgrade")) == "websocket"
-	logger = logger.WithField("is_websocket", isWebSocket)
-
 	// Hijack connection
 	hj, ok := w.(http.Hijacker)
 	if !ok {
@@ -131,56 +126,37 @@ func (s *Server) Connect(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 	logger.Info("Connection hijacked successfully")
 
-	// Handle protocol-specific responses
-	if protocol == "cdp" {
-		if isWebSocket {
-			// Send WebSocket upgrade response
-			upgradeResponse := "HTTP/1.1 101 Switching Protocols\r\n" +
-				"Upgrade: websocket\r\n" +
-				"Connection: Upgrade\r\n" +
-				"Sec-WebSocket-Accept: *\r\n" +
-				"\r\n"
-			if _, err := conn.Write([]byte(upgradeResponse)); err != nil {
-				logger.WithError(err).Error("Failed to write WebSocket upgrade response")
-				return
-			}
-			logger.Debug("Sent WebSocket upgrade response")
-		} else {
-			// Send HTTP/1.1 response for non-WebSocket requests
-			if _, err := conn.Write([]byte("HTTP/1.1 200 OK\r\n" +
-				"Content-Type: application/json\r\n" +
-				"Connection: close\r\n" +
-				"\r\n")); err != nil {
-				logger.WithError(err).Error("Failed to write HTTP response")
-				return
-			}
-			logger.Debug("Sent HTTP response")
-		}
-	}
+	// Force flushes and reduce buffering
+	podConn := connection.(*net.TCPConn)
+	clientConn := conn.(*net.TCPConn)
+	podConn.SetNoDelay(true)
+	clientConn.SetNoDelay(true)
+	podConn.SetKeepAlive(true)
+	clientConn.SetKeepAlive(true)
 
-	// Bidirectional copy with detailed logging
+	// Simplified bidirectional copy with error logging
 	errChan := make(chan error, 2)
 	copyStart := time.Now()
 
 	go func() {
-		written, err := io.Copy(connection, conn)
+		written, err := io.Copy(podConn, clientConn)
 		logger.WithFields(logrus.Fields{
 			"bytes_written": written,
 			"duration":      time.Since(copyStart),
 			"error":         err,
 		}).Debug("Client -> Pod copy ended")
-		connection.(*net.TCPConn).CloseWrite()
+		podConn.CloseWrite()
 		errChan <- err
 	}()
 
 	go func() {
-		written, err := io.Copy(conn, connection)
+		written, err := io.Copy(clientConn, podConn)
 		logger.WithFields(logrus.Fields{
 			"bytes_written": written,
 			"duration":      time.Since(copyStart),
 			"error":         err,
 		}).Debug("Pod -> Client copy ended")
-		conn.(net.Conn).(*net.TCPConn).CloseWrite()
+		clientConn.CloseWrite()
 		errChan <- err
 	}()
 
