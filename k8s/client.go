@@ -18,7 +18,6 @@ type Client struct {
 }
 
 func NewClient(prefix, namespace, entrypoint, image string) (*Client, error) {
-
 	config, err := GetConfig()
 
 	if err != nil {

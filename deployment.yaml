@@ -1,19 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: captain
+  name: operator
   labels:
-    app: captain
+    app: operator
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: captain
+      app: operator
   template:
     metadata:
       labels:
-        app: captain
+        app: operator
     spec:
+      serviceAccountName: operator
       containers:
       - name: captain
         image: ghcr.io/codecflow/captain:1.0.0

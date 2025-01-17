@@ -4,10 +4,12 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"captain/server"
 )
 
 func main() {
-	server, err := NewServer()
+	server, err := server.NewServer("streamer", "default", "entrypoint", "ghcr.io/codecflow/conductor:1.0.0")
 	if err != nil {
 		log.Fatalf("Failed to create server: %v", err)
 	}

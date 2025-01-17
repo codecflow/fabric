@@ -17,6 +17,13 @@ type Streamer struct {
 
 func (c *Client) Create(ctx context.Context, s Streamer) (*core.Pod, error) {
 	name := c.prefix + s.ID
+
+	err := c.CreatePVC(ctx, name, "4Gi")
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to create PVC: %w", err)
+	}
+
 	pod := &core.Pod{
 		ObjectMeta: meta.ObjectMeta{
 			Name: name,
@@ -40,17 +47,33 @@ func (c *Client) Create(ctx context.Context, s Streamer) (*core.Pod, error) {
 						Limits: core.ResourceList{
 							"cpu":               resource.MustParse("3"),
 							"memory":            resource.MustParse("4Gi"),
-							"ephemeral-storage": resource.MustParse("1Gi"),
+							"ephemeral-storage": resource.MustParse("3Gi"),
 						},
 						Requests: core.ResourceList{
 							"cpu":               resource.MustParse("2"),
 							"memory":            resource.MustParse("2Gi"),
-							"ephemeral-storage": resource.MustParse("1Gi"),
+							"ephemeral-storage": resource.MustParse("3Gi"),
 						},
 					},
 					Env: []core.EnvVar{
 						{Name: "URL", Value: s.URL},
 						{Name: "RTMP", Value: s.RTMP},
+					},
+					VolumeMounts: []core.VolumeMount{
+						{
+							Name:      "data",
+							MountPath: "/data",
+						},
+					},
+				},
+			},
+			Volumes: []core.Volume{
+				{
+					Name: "data",
+					VolumeSource: core.VolumeSource{
+						PersistentVolumeClaim: &core.PersistentVolumeClaimVolumeSource{
+							ClaimName: name,
+						},
 					},
 				},
 			},
