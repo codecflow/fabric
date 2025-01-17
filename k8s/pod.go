@@ -73,30 +73,30 @@ func (c *Client) Create(ctx context.Context, namespace, id string) (*core.Pod, e
 						},
 					},
 				},
-				{
-					Name:  "socat",
-					Image: "alpine/socat",
-					Command: []string{
-						"socat",
-						"TCP-LISTEN:9222,fork",
-						"TCP:127.0.0.1:9222",
-					},
-					Ports: []core.ContainerPort{
-						{
-							ContainerPort: 9222,
-						},
-					},
-					Resources: core.ResourceRequirements{
-						Requests: core.ResourceList{
-							"cpu":    resource.MustParse("50m"),
-							"memory": resource.MustParse("64Mi"),
-						},
-						Limits: core.ResourceList{
-							"cpu":    resource.MustParse("200m"),
-							"memory": resource.MustParse("256Mi"),
-						},
-					},
-				},
+				// {
+				// 	Name:  "socat",
+				// 	Image: "alpine/socat",
+				// 	Command: []string{
+				// 		"socat",
+				// 		"TCP-LISTEN:9222,fork",
+				// 		"TCP:127.0.0.1:9222",
+				// 	},
+				// 	Ports: []core.ContainerPort{
+				// 		{
+				// 			ContainerPort: 9222,
+				// 		},
+				// 	},
+				// 	Resources: core.ResourceRequirements{
+				// 		Requests: core.ResourceList{
+				// 			"cpu":    resource.MustParse("50m"),
+				// 			"memory": resource.MustParse("64Mi"),
+				// 		},
+				// 		Limits: core.ResourceList{
+				// 			"cpu":    resource.MustParse("200m"),
+				// 			"memory": resource.MustParse("256Mi"),
+				// 		},
+				// 	},
+				// },
 			},
 			ImagePullSecrets: []core.LocalObjectReference{{Name: "ghcr"}},
 		},

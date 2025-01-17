@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: entrypoint
+spec:
+  clusterIP: None
+  selector:
+    app: streamer
+  ports:
+    - name: cdp
+      protocol: TCP
+      port: 9222

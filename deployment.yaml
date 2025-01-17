@@ -5,7 +5,7 @@ metadata:
   labels:
     app: captain
 spec:
-  replicas: 3  # Number of desired replicas
+  replicas: 1
   selector:
     matchLabels:
       app: captain
@@ -15,7 +15,7 @@ spec:
         app: captain
     spec:
       containers:
-      - name: conductor
+      - name: captain
         image: ghcr.io/codecflow/captain:1.0.0
         ports:
         - containerPort: 9000
@@ -26,3 +26,5 @@ spec:
           limits:
             memory: "256Mi"
             cpu: "500m"
+      imagePullSecrets:
+      - name: ghcr

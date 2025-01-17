@@ -1,12 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: entrypoint
+  name: captain
+  labels:
+    app: captain
 spec:
-  clusterIP: None
-  selector:
-    app: streamer
+  type: LoadBalancer
   ports:
-    - name: cdp
-      protocol: TCP
-      port: 9222
+    - port: 80
+      targetPort: 9000
+  selector:
+    app: captain
