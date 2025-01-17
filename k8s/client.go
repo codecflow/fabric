@@ -10,10 +10,16 @@ import (
 type Client struct {
 	config *rest.Config
 	client *kubernetes.Clientset
+
+	image      string
+	prefix     string
+	namespace  string
+	entrypoint string
 }
 
-func NewClient() (*Client, error) {
-	config, err := FromLocal()
+func NewClient(prefix, namespace, entrypoint, image string) (*Client, error) {
+
+	config, err := GetConfig()
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to get config: %w", err)

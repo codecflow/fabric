@@ -8,7 +8,13 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-func FromLocal() (*rest.Config, error) {
+func GetConfig() (*rest.Config, error) {
+	config, err := rest.InClusterConfig()
+
+	if config != nil && err == nil {
+		return config, nil
+	}
+
 	kubeconfig := os.Getenv("KUBECONFIG")
 
 	if kubeconfig == "" {
@@ -19,7 +25,7 @@ func FromLocal() (*rest.Config, error) {
 		kubeconfig = fmt.Sprintf("%s/.kube/config", homeDir)
 	}
 
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+	config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load kubeconfig: %w", err)
 	}
