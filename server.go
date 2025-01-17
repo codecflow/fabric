@@ -14,7 +14,7 @@ type Server struct {
 }
 
 func NewServer() (*Server, error) {
-	client, err := k8s.NewClient("streamer", "default", "entrypoint", "ghcr.io/codecflow/captain:1.0.0")
+	client, err := k8s.NewClient("streamer", "default", "entrypoint", "ghcr.io/codecflow/conductor:1.0.0")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}
