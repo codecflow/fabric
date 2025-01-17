@@ -4,6 +4,7 @@ import (
 	"captain/k8s"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 type Server struct {
@@ -20,12 +21,12 @@ func NewServer(prefix, namespace, entrypoint, image string) (*Server, error) {
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	switch r.URL.Path {
-	case "/create":
+	switch {
+	case strings.HasPrefix(r.URL.Path, "/create"):
 		s.Create(w, r)
-	case "/delete":
+	case strings.HasPrefix(r.URL.Path, "/delete"):
 		s.Delete(w, r)
-	case "/connect":
+	case strings.HasPrefix(r.URL.Path, "/connect"):
 		s.Connect(w, r)
 	default:
 		http.NotFound(w, r)
