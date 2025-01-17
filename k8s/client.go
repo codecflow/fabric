@@ -32,7 +32,11 @@ func NewClient(prefix, namespace, entrypoint, image string) (*Client, error) {
 	}
 
 	return &Client{
-		config: config,
-		client: client,
+		config:     config,
+		namespace:  namespace,
+		image:      image,
+		prefix:     prefix,
+		entrypoint: entrypoint,
+		client:     client,
 	}, nil
 }
