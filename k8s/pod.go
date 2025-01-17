@@ -45,7 +45,7 @@ func (c *Client) Create(ctx context.Context, s Streamer) (*core.Pod, error) {
 						Requests: core.ResourceList{
 							"cpu":               resource.MustParse("2"),
 							"memory":            resource.MustParse("2Gi"),
-							"ephemeral-storage": resource.MustParse("800Mb"),
+							"ephemeral-storage": resource.MustParse("1Gi"),
 						},
 					},
 					Env: []core.EnvVar{

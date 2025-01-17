@@ -17,6 +17,7 @@ spec:
       containers:
       - name: captain
         image: ghcr.io/codecflow/captain:1.0.0
+        imagePullPolicy: Always
         ports:
         - containerPort: 9000
         resources:
