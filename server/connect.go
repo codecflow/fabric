@@ -24,6 +24,13 @@ func (s *Server) Connect(w http.ResponseWriter, r *http.Request) {
 		"remote": r.RemoteAddr,
 	})
 
+	// Log incoming request details
+	logger.WithFields(logrus.Fields{
+		"method":  r.Method,
+		"url":     r.URL.String(),
+		"headers": r.Header,
+	}).Info("Incoming request")
+
 	// Get and validate parameters
 	id := r.URL.Query().Get("id")
 	protocol := r.URL.Query().Get("protocol")
@@ -89,8 +96,11 @@ func (s *Server) Connect(w http.ResponseWriter, r *http.Request) {
 	logger = logger.WithField("target_addr", targetAddr)
 	logger.Info("Attempting connection")
 
-	// Connect to pod
+	// Connect to pod with timeout logging
+	connectStart := time.Now()
 	connection, err := net.DialTimeout("tcp", targetAddr, 1*time.Minute)
+	logger.WithField("connect_duration", time.Since(connectStart)).Info("Connection attempt completed")
+
 	if err != nil {
 		logger.WithError(err).Error("Failed to connect to pod")
 		http.Error(w, "Failed to connect to pod", http.StatusInternalServerError)
@@ -116,36 +126,54 @@ func (s *Server) Connect(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 	logger.Info("Connection hijacked successfully")
 
-	// For CDP protocol, send HTTP 200 OK
+	// For CDP protocol, send proper WebSocket upgrade response
 	if protocol == "cdp" {
-		if _, err := conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n")); err != nil {
-			logger.WithError(err).Error("Failed to write CDP response")
+		upgradeResponse := "HTTP/1.1 101 Switching Protocols\r\n" +
+			"Upgrade: websocket\r\n" +
+			"Connection: Upgrade\r\n" +
+			"Sec-WebSocket-Accept: *\r\n" +
+			"\r\n"
+
+		if _, err := conn.Write([]byte(upgradeResponse)); err != nil {
+			logger.WithError(err).Error("Failed to write CDP upgrade response")
 			return
 		}
-		logger.Debug("Sent CDP upgrade response")
+		logger.Debug("Sent CDP WebSocket upgrade response")
 	}
 
-	// Bidirectional copy
+	// Bidirectional copy with detailed logging
 	errChan := make(chan error, 2)
+	copyStart := time.Now()
 
 	go func() {
-		_, err := io.Copy(connection, conn)
+		written, err := io.Copy(connection, conn)
+		logger.WithFields(logrus.Fields{
+			"bytes_written": written,
+			"duration":      time.Since(copyStart),
+			"error":         err,
+		}).Debug("Client -> Pod copy ended")
 		errChan <- err
-		logger.WithError(err).Debug("Client -> Pod copy ended")
 	}()
 
 	go func() {
-		_, err := io.Copy(conn, connection)
+		written, err := io.Copy(conn, connection)
+		logger.WithFields(logrus.Fields{
+			"bytes_written": written,
+			"duration":      time.Since(copyStart),
+			"error":         err,
+		}).Debug("Pod -> Client copy ended")
 		errChan <- err
-		logger.WithError(err).Debug("Pod -> Client copy ended")
 	}()
 
 	// Wait for either copy to finish
 	err = <-errChan
 	if err != nil {
-		logger.WithError(err).Info("Connection closed with error")
+		logger.WithFields(logrus.Fields{
+			"error":    err,
+			"duration": time.Since(copyStart),
+		}).Info("Connection closed with error")
 	} else {
-		logger.Info("Connection closed normally")
+		logger.WithField("duration", time.Since(copyStart)).Info("Connection closed normally")
 	}
 }
 
