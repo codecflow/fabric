@@ -5,7 +5,7 @@ metadata:
 spec:
   clusterIP: None
   selector:
-    app: streamer
+    app: machine
   ports:
     - name: cdp
       protocol: TCP

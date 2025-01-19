@@ -38,6 +38,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.Delete(w, r)
 	case strings.HasPrefix(r.URL.Path, "/connect"):
 		s.Connect(w, r)
+	case strings.HasPrefix(r.URL.Path, "/exec"):
+		s.Exec(w, r)
 	default:
 		http.NotFound(w, r)
 	}

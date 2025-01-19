@@ -9,14 +9,15 @@ import (
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type Streamer struct {
-	ID   string
-	URL  string
-	RTMP string
+type Machine struct {
+	ID    string
+	Image string
+	Tools []string
+	Env   map[string]string
 }
 
-func (c *Client) Create(ctx context.Context, s Streamer) (*core.Pod, error) {
-	name := c.prefix + s.ID
+func (c *Client) Create(ctx context.Context, m Machine) (*core.Pod, error) {
+	name := c.prefix + m.ID
 
 	err := c.CreatePVC(ctx, name, "4Gi")
 
@@ -28,8 +29,8 @@ func (c *Client) Create(ctx context.Context, s Streamer) (*core.Pod, error) {
 		ObjectMeta: meta.ObjectMeta{
 			Name: name,
 			Labels: map[string]string{
-				"app":    "streamer",
-				"stream": s.ID,
+				"app":        "machine",
+				"machine-id": m.ID,
 			},
 		},
 		Spec: core.PodSpec{
@@ -40,8 +41,8 @@ func (c *Client) Create(ctx context.Context, s Streamer) (*core.Pod, error) {
 			},
 			Containers: []core.Container{
 				{
-					Name:            "streamer",
-					Image:           c.image,
+					Name:            "machine",
+					Image:           m.Image,
 					ImagePullPolicy: core.PullIfNotPresent,
 					Resources: core.ResourceRequirements{
 						Limits: core.ResourceList{
@@ -55,10 +56,7 @@ func (c *Client) Create(ctx context.Context, s Streamer) (*core.Pod, error) {
 							"ephemeral-storage": resource.MustParse("3Gi"),
 						},
 					},
-					Env: []core.EnvVar{
-						{Name: "URL", Value: s.URL},
-						{Name: "RTMP", Value: s.RTMP},
-					},
+					Env: createEnvVars(m.Env),
 					VolumeMounts: []core.VolumeMount{
 						{
 							Name:      "data",
@@ -86,7 +84,7 @@ func (c *Client) Create(ctx context.Context, s Streamer) (*core.Pod, error) {
 
 func (c *Client) Find(ctx context.Context, id string) (*core.Pod, error) {
 	pods, err := c.client.CoreV1().Pods(c.namespace).List(ctx, meta.ListOptions{
-		LabelSelector: "stream=" + id,
+		LabelSelector: "machine-id=" + id,
 	})
 
 	if err != nil {
@@ -94,14 +92,29 @@ func (c *Client) Find(ctx context.Context, id string) (*core.Pod, error) {
 	}
 
 	if len(pods.Items) == 0 {
-		return nil, fmt.Errorf("no pod found for stream %s", id)
+		return nil, fmt.Errorf("no machine found with id %s", id)
 	}
 
 	if len(pods.Items) > 1 {
-		return &pods.Items[0], fmt.Errorf("multiple pods found for stream %s", id)
+		return &pods.Items[0], fmt.Errorf("multiple machines found with id %s", id)
 	}
 
 	return &pods.Items[0], nil
+}
+
+func createEnvVars(envMap map[string]string) []core.EnvVar {
+	if envMap == nil {
+		return []core.EnvVar{}
+	}
+
+	envVars := make([]core.EnvVar, 0, len(envMap))
+	for key, value := range envMap {
+		envVars = append(envVars, core.EnvVar{
+			Name:  key,
+			Value: value,
+		})
+	}
+	return envVars
 }
 
 func (c *Client) Delete(ctx context.Context, id string) error {

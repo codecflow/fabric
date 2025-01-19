@@ -7,9 +7,10 @@ import (
 )
 
 type CreateRequest struct {
-	ID   string `json:"id"`
-	URL  string `json:"url"`
-	RTMP string `json:"rtmp"`
+	ID    string            `json:"id"`
+	Image string            `json:"image"`
+	Tools []string          `json:"tools"`
+	Env   map[string]string `json:"env"`
 }
 
 func (s *Server) Create(w http.ResponseWriter, r *http.Request) {
@@ -29,14 +30,15 @@ func (s *Server) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("Received ID: %s, URL: %s, RTMP: %s\n", req.ID, req.URL, req.RTMP)
+	fmt.Printf("Received ID: %s, Image: %s\n", req.ID, req.Image)
 
 	ctx := r.Context()
 
-	_, err := s.client.Create(ctx, k8s.Streamer{
-		ID:   req.ID,
-		URL:  req.URL,
-		RTMP: req.RTMP,
+	_, err := s.client.Create(ctx, k8s.Machine{
+		ID:    req.ID,
+		Image: req.Image,
+		Tools: req.Tools,
+		Env:   req.Env,
 	})
 
 	if err != nil {

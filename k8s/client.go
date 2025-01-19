@@ -39,3 +39,15 @@ func NewClient(prefix, namespace, entrypoint, image string) (*Client, error) {
 		client:     client,
 	}, nil
 }
+
+func (c *Client) GetClientset() *kubernetes.Clientset {
+	return c.client
+}
+
+func (c *Client) GetConfig() *rest.Config {
+	return c.config
+}
+
+func (c *Client) GetNamespace() string {
+	return c.namespace
+}
