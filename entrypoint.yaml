@@ -10,3 +10,6 @@ spec:
     - name: cdp
       protocol: TCP
       port: 9222
+    - name: vnc
+      protocol: TCP
+      port: 5900

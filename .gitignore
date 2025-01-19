@@ -36,3 +36,6 @@ build/
 *.a
 *.o
 *.out
+
+# Ignore DevSpace cache and log folder
+.devspace/

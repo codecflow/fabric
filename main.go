@@ -1,11 +1,10 @@
 package main
 
 import (
+	"captain/server"
 	"log"
 	"net/http"
 	"time"
-
-	"captain/server"
 )
 
 func main() {
