@@ -42,6 +42,16 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.Exec(w, r)
 	case strings.HasPrefix(r.URL.Path, "/status"):
 		s.Status(w, r)
+	case strings.HasPrefix(r.URL.Path, "/logs"):
+		s.Logs(w, r)
+	case strings.HasPrefix(r.URL.Path, "/upload"):
+		s.Upload(w, r)
+	case strings.HasPrefix(r.URL.Path, "/download"):
+		s.Download(w, r)
+	case strings.HasPrefix(r.URL.Path, "/metrics") && strings.Contains(r.URL.Path, "/stream"):
+		s.MetricsStream(w, r)
+	case strings.HasPrefix(r.URL.Path, "/metrics"):
+		s.Metrics(w, r)
 	default:
 		http.NotFound(w, r)
 	}
