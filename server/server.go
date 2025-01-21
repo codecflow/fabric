@@ -52,6 +52,14 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.MetricsStream(w, r)
 	case strings.HasPrefix(r.URL.Path, "/metrics"):
 		s.Metrics(w, r)
+	case strings.HasPrefix(r.URL.Path, "/snapshot/create"):
+		s.CreateSnapshot(w, r)
+	case strings.HasPrefix(r.URL.Path, "/snapshot/restore"):
+		s.RestoreSnapshot(w, r)
+	case strings.HasPrefix(r.URL.Path, "/snapshot/delete"):
+		s.DeleteSnapshot(w, r)
+	case strings.HasPrefix(r.URL.Path, "/snapshot/list"):
+		s.ListSnapshots(w, r)
 	default:
 		http.NotFound(w, r)
 	}
