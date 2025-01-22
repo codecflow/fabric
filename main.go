@@ -13,9 +13,12 @@ func main() {
 		log.Fatalf("Failed to create server: %v", err)
 	}
 
+	// Wrap the server with the logging middleware
+	handler := server.LoggingMiddleware(server)
+
 	httpServer := &http.Server{
 		Addr:         ":9000",
-		Handler:      server,
+		Handler:      handler,
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}

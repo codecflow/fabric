@@ -32,6 +32,10 @@ func NewServer(prefix, namespace, entrypoint, image string) (*Server, error) {
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
+	case strings.HasPrefix(r.URL.Path, "/health"):
+		s.Health(w, r)
+	case strings.HasPrefix(r.URL.Path, "/version"):
+		s.Version(w, r)
 	case strings.HasPrefix(r.URL.Path, "/create"):
 		s.Create(w, r)
 	case strings.HasPrefix(r.URL.Path, "/delete"):
