@@ -11,8 +11,9 @@ import (
 )
 
 type Server struct {
-	client *k8s.Client
-	logger *logrus.Logger
+	client    *k8s.Client
+	logger    *logrus.Logger
+	templates *TemplateStore
 }
 
 func NewServer(prefix, namespace, entrypoint, image string) (*Server, error) {
@@ -27,7 +28,13 @@ func NewServer(prefix, namespace, entrypoint, image string) (*Server, error) {
 	})
 	logger.SetLevel(logrus.InfoLevel)
 
-	return &Server{client: client, logger: logger}, nil
+	templates := NewTemplateStore()
+
+	return &Server{
+		client:    client,
+		logger:    logger,
+		templates: templates,
+	}, nil
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -64,6 +71,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.DeleteSnapshot(w, r)
 	case strings.HasPrefix(r.URL.Path, "/snapshot/list"):
 		s.ListSnapshots(w, r)
+	case strings.HasPrefix(r.URL.Path, "/templates") && r.URL.Path == "/templates":
+		s.ListTemplates(w, r)
+	case strings.HasPrefix(r.URL.Path, "/templates/"):
+		s.GetTemplate(w, r)
 	default:
 		http.NotFound(w, r)
 	}
