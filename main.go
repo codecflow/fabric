@@ -13,8 +13,7 @@ func main() {
 		log.Fatalf("Failed to create server: %v", err)
 	}
 
-	// Wrap the server with the logging middleware
-	handler := server.LoggingMiddleware(server)
+	handler := server.LoggingMiddleware(server.AuthMiddleware(server))
 
 	httpServer := &http.Server{
 		Addr:         ":9000",

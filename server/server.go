@@ -14,6 +14,7 @@ type Server struct {
 	client    *k8s.Client
 	logger    *logrus.Logger
 	templates *TemplateStore
+	auth      *AuthConfig
 }
 
 func NewServer(prefix, namespace, entrypoint, image string) (*Server, error) {
@@ -29,11 +30,16 @@ func NewServer(prefix, namespace, entrypoint, image string) (*Server, error) {
 	logger.SetLevel(logrus.InfoLevel)
 
 	templates := NewTemplateStore()
+	auth := NewAuthConfig()
+
+	// Add a default API key for development
+	auth.AddAPIKey("dev-key", "Development API Key", []string{"*"})
 
 	return &Server{
 		client:    client,
 		logger:    logger,
 		templates: templates,
+		auth:      auth,
 	}, nil
 }
 
@@ -75,6 +81,12 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.ListTemplates(w, r)
 	case strings.HasPrefix(r.URL.Path, "/templates/"):
 		s.GetTemplate(w, r)
+	case strings.HasPrefix(r.URL.Path, "/apikeys") && r.Method == http.MethodGet:
+		s.ListAPIKeys(w, r)
+	case strings.HasPrefix(r.URL.Path, "/apikeys") && r.Method == http.MethodPost:
+		s.CreateAPIKey(w, r)
+	case strings.HasPrefix(r.URL.Path, "/apikeys") && r.Method == http.MethodDelete:
+		s.DeleteAPIKey(w, r)
 	default:
 		http.NotFound(w, r)
 	}
