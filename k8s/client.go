@@ -1,8 +1,11 @@
 package k8s
 
 import (
+	"context"
 	"fmt"
 
+	core "k8s.io/api/core/v1"
+	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
@@ -50,4 +53,12 @@ func (c *Client) GetConfig() *rest.Config {
 
 func (c *Client) GetNamespace() string {
 	return c.namespace
+}
+
+func (c *Client) ListAllPods(ctx context.Context) (*core.PodList, error) {
+	return c.client.CoreV1().Pods(c.namespace).List(ctx, meta.ListOptions{})
+}
+
+func (c *Client) DeletePod(ctx context.Context, name string) error {
+	return c.client.CoreV1().Pods(c.namespace).Delete(ctx, name, meta.DeleteOptions{})
 }

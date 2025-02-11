@@ -82,6 +82,6 @@ sequenceDiagram
 - [ ] Implement automated testing
 - [ ] Add support for GPU acceleration
 - [ ] Implement network isolation between machines
-- [ ] Add machine health checks and auto-recovery
+- [x] Add machine health checks and auto-recovery
 - [ ] Support for multiple cloud providers
 - [ ] Add Firecracker support for lightweight virtualization

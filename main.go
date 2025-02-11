@@ -2,6 +2,7 @@ package main
 
 import (
 	"captain/server"
+	"context"
 	"log"
 	"net/http"
 	"time"
@@ -21,6 +22,11 @@ func main() {
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	go server.StartHealthChecker(ctx)
 
 	log.Println("Starting server on :9000")
 	log.Fatal(httpServer.ListenAndServe())
