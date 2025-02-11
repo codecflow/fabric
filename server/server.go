@@ -15,6 +15,7 @@ type Server struct {
 	logger    *logrus.Logger
 	templates *TemplateStore
 	auth      *AuthConfig
+	quotas    *QuotaStore
 }
 
 func NewServer(prefix, namespace, entrypoint, image string) (*Server, error) {
@@ -31,6 +32,7 @@ func NewServer(prefix, namespace, entrypoint, image string) (*Server, error) {
 
 	templates := NewTemplateStore()
 	auth := NewAuthConfig()
+	quotas := NewQuotaStore()
 
 	// Add a default API key for development
 	auth.AddAPIKey("dev-key", "Development API Key", []string{"*"})
@@ -40,6 +42,7 @@ func NewServer(prefix, namespace, entrypoint, image string) (*Server, error) {
 		logger:    logger,
 		templates: templates,
 		auth:      auth,
+		quotas:    quotas,
 	}, nil
 }
 
@@ -87,6 +90,12 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.CreateAPIKey(w, r)
 	case strings.HasPrefix(r.URL.Path, "/apikeys") && r.Method == http.MethodDelete:
 		s.DeleteAPIKey(w, r)
+	case strings.HasPrefix(r.URL.Path, "/quotas") && r.Method == http.MethodGet:
+		s.GetQuota(w, r)
+	case strings.HasPrefix(r.URL.Path, "/quotas") && r.Method == http.MethodPost:
+		s.SetQuota(w, r)
+	case strings.HasPrefix(r.URL.Path, "/quotas") && r.Method == http.MethodDelete:
+		s.DeleteQuota(w, r)
 	default:
 		http.NotFound(w, r)
 	}

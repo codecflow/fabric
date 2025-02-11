@@ -75,8 +75,8 @@ sequenceDiagram
 ## TODO
 
 - [ ] Add authentication and authorization
-- [ ] Implement resource quotas and limits
-- [ ] Add support for custom machine templates
+- [x] Implement resource quotas and limits
+- [x] Add support for custom machine templates
 - [ ] Enhance monitoring with Prometheus integration
 - [ ] Improve documentation and API reference
 - [ ] Implement automated testing

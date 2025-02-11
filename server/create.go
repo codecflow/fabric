@@ -72,12 +72,33 @@ func (s *Server) Create(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
-	_, err := s.client.Create(ctx, k8s.Machine{
+	// Get user ID from API key
+	apiKey := r.Header.Get("X-API-Key")
+	if apiKey == "" {
+		apiKey = r.URL.Query().Get("api_key")
+	}
+
+	// Default to "default" user if no API key is provided
+	userID := "default"
+	if apiKey != "" {
+		if key, ok := s.auth.APIKeys[apiKey]; ok {
+			// In a real system, the API key would be associated with a user ID
+			// For now, we'll just use the key as the user ID
+			userID = key.Key
+		}
+	}
+
+	machine := k8s.Machine{
 		ID:    req.ID,
 		Image: image,
 		Tools: req.Tools,
 		Env:   env,
-	})
+	}
+
+	// Apply resource limits based on user quotas
+	s.ApplyResourceLimits(&machine, userID)
+
+	_, err := s.client.Create(ctx, machine)
 
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to create resource: %v", err), http.StatusInternalServerError)

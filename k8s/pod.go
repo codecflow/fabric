@@ -9,17 +9,29 @@ import (
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type Resources struct {
+	CPU    string
+	Memory string
+	Disk   string
+}
+
 type Machine struct {
-	ID    string
-	Image string
-	Tools []string
-	Env   map[string]string
+	ID        string
+	Image     string
+	Tools     []string
+	Env       map[string]string
+	Resources *Resources
 }
 
 func (c *Client) Create(ctx context.Context, m Machine) (*core.Pod, error) {
 	name := c.prefix + m.ID
 
-	err := c.CreatePVC(ctx, name, "4Gi")
+	diskSize := "4Gi"
+	if m.Resources != nil && m.Resources.Disk != "" {
+		diskSize = m.Resources.Disk
+	}
+
+	err := c.CreatePVC(ctx, name, diskSize)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create PVC: %w", err)
@@ -44,19 +56,8 @@ func (c *Client) Create(ctx context.Context, m Machine) (*core.Pod, error) {
 					Name:            "machine",
 					Image:           m.Image,
 					ImagePullPolicy: core.PullIfNotPresent,
-					Resources: core.ResourceRequirements{
-						Limits: core.ResourceList{
-							"cpu":               resource.MustParse("3"),
-							"memory":            resource.MustParse("4Gi"),
-							"ephemeral-storage": resource.MustParse("3Gi"),
-						},
-						Requests: core.ResourceList{
-							"cpu":               resource.MustParse("2"),
-							"memory":            resource.MustParse("2Gi"),
-							"ephemeral-storage": resource.MustParse("3Gi"),
-						},
-					},
-					Env: createEnvVars(m.Env),
+					Resources:       getResourceRequirements(m.Resources),
+					Env:             createEnvVars(m.Env),
 					VolumeMounts: []core.VolumeMount{
 						{
 							Name:      "data",
@@ -80,6 +81,48 @@ func (c *Client) Create(ctx context.Context, m Machine) (*core.Pod, error) {
 	}
 
 	return c.client.CoreV1().Pods(c.namespace).Create(ctx, pod, meta.CreateOptions{})
+}
+
+func getResourceRequirements(res *Resources) core.ResourceRequirements {
+	if res == nil {
+		// Default resource requirements
+		return core.ResourceRequirements{
+			Limits: core.ResourceList{
+				"cpu":               resource.MustParse("3"),
+				"memory":            resource.MustParse("4Gi"),
+				"ephemeral-storage": resource.MustParse("3Gi"),
+			},
+			Requests: core.ResourceList{
+				"cpu":               resource.MustParse("2"),
+				"memory":            resource.MustParse("2Gi"),
+				"ephemeral-storage": resource.MustParse("3Gi"),
+			},
+		}
+	}
+
+	// Custom resource requirements
+	cpu := "3"
+	if res.CPU != "" {
+		cpu = res.CPU
+	}
+
+	memory := "4Gi"
+	if res.Memory != "" {
+		memory = res.Memory
+	}
+
+	return core.ResourceRequirements{
+		Limits: core.ResourceList{
+			"cpu":               resource.MustParse(cpu),
+			"memory":            resource.MustParse(memory),
+			"ephemeral-storage": resource.MustParse("3Gi"),
+		},
+		Requests: core.ResourceList{
+			"cpu":               resource.MustParse("2"),
+			"memory":            resource.MustParse("2Gi"),
+			"ephemeral-storage": resource.MustParse("3Gi"),
+		},
+	}
 }
 
 func (c *Client) Find(ctx context.Context, id string) (*core.Pod, error) {
