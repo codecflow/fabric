@@ -1,87 +1,147 @@
-# Captain 
+# Fabric - Weaver Control Plane
 
-> [!WARNING]  
-> This project is still in progress. Updates are coming soon and APIs may change.
-
-Core infrastructure component for CodecFlow - a platform providing on-demand cloud desktops for AI agents.
-
-## What is Captain?
-
-Captain is a Kubernetes-based service that provisions and manages virtual machines for AI agents. It enables:
-
-- Secure machine provisioning in Trusted Execution Environments (TEE)
-- Model Context Protocol (MCP) integration for AI agent communication
-- Command execution and file transfers
-- Resource monitoring and snapshot management
+Weaver is the control plane component of the Fabric system, providing REST/gRPC APIs for workload scheduling and management across multiple cloud providers.
 
 ## Architecture
 
-Built on Kubernetes for scalability and reliability, Captain provides isolated environments for AI agents to perform OS-level tasks securely.
+- **Control Plane (Weaver)**: REST/gRPC API, scheduler, cost-aware placement, provider drivers
+- **Node Runner (Shuttle)**: Joins WireGuard mesh, manages workloads via containerd
+- **Side-cars**: ctrl (input/output), stream (VNC/WebRTC bridge)
 
-```mermaid
-graph TD
-    A[AI Agent] -->|API Request| B[Captain Server]
-    B -->|Create Machine| C[Kubernetes API]
-    C -->|Create Pod| D[Machine Pod]
-    C -->|Create PVC| E[Persistent Storage]
-    D -->|Mount| E
-    A -->|Connect| D
-    B -->|Execute Commands| D
-    B -->|Get Logs| D
-    B -->|Upload/Download Files| D
-    B -->|Monitor Resources| D
-    B -->|Create/Restore Snapshots| E
-    
-    subgraph "Kubernetes Cluster"
-        C
-        D
-        E
-    end
+## Features
+
+- Multi-cloud workload scheduling (K8s, RunPod, CoreWeave, AWS, GCP)
+- Cost-aware placement optimization
+- Provider abstraction layer
+- REST API for workload management
+- Configuration via CLI flags, config files, or environment variables
+
+## Quick Start
+
+### Build
+
+```bash
+go build -o weaver ./cmd/weaver
 ```
 
-## Request Flow
+### Run
 
-The following diagram illustrates the flow of a machine creation request:
+```bash
+# With default settings (K8s provider enabled)
+./weaver --k-8-s-enabled
 
-```mermaid
-sequenceDiagram
-    participant Agent as AI Agent
-    participant Captain as Captain Server
-    participant K8s as Kubernetes API
-    participant Pod as Machine Pod
-    participant Storage as Persistent Storage
+# With custom config
+./weaver --config config.yaml
 
-    Agent->>Captain: Create Machine Request
-    opt Template-based creation
-        Captain->>Captain: Resolve template
-    end
-    Captain->>K8s: Create PVC
-    K8s->>Storage: Allocate storage
-    Captain->>K8s: Create Pod
-    K8s->>Pod: Schedule and start
-    Pod->>Storage: Mount volume
-    Captain->>Agent: Return machine details
-    
-    Agent->>Captain: Connect to machine
-    Captain->>Pod: Establish connection
-    Captain->>Agent: Return connection stream
-    
-    Agent->>Captain: Execute command
-    Captain->>Pod: Run command
-    Pod->>Captain: Return result
-    Captain->>Agent: Return command output
+# See all options
+./weaver --help
 ```
 
-## TODO
+### Configuration
 
-- [ ] Add authentication and authorization
-- [x] Implement resource quotas and limits
-- [x] Add support for custom machine templates
-- [ ] Enhance monitoring with Prometheus integration
-- [ ] Improve documentation and API reference
-- [ ] Implement automated testing
-- [ ] Add support for GPU acceleration
-- [ ] Implement network isolation between machines
-- [x] Add machine health checks and auto-recovery
-- [ ] Support for multiple cloud providers
-- [ ] Add Firecracker support for lightweight virtualization
+Configuration can be provided via:
+1. Command line flags
+2. YAML config file
+3. Environment variables
+
+Example config.yaml:
+```yaml
+server:
+  address: ":8080"
+
+database:
+  host: "localhost"
+  port: 5432
+  user: "fabric"
+  password: "fabric"
+  database: "fabric"
+
+nats:
+  url: "nats://localhost:4222"
+
+providers:
+  k8s:
+    enabled: true
+    namespace: "default"
+  runpod:
+    enabled: false
+    api_key: ""
+  coreweave:
+    enabled: false
+    api_key: ""
+```
+
+## API Endpoints
+
+### Health Check
+- `GET /health` - Service health status
+
+### Workload Management
+- `POST /v1/workloads` - Create workload
+- `GET /v1/workloads/:id` - Get workload status
+- `DELETE /v1/workloads/:id` - Delete workload
+- `GET /v1/workloads` - List workloads
+
+### Provider Information
+- `GET /v1/providers` - List available providers
+- `GET /v1/providers/:name/regions` - List provider regions
+- `GET /v1/providers/:name/machine-types` - List provider machine types
+
+### Scheduler
+- `GET /v1/scheduler/status` - Scheduler status
+
+## Providers
+
+### Kubernetes (K8s)
+- Local or remote Kubernetes clusters
+- Pod-based workload execution
+- Resource quotas and limits
+
+### RunPod
+- GPU-focused cloud provider
+- RTX 4090, RTX 4080, A100, H100 instances
+- API-based provisioning
+
+### CoreWeave
+- High-performance GPU cloud
+- A6000, A100, H100 instances
+- Multiple regions (Chicago, New York, Las Vegas)
+
+## Development
+
+### Project Structure
+```
+cmd/weaver/          # Main application entry point
+internal/
+  api/               # REST API handlers and routes
+  config/            # Configuration management
+  provider/          # Provider interface and implementations
+    k8s/             # Kubernetes provider
+    runpod/          # RunPod provider
+    coreweave/       # CoreWeave provider
+  scheduler/         # Workload scheduling logic
+  state/             # Application state management
+images/              # Docker images
+```
+
+### Adding New Providers
+
+1. Create new provider package in `internal/provider/`
+2. Implement the `Provider` interface
+3. Add configuration struct to `internal/config/`
+4. Register provider in `internal/state/state.go`
+
+## Dependencies
+
+- PostgreSQL (for state storage)
+- NATS (for event publishing)
+- Kubernetes cluster (if using K8s provider)
+- Provider API keys (for cloud providers)
+
+## Docker
+
+Build and run with Docker:
+
+```bash
+docker build -f images/Dockerfile.weaver -t weaver .
+docker run -p 8080:8080 weaver

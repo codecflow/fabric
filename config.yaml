@@ -1,0 +1,22 @@
+server:
+  address: ":8080"
+
+database:
+  host: "localhost"
+  port: 5432
+  user: "fabric"
+  password: "fabric"
+  database: "fabric"
+  ssl_mode: "disable"
+
+nats:
+  url: "nats://localhost:4222"
+
+providers:
+  k8s:
+    enabled: true
+    namespace: "default"
+  runpod:
+    enabled: false
+  coreweave:
+    enabled: false
