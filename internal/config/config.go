@@ -11,6 +11,7 @@ type Config struct {
 	Database DatabaseConfig `json:"database"`
 	NATS     NATSConfig     `json:"nats"`
 	Logging  LoggingConfig  `json:"logging"`
+	Proxy    ProxyConfig    `json:"proxy"`
 }
 
 // ServerConfig represents HTTP server configuration
@@ -41,6 +42,27 @@ type LoggingConfig struct {
 	Format string `json:"format"`
 }
 
+// ProxyConfig represents proxy configuration
+type ProxyConfig struct {
+	Enabled bool `json:"enabled"`
+	Port    int  `json:"port"`
+}
+
+// CRIUConfig represents CRIU snapshot configuration
+type CRIUConfig struct {
+	Enabled        bool   `json:"enabled"`
+	SnapshotDir    string `json:"snapshot_dir"`
+	IrohEnabled    bool   `json:"iroh_enabled"`
+	TCPEstablished bool   `json:"tcp_established"`
+	FileLocks      bool   `json:"file_locks"`
+}
+
+// IrohConfig represents Iroh storage configuration
+type IrohConfig struct {
+	Enabled bool   `json:"enabled"`
+	NodeURL string `json:"node_url"`
+}
+
 // Load loads configuration from environment variables
 func Load() (*Config, error) {
 	config := &Config{
@@ -63,6 +85,10 @@ func Load() (*Config, error) {
 		Logging: LoggingConfig{
 			Level:  getEnv("LOG_LEVEL", "info"),
 			Format: getEnv("LOG_FORMAT", "json"),
+		},
+		Proxy: ProxyConfig{
+			Enabled: getEnv("PROXY_ENABLED", "false") == "true",
+			Port:    getEnvInt("PROXY_PORT", 8081),
 		},
 	}
 

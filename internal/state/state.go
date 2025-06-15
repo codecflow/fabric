@@ -3,6 +3,7 @@ package state
 import (
 	"fabric/internal/metering"
 	"fabric/internal/network"
+	"fabric/internal/proxy"
 	"fabric/internal/repository"
 	"fabric/internal/scheduler"
 	"fabric/internal/storage"
@@ -18,6 +19,7 @@ type State struct {
 	Storage    storage.Storage
 	Network    network.Network
 	Scheduler  scheduler.Scheduler
+	Proxy      *proxy.Server
 	Providers  map[string]types.Provider
 }
 
@@ -86,6 +88,13 @@ func (s *State) Close() error {
 	// Close repository
 	if s.Repository != nil {
 		if err := s.Repository.Close(); err != nil {
+			lastErr = err
+		}
+	}
+
+	// Close proxy
+	if s.Proxy != nil {
+		if err := s.Proxy.Stop(); err != nil {
 			lastErr = err
 		}
 	}

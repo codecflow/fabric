@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"fabric/internal/api"
 	"fabric/internal/config"
+	"fabric/internal/grpc"
+	"fabric/internal/proxy"
 	"fabric/internal/state"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -37,21 +37,31 @@ func main() {
 	scheduler := simple.New(appState.Providers, nil)
 	appState.Scheduler = scheduler
 
-	defer appState.Close()
+	// Initialize proxy server
+	if cfg.Proxy.Enabled {
+		var err error
+		appState.Proxy, err = proxy.New(&cfg.Proxy)
+		if err != nil {
+			logger.Fatalf("Failed to create proxy server: %v", err)
+		}
 
-	router := api.SetupRoutes(appState)
-
-	server := &http.Server{
-		Addr:         cfg.Server.Address,
-		Handler:      router,
-		ReadTimeout:  30 * time.Second,
-		WriteTimeout: 30 * time.Second,
+		ctx := context.Background()
+		if err := appState.Proxy.Start(ctx); err != nil {
+			logger.Fatalf("Failed to start proxy server: %v", err)
+		}
+		logger.Infof("Proxy server started on port %d", cfg.Proxy.Port)
 	}
 
+	defer appState.Close()
+
+	// Create gRPC server
+	grpcServer := grpc.NewServer(appState, logger)
+
+	// Start gRPC server in a goroutine
 	go func() {
-		logger.Infof("Starting Weaver server on %s", cfg.Server.Address)
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Fatalf("Server failed to start: %v", err)
+		logger.Infof("Starting Weaver gRPC server on %s", cfg.Server.Address)
+		if err := grpcServer.Start(cfg.Server.Address); err != nil {
+			logger.Fatalf("gRPC server failed to start: %v", err)
 		}
 	}()
 
@@ -61,12 +71,7 @@ func main() {
 
 	logger.Info("Shutting down server...")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	if err := server.Shutdown(ctx); err != nil {
-		logger.Fatalf("Server forced to shutdown: %v", err)
-	}
-
+	// TODO: Implement graceful shutdown for gRPC server
+	// For now, just exit
 	logger.Info("Server exited")
 }

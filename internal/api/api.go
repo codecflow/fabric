@@ -1,10 +1,21 @@
 package api
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fabric/internal/state"
+	"fabric/internal/types"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
+
+// generateID creates a random ID for workloads
+func generateID() string {
+	bytes := make([]byte, 8)
+	rand.Read(bytes)
+	return hex.EncodeToString(bytes)
+}
 
 func SetupRoutes(appState *state.State) *gin.Engine {
 	r := gin.New()
@@ -47,8 +58,66 @@ func SetupRoutes(appState *state.State) *gin.Engine {
 
 func createWorkload(appState *state.State) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// TODO: Implement workload creation
-		c.JSON(501, gin.H{"error": "not implemented"})
+		var req struct {
+			Name      string            `json:"name" binding:"required"`
+			Namespace string            `json:"namespace" binding:"required"`
+			Image     string            `json:"image" binding:"required"`
+			Port      int32             `json:"port"`
+			Env       map[string]string `json:"env"`
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+
+		now := time.Now()
+
+		// Create workload with proper structure
+		workload := &types.Workload{
+			ID:        generateID(),
+			Name:      req.Name,
+			Namespace: req.Namespace,
+			Spec: types.WorkloadSpec{
+				Image: req.Image,
+				Env:   req.Env,
+			},
+			Status: types.WorkloadStatus{
+				Phase: types.WorkloadPhasePending,
+			},
+			CreatedAt: now,
+			UpdatedAt: now,
+		}
+
+		// Add port if specified
+		if req.Port > 0 {
+			workload.Spec.Ports = []types.Port{
+				{
+					ContainerPort: req.Port,
+					Protocol:      "TCP",
+				},
+			}
+		}
+
+		// TODO: Store workload in repository
+		// For now, just simulate successful creation
+
+		// Add proxy route if proxy is enabled and workload has a port
+		if appState.Proxy != nil && req.Port > 0 {
+			// Simulate target URL (in real implementation, this would come from the provider)
+			targetURL := "http://localhost:8080" // This would be the actual workload endpoint
+			if err := appState.Proxy.AddRoute(workload, targetURL); err != nil {
+				c.JSON(500, gin.H{"error": "failed to add proxy route: " + err.Error()})
+				return
+			}
+		}
+
+		c.JSON(201, gin.H{
+			"id":        workload.ID,
+			"name":      workload.Name,
+			"namespace": workload.Namespace,
+			"status":    workload.Status.Phase,
+		})
 	}
 }
 

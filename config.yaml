@@ -1,22 +1,32 @@
+# Fabric Configuration
 server:
   address: ":8080"
-
+  
+proxy:
+  enabled: true
+  port: 8081
+  
 database:
   host: "localhost"
   port: 5432
+  name: "fabric"
   user: "fabric"
   password: "fabric"
-  database: "fabric"
-  ssl_mode: "disable"
-
+  
 nats:
   url: "nats://localhost:4222"
-
-providers:
-  k8s:
-    enabled: true
-    namespace: "default"
-  runpod:
-    enabled: false
-  coreweave:
-    enabled: false
+  
+tailscale:
+  authkey: ""
+  hostname: "fabric-node"
+  
+containerd:
+  socket: "/run/containerd/containerd.sock"
+  namespace: "fabric"
+  
+metering:
+  endpoint: "http://localhost:8082"
+  
+storage:
+  iroh:
+    node_path: "/tmp/iroh"

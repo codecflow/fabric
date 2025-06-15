@@ -1,0 +1,251 @@
+syntax = "proto3";
+
+package weaver;
+
+option go_package = "fabric/proto/weaver;weaver";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+// Weaver service for workload orchestration
+service WeaverService {
+  // Workload management
+  rpc CreateWorkload(CreateWorkloadRequest) returns (CreateWorkloadResponse);
+  rpc GetWorkload(GetWorkloadRequest) returns (GetWorkloadResponse);
+  rpc ListWorkloads(ListWorkloadsRequest) returns (ListWorkloadsResponse);
+  rpc DeleteWorkload(DeleteWorkloadRequest) returns (google.protobuf.Empty);
+  
+  // Provider management
+  rpc ListProviders(google.protobuf.Empty) returns (ListProvidersResponse);
+  rpc GetProviderRegions(GetProviderRegionsRequest) returns (GetProviderRegionsResponse);
+  rpc GetProviderMachineTypes(GetProviderMachineTypesRequest) returns (GetProviderMachineTypesResponse);
+  
+  // Scheduler
+  rpc GetSchedulerStatus(google.protobuf.Empty) returns (GetSchedulerStatusResponse);
+  rpc ScheduleWorkload(ScheduleWorkloadRequest) returns (ScheduleWorkloadResponse);
+  rpc GetRecommendations(GetRecommendationsRequest) returns (GetRecommendationsResponse);
+  rpc GetSchedulerStats(google.protobuf.Empty) returns (GetSchedulerStatsResponse);
+  
+  // Health check
+  rpc HealthCheck(google.protobuf.Empty) returns (HealthCheckResponse);
+}
+
+// Workload messages
+message CreateWorkloadRequest {
+  string name = 1;
+  string namespace = 2;
+  WorkloadSpec spec = 3;
+  map<string, string> labels = 4;
+  map<string, string> annotations = 5;
+}
+
+message CreateWorkloadResponse {
+  string id = 1;
+  string name = 2;
+  string namespace = 3;
+  WorkloadStatus status = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+message GetWorkloadRequest {
+  string id = 1;
+}
+
+message GetWorkloadResponse {
+  Workload workload = 1;
+}
+
+message ListWorkloadsRequest {
+  string namespace = 1;
+  map<string, string> label_selector = 2;
+  int32 limit = 3;
+  string continue_token = 4;
+}
+
+message ListWorkloadsResponse {
+  repeated Workload workloads = 1;
+  string continue_token = 2;
+  int32 total = 3;
+}
+
+message DeleteWorkloadRequest {
+  string id = 1;
+}
+
+// Provider messages
+message ListProvidersResponse {
+  repeated string providers = 1;
+}
+
+message GetProviderRegionsRequest {
+  string provider = 1;
+}
+
+message GetProviderRegionsResponse {
+  repeated string regions = 1;
+}
+
+message GetProviderMachineTypesRequest {
+  string provider = 1;
+  string region = 2;
+}
+
+message GetProviderMachineTypesResponse {
+  repeated MachineType machine_types = 1;
+}
+
+message MachineType {
+  string name = 1;
+  string cpu = 2;
+  string memory = 3;
+  string gpu = 4;
+  double price_per_hour = 5;
+}
+
+// Scheduler messages
+message GetSchedulerStatusResponse {
+  string status = 1;
+  int32 providers_count = 2;
+  string scheduler_status = 3;
+  string scheduler_error = 4;
+}
+
+message ScheduleWorkloadRequest {
+  WorkloadSpec spec = 1;
+  PlacementConstraints constraints = 2;
+}
+
+message ScheduleWorkloadResponse {
+  string provider = 1;
+  string region = 2;
+  string zone = 3;
+  string node_id = 4;
+  double estimated_cost = 5;
+}
+
+message GetRecommendationsRequest {
+  WorkloadSpec spec = 1;
+  PlacementConstraints constraints = 2;
+}
+
+message GetRecommendationsResponse {
+  repeated ScheduleRecommendation recommendations = 1;
+}
+
+message ScheduleRecommendation {
+  string provider = 1;
+  string region = 2;
+  string zone = 3;
+  double cost_per_hour = 4;
+  double performance_score = 5;
+  string reason = 6;
+}
+
+message GetSchedulerStatsResponse {
+  int32 total_workloads = 1;
+  int32 running_workloads = 2;
+  int32 pending_workloads = 3;
+  int32 failed_workloads = 4;
+  map<string, int32> workloads_by_provider = 5;
+  double total_cost_per_hour = 6;
+}
+
+message PlacementConstraints {
+  string provider = 1;
+  string region = 2;
+  string zone = 3;
+  map<string, string> node_labels = 4;
+  repeated Toleration tolerations = 5;
+  double max_cost_per_hour = 6;
+}
+
+// Health check
+message HealthCheckResponse {
+  string status = 1;
+  string service = 2;
+  google.protobuf.Timestamp timestamp = 3;
+}
+
+// Core types
+message Workload {
+  string id = 1;
+  string name = 2;
+  string namespace = 3;
+  map<string, string> labels = 4;
+  map<string, string> annotations = 5;
+  WorkloadSpec spec = 6;
+  WorkloadStatus status = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+  google.protobuf.Timestamp deleted_at = 10;
+}
+
+message WorkloadSpec {
+  string image = 1;
+  repeated string command = 2;
+  repeated string args = 3;
+  map<string, string> env = 4;
+  ResourceRequests resources = 5;
+  repeated VolumeMount volumes = 6;
+  repeated Port ports = 7;
+  repeated SidecarSpec sidecars = 8;
+  string restart_policy = 9;
+  PlacementSpec placement = 10;
+}
+
+message ResourceRequests {
+  string cpu = 1;
+  string memory = 2;
+  string gpu = 3;
+}
+
+message VolumeMount {
+  string name = 1;
+  string mount_path = 2;
+  bool read_only = 3;
+  string content_id = 4;
+}
+
+message Port {
+  string name = 1;
+  int32 container_port = 2;
+  string protocol = 3;
+}
+
+message SidecarSpec {
+  string name = 1;
+  string image = 2;
+  repeated string command = 3;
+  repeated string args = 4;
+  map<string, string> env = 5;
+}
+
+message PlacementSpec {
+  string provider = 1;
+  string region = 2;
+  string zone = 3;
+  map<string, string> node_labels = 4;
+  repeated Toleration tolerations = 5;
+}
+
+message Toleration {
+  string key = 1;
+  string operator = 2;
+  string value = 3;
+  string effect = 4;
+}
+
+message WorkloadStatus {
+  string phase = 1;
+  string message = 2;
+  string reason = 3;
+  google.protobuf.Timestamp start_time = 4;
+  google.protobuf.Timestamp finish_time = 5;
+  int32 restart_count = 6;
+  string node_id = 7;
+  string provider = 8;
+  string tailscale_ip = 9;
+  string container_id = 10;
+  string snapshot_id = 11;
+  google.protobuf.Timestamp last_snapshot = 12;
+}
