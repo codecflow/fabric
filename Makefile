@@ -1,4 +1,4 @@
-.PHONY: all build clean weaver shuttle gauge test proto
+.PHONY: all build clean weaver shuttle gauge test proto deps dev-weaver dev-shuttle dev-gauge
 
 # Build all components
 all: build
@@ -7,43 +7,54 @@ build: proto weaver shuttle gauge
 
 # Generate protobuf files
 proto:
-	protoc --go_out=. --go_opt=paths=source_relative \
-		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
-		proto/weaver/weaver.proto
+	protoc --go_out=weaver/internal/grpc --go_opt=paths=source_relative \
+		--go-grpc_out=weaver/internal/grpc --go-grpc_opt=paths=source_relative \
+		weaver/internal/grpc/weaver.proto
 
 # Build individual components
 weaver:
-	go build -o bin/weaver cmd/weaver/main.go
+	mkdir -p bin
+	go build -o bin/weaver ./weaver
 
 shuttle:
-	go build -o bin/shuttle cmd/shuttle/main.go
+	mkdir -p bin
+	go build -o bin/shuttle ./shuttle
 
 gauge:
-	go build -o bin/gauge cmd/gauge/main.go
+	mkdir -p bin
+	go build -o bin/gauge ./gauge
 
 # Test all packages
 test:
-	go test ./...
+	go test weaver/...
+	go test shuttle/...
+	go test gauge/...
 
 # Clean build artifacts
 clean:
 	rm -rf bin/
-	rm -f proto/weaver/*.pb.go
-	rm -f weaver shuttle gauge
+	rm -f weaver/internal/grpc/*.pb.go
 
-# Install dependencies
+# Install dependencies for all modules
 deps:
-	go mod download
-	go mod tidy
+	go work sync
 
-# Run weaver in development mode
+# Run components in development mode
 dev-weaver:
-	go run cmd/weaver/main.go
+	go run weaver
 
-# Run shuttle in development mode
 dev-shuttle:
-	go run cmd/shuttle/main.go
+	go run shuttle
 
-# Run gauge in development mode
 dev-gauge:
-	go run cmd/gauge/main.go
+	go run gauge
+
+# Development helpers
+fmt:
+	go fmt weaver/...
+	go fmt shuttle/...
+	go fmt gauge/...
+
+# Workspace operations
+workspace-sync:
+	go work sync
