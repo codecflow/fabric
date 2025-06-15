@@ -14,6 +14,7 @@ import (
 	"weaver/internal/provider/kubernetes"
 	"weaver/internal/provider/nosana"
 	"weaver/internal/proxy"
+	"weaver/internal/repository"
 	"weaver/internal/repository/postgres"
 	"weaver/internal/scheduler/simple"
 	"weaver/internal/state"
@@ -42,11 +43,15 @@ func main() {
 			cfg.Database.Host, cfg.Database.Port, cfg.Database.Username,
 			cfg.Database.Password, cfg.Database.Database, cfg.Database.SSLMode)
 
-		repo, err := postgres.New(connStr)
+		pgRepo, err := postgres.New(connStr)
 		if err != nil {
 			logger.Warnf("Failed to initialize PostgreSQL repository: %v", err)
 		} else {
-			appState.Repository = repo
+			appState.Repository = &repository.Repository{
+				Workload:  pgRepo.Workload,
+				Namespace: pgRepo.Namespace,
+				Secret:    pgRepo.Secret,
+			}
 			logger.Info("PostgreSQL repository initialized")
 		}
 	}

@@ -13,7 +13,7 @@ import (
 
 // State represents the application state with all dependencies
 type State struct {
-	Repository repository.Repository
+	Repository *repository.Repository
 	Stream     stream.Stream
 	Meter      metering.Meter
 	Storage    storage.Storage
