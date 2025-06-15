@@ -26,10 +26,8 @@ func main() {
 		logger.Fatalf("Failed to load config: %v", err)
 	}
 
-	appState, err := state.New(cfg, logger)
-	if err != nil {
-		logger.Fatalf("Failed to create app state: %v", err)
-	}
+	appState := state.New()
+	// TODO: Initialize appState components (Repository, Stream, Meter, etc.)
 	defer appState.Close()
 
 	router := api.SetupRoutes(appState)

@@ -1,124 +1,92 @@
 package state
 
 import (
-	"database/sql"
-	"fabric/internal/config"
-	"fabric/internal/provider"
-	"fabric/internal/provider/coreweave"
-	"fabric/internal/provider/k8s"
-	"fabric/internal/provider/runpod"
-	"fabric/internal/scheduler"
-	"fmt"
-
-	_ "github.com/lib/pq"
-	"github.com/nats-io/nats.go"
-	"github.com/sirupsen/logrus"
+	"fabric/internal/metering"
+	"fabric/internal/network"
+	"fabric/internal/repository"
+	"fabric/internal/storage"
+	"fabric/internal/stream"
+	"fabric/internal/types"
 )
 
-type AppState struct {
-	DB        *sql.DB
-	NATS      *nats.Conn
-	Config    *config.Config
-	Logger    *logrus.Logger
-	Providers map[string]provider.Provider
-	Scheduler *scheduler.Scheduler
+// State represents the application state with all dependencies
+type State struct {
+	Repository repository.Repository
+	Stream     stream.Stream
+	Meter      metering.Meter
+	Storage    storage.Storage
+	Network    network.Network
+	Providers  map[string]types.Provider
 }
 
-func New(cfg *config.Config, logger *logrus.Logger) (*AppState, error) {
-	// Initialize database connection
-	db, err := initDatabase(cfg.Database)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize database: %w", err)
+// New creates a new State instance
+func New() *State {
+	return &State{
+		Providers: make(map[string]types.Provider),
 	}
-
-	// Initialize NATS connection
-	nc, err := nats.Connect(cfg.NATS.URL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to NATS: %w", err)
-	}
-
-	// Initialize providers
-	providers := make(map[string]provider.Provider)
-
-	// Initialize scheduler
-	sched := scheduler.New(providers, db, nc, logger)
-
-	state := &AppState{
-		DB:        db,
-		NATS:      nc,
-		Config:    cfg,
-		Logger:    logger,
-		Providers: providers,
-		Scheduler: sched,
-	}
-
-	// Initialize providers after state is created
-	if err := state.initProviders(); err != nil {
-		return nil, fmt.Errorf("failed to initialize providers: %w", err)
-	}
-
-	return state, nil
 }
 
-func (s *AppState) Close() error {
-	if s.NATS != nil {
-		s.NATS.Close()
-	}
-	if s.DB != nil {
-		return s.DB.Close()
-	}
-	return nil
+// AddProvider adds a provider to the state
+func (s *State) AddProvider(name string, provider types.Provider) {
+	s.Providers[name] = provider
 }
 
-func initDatabase(cfg config.DatabaseConfig) (*sql.DB, error) {
-	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
-		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Database, cfg.SSLMode)
-
-	db, err := sql.Open("postgres", dsn)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := db.Ping(); err != nil {
-		return nil, err
-	}
-
-	return db, nil
+// GetProvider retrieves a provider by name
+func (s *State) GetProvider(name string) (types.Provider, bool) {
+	provider, exists := s.Providers[name]
+	return provider, exists
 }
 
-func (s *AppState) initProviders() error {
-	// Initialize K8s provider if enabled
-	if s.Config.Providers.K8s.Enabled {
-		k8sProvider, err := k8s.New(s.Config.Providers.K8s)
-		if err != nil {
-			s.Logger.Warnf("Failed to initialize K8s provider: %v", err)
-		} else {
-			s.Providers["k8s"] = k8sProvider
-			s.Logger.Info("K8s provider initialized")
+// ListProviders returns all available providers
+func (s *State) ListProviders() map[string]types.Provider {
+	return s.Providers
+}
+
+// Close closes all connections and cleans up resources
+func (s *State) Close() error {
+	var lastErr error
+
+	// Close all providers
+	for _, provider := range s.Providers {
+		if err := provider.HealthCheck(nil); err != nil {
+			lastErr = err
 		}
 	}
 
-	// Initialize RunPod provider if enabled
-	if s.Config.Providers.RunPod.Enabled {
-		runpodProvider, err := runpod.New(s.Config.Providers.RunPod)
-		if err != nil {
-			s.Logger.Warnf("Failed to initialize RunPod provider: %v", err)
-		} else {
-			s.Providers["runpod"] = runpodProvider
-			s.Logger.Info("RunPod provider initialized")
+	// Close network
+	if s.Network != nil {
+		if err := s.Network.Close(); err != nil {
+			lastErr = err
 		}
 	}
 
-	// Initialize CoreWeave provider if enabled
-	if s.Config.Providers.CoreWeave.Enabled {
-		coreweaveProvider, err := coreweave.New(s.Config.Providers.CoreWeave)
-		if err != nil {
-			s.Logger.Warnf("Failed to initialize CoreWeave provider: %v", err)
-		} else {
-			s.Providers["coreweave"] = coreweaveProvider
-			s.Logger.Info("CoreWeave provider initialized")
+	// Close storage
+	if s.Storage != nil {
+		if err := s.Storage.Close(); err != nil {
+			lastErr = err
 		}
 	}
 
-	return nil
+	// Close meter
+	if s.Meter != nil {
+		if err := s.Meter.Close(); err != nil {
+			lastErr = err
+		}
+	}
+
+	// Close stream
+	if s.Stream != nil {
+		if err := s.Stream.Close(); err != nil {
+			lastErr = err
+		}
+	}
+
+	// Close repository
+	if s.Repository != nil {
+		if err := s.Repository.Close(); err != nil {
+			lastErr = err
+		}
+	}
+
+	return lastErr
 }

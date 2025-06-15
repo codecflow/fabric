@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutes(appState *state.AppState) *gin.Engine {
+func SetupRoutes(appState *state.State) *gin.Engine {
 	r := gin.New()
 
 	// Middleware
@@ -42,35 +42,35 @@ func SetupRoutes(appState *state.AppState) *gin.Engine {
 	return r
 }
 
-func createWorkload(appState *state.AppState) gin.HandlerFunc {
+func createWorkload(appState *state.State) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// TODO: Implement workload creation
 		c.JSON(501, gin.H{"error": "not implemented"})
 	}
 }
 
-func getWorkload(appState *state.AppState) gin.HandlerFunc {
+func getWorkload(appState *state.State) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// TODO: Implement workload retrieval
 		c.JSON(501, gin.H{"error": "not implemented"})
 	}
 }
 
-func deleteWorkload(appState *state.AppState) gin.HandlerFunc {
+func deleteWorkload(appState *state.State) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// TODO: Implement workload deletion
 		c.JSON(501, gin.H{"error": "not implemented"})
 	}
 }
 
-func listWorkloads(appState *state.AppState) gin.HandlerFunc {
+func listWorkloads(appState *state.State) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// TODO: Implement workload listing
 		c.JSON(501, gin.H{"error": "not implemented"})
 	}
 }
 
-func listProviders(appState *state.AppState) gin.HandlerFunc {
+func listProviders(appState *state.State) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		providers := make([]string, 0, len(appState.Providers))
 		for name := range appState.Providers {
@@ -80,45 +80,35 @@ func listProviders(appState *state.AppState) gin.HandlerFunc {
 	}
 }
 
-func listProviderRegions(appState *state.AppState) gin.HandlerFunc {
+func listProviderRegions(appState *state.State) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		providerName := c.Param("name")
-		provider, exists := appState.Providers[providerName]
+		_, exists := appState.Providers[providerName]
 		if !exists {
 			c.JSON(404, gin.H{"error": "provider not found"})
 			return
 		}
 
-		regions, err := provider.ListRegions()
-		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
-			return
-		}
-
-		c.JSON(200, gin.H{"regions": regions})
+		// TODO: Update to use new provider interface
+		c.JSON(501, gin.H{"error": "not implemented"})
 	}
 }
 
-func listProviderMachineTypes(appState *state.AppState) gin.HandlerFunc {
+func listProviderMachineTypes(appState *state.State) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		providerName := c.Param("name")
-		provider, exists := appState.Providers[providerName]
+		_, exists := appState.Providers[providerName]
 		if !exists {
 			c.JSON(404, gin.H{"error": "provider not found"})
 			return
 		}
 
-		machineTypes, err := provider.ListMachineTypes()
-		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
-			return
-		}
-
-		c.JSON(200, gin.H{"machine_types": machineTypes})
+		// TODO: Update to use new provider interface
+		c.JSON(501, gin.H{"error": "not implemented"})
 	}
 }
 
-func getSchedulerStatus(appState *state.AppState) gin.HandlerFunc {
+func getSchedulerStatus(appState *state.State) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status":          "running",
