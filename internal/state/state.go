@@ -4,6 +4,7 @@ import (
 	"fabric/internal/metering"
 	"fabric/internal/network"
 	"fabric/internal/repository"
+	"fabric/internal/scheduler"
 	"fabric/internal/storage"
 	"fabric/internal/stream"
 	"fabric/internal/types"
@@ -16,6 +17,7 @@ type State struct {
 	Meter      metering.Meter
 	Storage    storage.Storage
 	Network    network.Network
+	Scheduler  scheduler.Scheduler
 	Providers  map[string]types.Provider
 }
 

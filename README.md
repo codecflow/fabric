@@ -1,215 +1,161 @@
-# Fabric - Multi-Cloud Workload Orchestration
+# Fabric - Distributed Compute Platform
 
-Fabric is a multi-cloud workload orchestration system composed of:
-- **Weaver**: Control plane with REST/gRPC APIs, scheduler, and cost-aware placement
-- **Shuttle**: Node runner that joins WireGuard mesh and manages workloads via containerd
-- **Sidecars**: ctrl (input/output) and stream (VNC/WebRTC bridge) components
+Fabric is a distributed compute platform that provides cost-aware scheduling across multiple cloud providers with a focus on performance, reliability, and cost optimization.
 
 ## Architecture
 
-```mermaid
-graph TB
-    subgraph "Fabric System"
-        subgraph "Control Plane"
-            W[Weaver<br/>REST/gRPC API<br/>Scheduler<br/>Cost-aware Placement]
-            DB[(PostgreSQL<br/>State Storage)]
-            NATS[NATS<br/>Event Bus]
-        end
-        
-        subgraph "Node Runners"
-            S1[Shuttle 1<br/>WireGuard Mesh<br/>containerd]
-            S2[Shuttle 2<br/>WireGuard Mesh<br/>containerd]
-            S3[Shuttle N<br/>WireGuard Mesh<br/>containerd]
-        end
-        
-        subgraph "Side-cars"
-            CTRL[ctrl<br/>Input/Output<br/>gRPC]
-            STREAM[stream<br/>VNC/WebRTC<br/>Bridge]
-        end
-        
-        subgraph "Cloud Providers"
-            K8S[Kubernetes<br/>Clusters]
-            RP[RunPod<br/>GPU Cloud]
-            CW[CoreWeave<br/>GPU Cloud]
-            AWS[AWS<br/>EC2/EKS]
-            GCP[GCP<br/>GCE/GKE]
-        end
-    end
-    
-    W --> DB
-    W --> NATS
-    W --> K8S
-    W --> RP
-    W --> CW
-    W --> AWS
-    W --> GCP
-    
-    NATS --> S1
-    NATS --> S2
-    NATS --> S3
-    
-    S1 --> CTRL
-    S1 --> STREAM
-    S2 --> CTRL
-    S2 --> STREAM
-    S3 --> CTRL
-    S3 --> STREAM
-```
+### Weaver (Control Plane)
+The central control plane that manages workload scheduling and provider coordination.
 
-### Component Overview
-- **Control Plane (Weaver)**: REST/gRPC API, scheduler, cost-aware placement, provider drivers
-- **Node Runner (Shuttle)**: Joins WireGuard mesh, manages workloads via containerd
-- **Side-cars**: ctrl (input/output), stream (VNC/WebRTC bridge)
+**Key Components:**
+- **REST/gRPC API**: HTTP endpoints for workload management
+- **Scheduler**: Cost-aware placement engine with multiple strategies
+- **Provider Drivers**: Unified interface for K8s, RunPod, CoreWeave, GCP, AWS, etc.
+- **State Management**: Postgres integration for persistence
+- **Event Streaming**: NATS/JetStream for real-time updates
+- **Metering**: OpenMeter integration for usage tracking
 
-## Features
+### Shuttle (Node Runner)
+Lightweight node agent that runs workloads and manages sidecars.
 
-- Multi-cloud workload scheduling (K8s, RunPod, CoreWeave, AWS, GCP)
-- Cost-aware placement optimization
-- Provider abstraction layer
-- REST API for workload management
-- Configuration via CLI flags, config files, or environment variables
+**Features:**
+- WireGuard mesh networking (Tailscale integration)
+- Multiple runtime support (runc, Firecracker, Kata)
+- Built for linux/amd64, linux/arm64, darwin/arm64
+- Sidecar management for ctrl and stream services
 
-## Quick Start
+### Sidecars
+- **ctrl**: Keyboard/mouse/screenshot gRPC services
+- **stream**: VNC/WebRTC bridge for remote access
 
-### Build
+## Current Implementation
 
-```bash
-# Build all components
-make build
+### ✅ Completed
+- **Type System**: Complete workload, namespace, secret, and provider types
+- **Provider Interface**: Unified abstraction for all cloud providers
+- **Scheduler**: Cost-aware scheduling with multiple strategies
+- **API Foundation**: REST endpoints for workload and provider management
+- **Kubernetes Provider**: Basic K8s integration
+- **Configuration**: Environment-based configuration system
+- **State Management**: Dependency injection container
+- **Health Checks**: Built-in monitoring and status endpoints
 
-# Or build weaver specifically
-make weaver
+### 🚧 In Progress
+- Concrete provider implementations (RunPod, CoreWeave, AWS, GCP)
+- Database integration (Postgres)
+- Event streaming (NATS/JetStream)
+- Usage metering (OpenMeter)
+- P2P storage (Iroh/IPFS)
 
-# Clean build artifacts
-make clean
-```
-
-### Run
-
-```bash
-# With default settings (K8s provider enabled)
-./build/weaver --k-8-s-enabled
-
-# With custom config
-./build/weaver --config config.yaml
-
-# See all options
-./build/weaver --help
-```
-
-### Configuration
-
-Configuration can be provided via:
-1. Command line flags
-2. YAML config file
-3. Environment variables
-
-Example config.yaml:
-```yaml
-server:
-  address: ":8080"
-
-database:
-  host: "localhost"
-  port: 5432
-  user: "fabric"
-  password: "fabric"
-  database: "fabric"
-
-nats:
-  url: "nats://localhost:4222"
-
-providers:
-  k8s:
-    enabled: true
-    namespace: "default"
-  runpod:
-    enabled: false
-    api_key: ""
-  coreweave:
-    enabled: false
-    api_key: ""
-```
+### 📋 Planned
+- Shuttle node runner implementation
+- Sidecar services (ctrl, stream)
+- CRIU snapshot integration
+- Advanced scheduling algorithms
+- Multi-tenancy enforcement
+- Security and authentication
 
 ## API Endpoints
 
-### Health Check
-- `GET /health` - Service health status
+### Health & Status
+- `GET /health` - Service health check
+- `GET /v1/scheduler/status` - Scheduler status and provider count
 
 ### Workload Management
 - `POST /v1/workloads` - Create workload
-- `GET /v1/workloads/:id` - Get workload status
+- `GET /v1/workloads/:id` - Get workload details
 - `DELETE /v1/workloads/:id` - Delete workload
 - `GET /v1/workloads` - List workloads
 
 ### Provider Information
 - `GET /v1/providers` - List available providers
-- `GET /v1/providers/:name/regions` - List provider regions
-- `GET /v1/providers/:name/machine-types` - List provider machine types
+- `GET /v1/providers/:name/regions` - Get provider regions
+- `GET /v1/providers/:name/machine-types` - Get machine types
 
-### Scheduler
-- `GET /v1/scheduler/status` - Scheduler status
+### Scheduling
+- `POST /v1/scheduler/schedule` - Schedule workload
+- `GET /v1/scheduler/recommendations` - Get scheduling recommendations
+- `GET /v1/scheduler/stats` - Get scheduler statistics
 
-## Providers
+## Configuration
 
-### Kubernetes (K8s)
-- Local or remote Kubernetes clusters
-- Pod-based workload execution
-- Resource quotas and limits
+Configuration is managed through environment variables:
 
-### RunPod
-- GPU-focused cloud provider
-- RTX 4090, RTX 4080, A100, H100 instances
-- API-based provisioning
+```bash
+# Server
+SERVER_ADDRESS=:8080
+SERVER_PORT=8080
 
-### CoreWeave
-- High-performance GPU cloud
-- A6000, A100, H100 instances
-- Multiple regions (Chicago, New York, Las Vegas)
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=fabric
+DB_USER=fabric
+DB_PASSWORD=secret
+
+# NATS
+NATS_URL=nats://localhost:4222
+NATS_SUBJECT=fabric.events
+
+# Logging
+LOG_LEVEL=info
+LOG_FORMAT=json
+```
+
+## Running
+
+```bash
+# Build
+go build -o weaver cmd/weaver/main.go
+
+# Run
+./weaver
+```
+
+## Key Features
+
+### Cost-Aware Scheduling
+- Multi-provider cost comparison
+- Real-time pricing updates
+- Cost optimization strategies
+- Budget constraints and limits
+
+### Multi-Cloud Support
+- Kubernetes clusters
+- RunPod GPU instances
+- CoreWeave compute
+- AWS (including Mac instances)
+- Google Cloud Platform
+- Azure
+- Nosana network
+
+### Event-Driven Architecture
+- Real-time workload updates
+- Provider status changes
+- Cost optimization events
+- Usage tracking events
+
+### Mesh Networking
+- Secure node-to-node communication
+- Tailscale/WireGuard integration
+- Cross-cloud connectivity
+- Private network isolation
+
+### P2P Storage
+- Content-addressed storage
+- CRIU snapshot distribution
+- Iroh/IPFS integration
+- Efficient data transfer
 
 ## Development
 
-### Project Structure
-```
-cmd/                 # Build targets → binaries
-  weaver/            # Controller / scheduler
-  shuttle/           # Node runner
-internal/            # Private libraries
-  api/               # REST + gRPC handlers (weaver)
-  scheduler/         # Bin-packer, cost logic
-  provider/          # Pluggable drivers
-    k8s/             # Kubernetes provider
-    runpod/          # RunPod provider
-    coreweave/       # CoreWeave provider
-  mesh/              # Tailscale / WG helpers
-  snapshot/          # CRIU + Iroh helpers
-  db/                # Postgres migrations + sqlc code
-  config/            # Configuration management
-  state/             # Application state management
-  util/              # Common utilities
-images/              # Docker images
-  weaver/            # Weaver container
-  shuttle/           # Shuttle container
-```
+The codebase follows clean architecture principles with dependency injection:
 
-### Adding New Providers
+- `internal/types/` - Core domain types
+- `internal/api/` - HTTP API handlers
+- `internal/scheduler/` - Scheduling logic
+- `internal/providers/` - Cloud provider implementations
+- `internal/state/` - Application state management
+- `cmd/weaver/` - Main application entry point
 
-1. Create new provider package in `internal/provider/`
-2. Implement the `Provider` interface
-3. Add configuration struct to `internal/config/`
-4. Register provider in `internal/state/state.go`
-
-## Dependencies
-
-- PostgreSQL (for state storage)
-- NATS (for event publishing)
-- Kubernetes cluster (if using K8s provider)
-- Provider API keys (for cloud providers)
-
-## Docker
-
-Build and run with Docker:
-
-```bash
-docker build -f images/Dockerfile.weaver -t weaver .
-docker run -p 8080:8080 weaver
+All components depend on interfaces, making the system highly testable and modular.

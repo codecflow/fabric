@@ -151,3 +151,24 @@ type SchedulingHint struct {
 	Affinity           map[string]string `json:"affinity,omitempty"`
 	AntiAffinity       map[string]string `json:"antiAffinity,omitempty"`
 }
+
+// CostEstimate represents estimated costs for a workload
+type CostEstimate struct {
+	Currency    string          `json:"currency"`
+	HourlyCost  float64         `json:"hourlyCost"`
+	DailyCost   float64         `json:"dailyCost"`
+	MonthlyCost float64         `json:"monthlyCost"`
+	Breakdown   []CostBreakdown `json:"breakdown"`
+	Confidence  float64         `json:"confidence"` // 0-1
+	ValidUntil  string          `json:"validUntil,omitempty"`
+	Assumptions []string        `json:"assumptions,omitempty"`
+}
+
+// CostBreakdown represents a breakdown of costs by component
+type CostBreakdown struct {
+	Component   string  `json:"component"` // "cpu", "memory", "gpu", "storage", "network"
+	Description string  `json:"description"`
+	Amount      float64 `json:"amount"`
+	Unit        string  `json:"unit"`
+	Quantity    float64 `json:"quantity"`
+}

@@ -11,6 +11,8 @@ import (
 	"syscall"
 	"time"
 
+	"fabric/internal/scheduler/simple"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -28,6 +30,13 @@ func main() {
 
 	appState := state.New()
 	// TODO: Initialize appState components (Repository, Stream, Meter, etc.)
+
+	// Initialize scheduler with providers
+	// TODO: Load providers from config
+	// For now, create a simple scheduler with empty providers
+	scheduler := simple.New(appState.Providers, nil)
+	appState.Scheduler = scheduler
+
 	defer appState.Close()
 
 	router := api.SetupRoutes(appState)
