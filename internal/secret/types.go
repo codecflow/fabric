@@ -1,11 +1,11 @@
-package types
+package secret
 
 import (
 	"time"
 )
 
-// SecretSpec defines the desired state of a secret
-type SecretSpec struct {
+// Spec defines the desired state of a secret
+type Spec struct {
 	Type SecretType        `json:"type"`
 	Data map[string][]byte `json:"data,omitempty"`
 
@@ -17,12 +17,12 @@ type SecretSpec struct {
 type SecretType string
 
 const (
-	SecretTypeOpaque              SecretType = "Opaque"
-	SecretTypeDockerConfigJSON    SecretType = "kubernetes.io/dockerconfigjson"
-	SecretTypeBasicAuth           SecretType = "kubernetes.io/basic-auth"
-	SecretTypeTLS                 SecretType = "kubernetes.io/tls"
-	SecretTypeSSHAuth             SecretType = "kubernetes.io/ssh-auth"
-	SecretTypeServiceAccountToken SecretType = "kubernetes.io/service-account-token"
+	TypeOpaque              SecretType = "Opaque"
+	TypeDockerConfigJSON    SecretType = "kubernetes.io/dockerconfigjson"
+	TypeBasicAuth           SecretType = "kubernetes.io/basic-auth"
+	TypeTLS                 SecretType = "kubernetes.io/tls"
+	TypeSSHAuth             SecretType = "kubernetes.io/ssh-auth"
+	TypeServiceAccountToken SecretType = "kubernetes.io/service-account-token"
 )
 
 // ExternalSecretRef references a secret in an external system
@@ -33,11 +33,11 @@ type ExternalSecretRef struct {
 	Auth     map[string]string `json:"auth,omitempty"`
 }
 
-// SecretStatus represents the current state of a secret
-type SecretStatus struct {
-	Phase   SecretPhase `json:"phase"`
-	Message string      `json:"message,omitempty"`
-	Reason  string      `json:"reason,omitempty"`
+// Status represents the current state of a secret
+type Status struct {
+	Phase   Phase  `json:"phase"`
+	Message string `json:"message,omitempty"`
+	Reason  string `json:"reason,omitempty"`
 
 	// External secret sync status
 	LastSync    *time.Time `json:"lastSync,omitempty"`
@@ -45,14 +45,14 @@ type SecretStatus struct {
 	SyncVersion string     `json:"syncVersion,omitempty"`
 }
 
-// SecretPhase represents the lifecycle phase
-type SecretPhase string
+// Phase represents the lifecycle phase
+type Phase string
 
 const (
-	SecretPhasePending SecretPhase = "Pending"
-	SecretPhaseActive  SecretPhase = "Active"
-	SecretPhaseFailed  SecretPhase = "Failed"
-	SecretPhaseUnknown SecretPhase = "Unknown"
+	PhasePending Phase = "Pending"
+	PhaseActive  Phase = "Active"
+	PhaseFailed  Phase = "Failed"
+	PhaseUnknown Phase = "Unknown"
 )
 
 // Secret represents a complete secret definition
@@ -63,28 +63,35 @@ type Secret struct {
 	Labels      map[string]string `json:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty"`
 
-	Spec   SecretSpec   `json:"spec"`
-	Status SecretStatus `json:"status"`
+	Spec   Spec   `json:"spec"`
+	Status Status `json:"status"`
 
 	CreatedAt time.Time  `json:"createdAt"`
 	UpdatedAt time.Time  `json:"updatedAt"`
 	DeletedAt *time.Time `json:"deletedAt,omitempty"`
 }
 
-// SecretList represents a list of secrets
-type SecretList struct {
+// List represents a list of secrets
+type List struct {
 	Items []Secret `json:"items"`
 	Total int      `json:"total"`
 }
 
-// SecretReference is used to reference a secret in workload specs
-type SecretReference struct {
+// Reference is used to reference a secret in workload specs
+type Reference struct {
 	Name string `json:"name"`
 	Key  string `json:"key,omitempty"` // If empty, all keys are used
 }
 
 // EnvFromSource represents a source for environment variables
 type EnvFromSource struct {
-	SecretRef *SecretReference `json:"secretRef,omitempty"`
-	Prefix    string           `json:"prefix,omitempty"`
+	SecretRef *Reference `json:"secretRef,omitempty"`
+	Prefix    string     `json:"prefix,omitempty"`
+}
+
+// Filter defines filters for secret queries
+type Filter struct {
+	Namespace string
+	Labels    map[string]string
+	Type      SecretType
 }

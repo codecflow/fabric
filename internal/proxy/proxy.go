@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"fabric/internal/config"
-	"fabric/internal/types"
+	"fabric/internal/workload"
 )
 
 // Server manages HTTP proxy for workload access
@@ -80,7 +80,7 @@ func (s *Server) Stop() error {
 }
 
 // AddRoute adds a new proxy route for a workload
-func (s *Server) AddRoute(workload *types.Workload, targetURL string) error {
+func (s *Server) AddRoute(w *workload.Workload, targetURL string) error {
 	s.routesMu.Lock()
 	defer s.routesMu.Unlock()
 
@@ -93,14 +93,14 @@ func (s *Server) AddRoute(workload *types.Workload, targetURL string) error {
 	proxy.ErrorHandler = s.errorHandler
 
 	route := &Route{
-		WorkloadID: workload.ID,
+		WorkloadID: w.ID,
 		Target:     target,
 		Proxy:      proxy,
 		CreatedAt:  time.Now(),
 		LastUsed:   time.Now(),
 	}
 
-	routeKey := s.getRouteKey(workload)
+	routeKey := s.getRouteKey(w)
 	s.routes[routeKey] = route
 
 	log.Printf("Added proxy route: %s -> %s", routeKey, targetURL)
@@ -108,11 +108,11 @@ func (s *Server) AddRoute(workload *types.Workload, targetURL string) error {
 }
 
 // RemoveRoute removes a proxy route
-func (s *Server) RemoveRoute(workload *types.Workload) {
+func (s *Server) RemoveRoute(w *workload.Workload) {
 	s.routesMu.Lock()
 	defer s.routesMu.Unlock()
 
-	routeKey := s.getRouteKey(workload)
+	routeKey := s.getRouteKey(w)
 	delete(s.routes, routeKey)
 
 	log.Printf("Removed proxy route: %s", routeKey)
@@ -196,8 +196,8 @@ func (s *Server) withLogging(next http.Handler) http.Handler {
 }
 
 // getRouteKey generates a route key for a workload
-func (s *Server) getRouteKey(workload *types.Workload) string {
-	return fmt.Sprintf("%s.%s", workload.Name, workload.Namespace)
+func (s *Server) getRouteKey(w *workload.Workload) string {
+	return fmt.Sprintf("%s.%s", w.Name, w.Namespace)
 }
 
 // extractRouteKey extracts route key from request path

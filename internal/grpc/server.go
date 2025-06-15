@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"fabric/internal/scheduler"
 	"fabric/internal/state"
-	"fabric/internal/types"
+	"fabric/internal/workload"
 	"fabric/proto/weaver"
 	"fmt"
 	"net"
@@ -65,15 +65,15 @@ func (s *Server) CreateWorkload(ctx context.Context, req *weaver.CreateWorkloadR
 	now := time.Now()
 
 	// Create workload with proper structure
-	workload := &types.Workload{
+	w := &workload.Workload{
 		ID:          generateID(),
 		Name:        req.Name,
 		Namespace:   req.Namespace,
 		Labels:      req.Labels,
 		Annotations: req.Annotations,
 		Spec:        convertWorkloadSpec(req.Spec),
-		Status: types.WorkloadStatus{
-			Phase: types.WorkloadPhasePending,
+		Status: workload.Status{
+			Phase: workload.PhasePending,
 		},
 		CreatedAt: now,
 		UpdatedAt: now,
@@ -81,45 +81,43 @@ func (s *Server) CreateWorkload(ctx context.Context, req *weaver.CreateWorkloadR
 
 	// Store workload in repository
 	if s.appState.Repository != nil {
-		if err := s.appState.Repository.CreateWorkload(ctx, workload); err != nil {
+		if err := s.appState.Repository.CreateWorkload(ctx, w); err != nil {
 			return nil, fmt.Errorf("failed to store workload: %v", err)
 		}
 	}
 
 	// Schedule workload to get actual deployment details
 	if s.appState.Scheduler != nil {
-		placement, err := s.appState.Scheduler.Schedule(ctx, workload)
+		placement, err := s.appState.Scheduler.Schedule(ctx, w)
 		if err != nil {
 			return nil, fmt.Errorf("failed to schedule workload: %v", err)
 		}
 
 		// Update workload status with placement information
-		workload.Status.Provider = placement.Provider
+		w.Status.Provider = placement.Provider
 		if placement.Placement != nil {
-			workload.Status.NodeID = placement.Placement.NodeID
+			w.Status.NodeID = placement.Placement.NodeID
 		}
-		workload.Status.Phase = types.WorkloadPhaseScheduled
+		w.Status.Phase = workload.PhaseScheduled
 
 		// Update workload in repository with placement info
 		if s.appState.Repository != nil {
-			if err := s.appState.Repository.UpdateWorkload(ctx, workload); err != nil {
+			if err := s.appState.Repository.UpdateWorkload(ctx, w); err != nil {
 				s.logger.Warnf("Failed to update workload with placement info: %v", err)
 			}
 		}
 
 		// Add proxy route if proxy is enabled and workload has ports
-		if s.appState.Proxy != nil && len(workload.Spec.Ports) > 0 && placement.Placement != nil {
+		if s.appState.Proxy != nil && len(w.Spec.Ports) > 0 && placement.Placement != nil {
 			// Construct endpoint URL from placement information
-			// In a real implementation, this would query the provider for the actual endpoint
 			var endpoint string
 			if placement.Placement.NodeID != "" {
-				// For now, construct a basic endpoint - in production this would come from the provider
-				port := workload.Spec.Ports[0].ContainerPort
+				port := w.Spec.Ports[0].ContainerPort
 				endpoint = fmt.Sprintf("http://%s:%d", placement.Placement.NodeID, port)
 			}
 
 			if endpoint != "" {
-				if err := s.appState.Proxy.AddRoute(workload, endpoint); err != nil {
+				if err := s.appState.Proxy.AddRoute(w, endpoint); err != nil {
 					return nil, fmt.Errorf("failed to add proxy route: %v", err)
 				}
 			}
@@ -127,11 +125,11 @@ func (s *Server) CreateWorkload(ctx context.Context, req *weaver.CreateWorkloadR
 	}
 
 	return &weaver.CreateWorkloadResponse{
-		Id:        workload.ID,
-		Name:      workload.Name,
-		Namespace: workload.Namespace,
-		Status:    convertWorkloadStatus(&workload.Status),
-		CreatedAt: timestamppb.New(workload.CreatedAt),
+		Id:        w.ID,
+		Name:      w.Name,
+		Namespace: w.Namespace,
+		Status:    convertWorkloadStatus(&w.Status),
+		CreatedAt: timestamppb.New(w.CreatedAt),
 	}, nil
 }
 
@@ -140,22 +138,22 @@ func (s *Server) GetWorkload(ctx context.Context, req *weaver.GetWorkloadRequest
 		return nil, fmt.Errorf("repository not configured")
 	}
 
-	workload, err := s.appState.Repository.GetWorkload(ctx, req.Id)
+	w, err := s.appState.Repository.GetWorkload(ctx, req.Id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get workload: %v", err)
 	}
 
 	return &weaver.GetWorkloadResponse{
 		Workload: &weaver.Workload{
-			Id:          workload.ID,
-			Name:        workload.Name,
-			Namespace:   workload.Namespace,
-			Labels:      workload.Labels,
-			Annotations: workload.Annotations,
-			Spec:        convertWorkloadSpecToProto(&workload.Spec),
-			Status:      convertWorkloadStatus(&workload.Status),
-			CreatedAt:   timestamppb.New(workload.CreatedAt),
-			UpdatedAt:   timestamppb.New(workload.UpdatedAt),
+			Id:          w.ID,
+			Name:        w.Name,
+			Namespace:   w.Namespace,
+			Labels:      w.Labels,
+			Annotations: w.Annotations,
+			Spec:        convertWorkloadSpecToProto(&w.Spec),
+			Status:      convertWorkloadStatus(&w.Status),
+			CreatedAt:   timestamppb.New(w.CreatedAt),
+			UpdatedAt:   timestamppb.New(w.UpdatedAt),
 		},
 	}, nil
 }
@@ -171,17 +169,17 @@ func (s *Server) ListWorkloads(ctx context.Context, req *weaver.ListWorkloadsReq
 	}
 
 	var protoWorkloads []*weaver.Workload
-	for _, workload := range workloads {
+	for _, w := range workloads {
 		protoWorkloads = append(protoWorkloads, &weaver.Workload{
-			Id:          workload.ID,
-			Name:        workload.Name,
-			Namespace:   workload.Namespace,
-			Labels:      workload.Labels,
-			Annotations: workload.Annotations,
-			Spec:        convertWorkloadSpecToProto(&workload.Spec),
-			Status:      convertWorkloadStatus(&workload.Status),
-			CreatedAt:   timestamppb.New(workload.CreatedAt),
-			UpdatedAt:   timestamppb.New(workload.UpdatedAt),
+			Id:          w.ID,
+			Name:        w.Name,
+			Namespace:   w.Namespace,
+			Labels:      w.Labels,
+			Annotations: w.Annotations,
+			Spec:        convertWorkloadSpecToProto(&w.Spec),
+			Status:      convertWorkloadStatus(&w.Status),
+			CreatedAt:   timestamppb.New(w.CreatedAt),
+			UpdatedAt:   timestamppb.New(w.UpdatedAt),
 		})
 	}
 
@@ -197,14 +195,14 @@ func (s *Server) DeleteWorkload(ctx context.Context, req *weaver.DeleteWorkloadR
 	}
 
 	// Get workload first to remove proxy route
-	workload, err := s.appState.Repository.GetWorkload(ctx, req.Id)
+	w, err := s.appState.Repository.GetWorkload(ctx, req.Id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get workload: %v", err)
 	}
 
 	// Remove proxy route if proxy is enabled
 	if s.appState.Proxy != nil {
-		s.appState.Proxy.RemoveRoute(workload)
+		s.appState.Proxy.RemoveRoute(w)
 	}
 
 	// Delete workload from repository
@@ -343,13 +341,13 @@ func (s *Server) ScheduleWorkload(ctx context.Context, req *weaver.ScheduleWorkl
 	}
 
 	// Create a temporary workload for scheduling
-	workload := &types.Workload{
+	w := &workload.Workload{
 		ID:   generateID(),
 		Spec: convertWorkloadSpec(req.Spec),
 	}
 
 	// Schedule the workload
-	result, err := s.appState.Scheduler.Schedule(ctx, workload)
+	result, err := s.appState.Scheduler.Schedule(ctx, w)
 	if err != nil {
 		return nil, fmt.Errorf("failed to schedule workload: %v", err)
 	}
@@ -374,13 +372,13 @@ func (s *Server) GetRecommendations(ctx context.Context, req *weaver.GetRecommen
 	}
 
 	// Create a temporary workload for getting recommendations
-	workload := &types.Workload{
+	w := &workload.Workload{
 		ID:   generateID(),
 		Spec: convertWorkloadSpec(req.Spec),
 	}
 
 	// Get recommendations from scheduler
-	recommendations, err := s.appState.Scheduler.GetRecommendations(ctx, workload)
+	recommendations, err := s.appState.Scheduler.GetRecommendations(ctx, w)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get recommendations: %v", err)
 	}
@@ -418,9 +416,9 @@ func (s *Server) GetSchedulerStats(ctx context.Context, req *emptypb.Empty) (*we
 		// Get all workloads and count those in pending state
 		workloads, err := s.appState.Repository.ListWorkloads(ctx, "", nil)
 		if err == nil {
-			for _, workload := range workloads {
-				if workload.Status.Phase == types.WorkloadPhasePending ||
-					workload.Status.Phase == types.WorkloadPhaseScheduled {
+			for _, w := range workloads {
+				if w.Status.Phase == workload.PhasePending ||
+					w.Status.Phase == workload.PhaseScheduled {
 					pendingWorkloads++
 				}
 			}
@@ -447,12 +445,12 @@ func (s *Server) HealthCheck(ctx context.Context, req *emptypb.Empty) (*weaver.H
 }
 
 // Helper functions to convert between internal types and protobuf types
-func convertWorkloadSpec(spec *weaver.WorkloadSpec) types.WorkloadSpec {
+func convertWorkloadSpec(spec *weaver.WorkloadSpec) workload.Spec {
 	if spec == nil {
-		return types.WorkloadSpec{}
+		return workload.Spec{}
 	}
 
-	result := types.WorkloadSpec{
+	result := workload.Spec{
 		Image:   spec.Image,
 		Command: spec.Command,
 		Args:    spec.Args,
@@ -460,7 +458,7 @@ func convertWorkloadSpec(spec *weaver.WorkloadSpec) types.WorkloadSpec {
 	}
 
 	if spec.Resources != nil {
-		result.Resources = types.ResourceRequests{
+		result.Resources = workload.ResourceRequests{
 			CPU:    spec.Resources.Cpu,
 			Memory: spec.Resources.Memory,
 			GPU:    spec.Resources.Gpu,
@@ -468,7 +466,7 @@ func convertWorkloadSpec(spec *weaver.WorkloadSpec) types.WorkloadSpec {
 	}
 
 	for _, volume := range spec.Volumes {
-		result.Volumes = append(result.Volumes, types.VolumeMount{
+		result.Volumes = append(result.Volumes, workload.VolumeMount{
 			Name:      volume.Name,
 			MountPath: volume.MountPath,
 			ReadOnly:  volume.ReadOnly,
@@ -477,7 +475,7 @@ func convertWorkloadSpec(spec *weaver.WorkloadSpec) types.WorkloadSpec {
 	}
 
 	for _, port := range spec.Ports {
-		result.Ports = append(result.Ports, types.Port{
+		result.Ports = append(result.Ports, workload.Port{
 			Name:          port.Name,
 			ContainerPort: port.ContainerPort,
 			Protocol:      port.Protocol,
@@ -485,7 +483,7 @@ func convertWorkloadSpec(spec *weaver.WorkloadSpec) types.WorkloadSpec {
 	}
 
 	for _, sidecar := range spec.Sidecars {
-		result.Sidecars = append(result.Sidecars, types.SidecarSpec{
+		result.Sidecars = append(result.Sidecars, workload.SidecarSpec{
 			Name:    sidecar.Name,
 			Image:   sidecar.Image,
 			Command: sidecar.Command,
@@ -494,10 +492,10 @@ func convertWorkloadSpec(spec *weaver.WorkloadSpec) types.WorkloadSpec {
 		})
 	}
 
-	result.Restart = types.RestartPolicy(spec.RestartPolicy)
+	result.Restart = workload.RestartPolicy(spec.RestartPolicy)
 
 	if spec.Placement != nil {
-		result.Placement = types.PlacementSpec{
+		result.Placement = workload.PlacementSpec{
 			Provider:   spec.Placement.Provider,
 			Region:     spec.Placement.Region,
 			Zone:       spec.Placement.Zone,
@@ -505,7 +503,7 @@ func convertWorkloadSpec(spec *weaver.WorkloadSpec) types.WorkloadSpec {
 		}
 
 		for _, toleration := range spec.Placement.Tolerations {
-			result.Placement.Tolerations = append(result.Placement.Tolerations, types.Toleration{
+			result.Placement.Tolerations = append(result.Placement.Tolerations, workload.Toleration{
 				Key:      toleration.Key,
 				Operator: toleration.Operator,
 				Value:    toleration.Value,
@@ -517,7 +515,7 @@ func convertWorkloadSpec(spec *weaver.WorkloadSpec) types.WorkloadSpec {
 	return result
 }
 
-func convertWorkloadStatus(status *types.WorkloadStatus) *weaver.WorkloadStatus {
+func convertWorkloadStatus(status *workload.Status) *weaver.WorkloadStatus {
 	if status == nil {
 		return nil
 	}
@@ -575,7 +573,7 @@ func calculateTotalCost(providerStats map[string]*scheduler.ProviderStats) float
 	return totalCost
 }
 
-func convertWorkloadSpecToProto(spec *types.WorkloadSpec) *weaver.WorkloadSpec {
+func convertWorkloadSpecToProto(spec *workload.Spec) *weaver.WorkloadSpec {
 	if spec == nil {
 		return nil
 	}

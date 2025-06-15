@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"fabric/internal/config"
-	"fabric/internal/types"
+	"fabric/internal/workload"
 )
 
 // CRIUManager manages CRIU snapshots
@@ -51,15 +51,15 @@ func New(cfg *config.CRIUConfig) (*CRIUManager, error) {
 }
 
 // CreateSnapshot creates a snapshot of a running workload
-func (c *CRIUManager) CreateSnapshot(ctx context.Context, workload *types.Workload, containerID string, description string) (*Snapshot, error) {
+func (c *CRIUManager) CreateSnapshot(ctx context.Context, w *workload.Workload, containerID string, description string) (*Snapshot, error) {
 	if !c.config.Enabled {
 		return nil, fmt.Errorf("CRIU snapshots are disabled")
 	}
 
-	snapshotID := fmt.Sprintf("%s-%d", workload.ID, time.Now().Unix())
+	snapshotID := fmt.Sprintf("%s-%d", w.ID, time.Now().Unix())
 	snapshotPath := filepath.Join(c.config.SnapshotDir, snapshotID)
 
-	log.Printf("Creating CRIU snapshot for workload %s (container %s)", workload.ID, containerID)
+	log.Printf("Creating CRIU snapshot for workload %s (container %s)", w.ID, containerID)
 
 	// Create snapshot directory
 	if err := os.MkdirAll(snapshotPath, 0755); err != nil {
@@ -86,7 +86,7 @@ func (c *CRIUManager) CreateSnapshot(ctx context.Context, workload *types.Worklo
 
 	snapshot := &Snapshot{
 		ID:          snapshotID,
-		WorkloadID:  workload.ID,
+		WorkloadID:  w.ID,
 		Path:        snapshotPath,
 		Size:        size,
 		CreatedAt:   time.Now(),
@@ -103,7 +103,7 @@ func (c *CRIUManager) CreateSnapshot(ctx context.Context, workload *types.Worklo
 		}
 	}
 
-	log.Printf("Created snapshot %s for workload %s (size: %d bytes)", snapshotID, workload.ID, size)
+	log.Printf("Created snapshot %s for workload %s (size: %d bytes)", snapshotID, w.ID, size)
 	return snapshot, nil
 }
 

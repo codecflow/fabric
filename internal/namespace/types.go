@@ -1,11 +1,12 @@
-package types
+package namespace
 
 import (
+	"fabric/internal/workload"
 	"time"
 )
 
-// NamespaceSpec defines the desired state of a namespace
-type NamespaceSpec struct {
+// Spec defines the desired state of a namespace
+type Spec struct {
 	// Resource quotas
 	Quotas ResourceQuotas `json:"quotas,omitempty"`
 
@@ -13,7 +14,7 @@ type NamespaceSpec struct {
 	NetworkPolicy NetworkPolicy `json:"networkPolicy,omitempty"`
 
 	// Default placement preferences
-	DefaultPlacement PlacementSpec `json:"defaultPlacement,omitempty"`
+	DefaultPlacement workload.PlacementSpec `json:"defaultPlacement,omitempty"`
 }
 
 // ResourceQuotas defines resource limits for a namespace
@@ -43,10 +44,10 @@ const (
 
 // NetworkRule defines a network access rule
 type NetworkRule struct {
-	From      []NetworkPeer `json:"from,omitempty"`
-	To        []NetworkPeer `json:"to,omitempty"`
-	Ports     []Port        `json:"ports,omitempty"`
-	Protocols []string      `json:"protocols,omitempty"`
+	From      []NetworkPeer   `json:"from,omitempty"`
+	To        []NetworkPeer   `json:"to,omitempty"`
+	Ports     []workload.Port `json:"ports,omitempty"`
+	Protocols []string        `json:"protocols,omitempty"`
 }
 
 // NetworkPeer defines a network endpoint
@@ -62,11 +63,11 @@ type IPBlock struct {
 	Except []string `json:"except,omitempty"`
 }
 
-// NamespaceStatus represents the current state of a namespace
-type NamespaceStatus struct {
-	Phase   NamespacePhase `json:"phase"`
-	Message string         `json:"message,omitempty"`
-	Reason  string         `json:"reason,omitempty"`
+// Status represents the current state of a namespace
+type Status struct {
+	Phase   Phase  `json:"phase"`
+	Message string `json:"message,omitempty"`
+	Reason  string `json:"reason,omitempty"`
 
 	// Resource usage
 	Usage ResourceUsage `json:"usage,omitempty"`
@@ -75,14 +76,14 @@ type NamespaceStatus struct {
 	TailscaleTag string `json:"tailscaleTag,omitempty"`
 }
 
-// NamespacePhase represents the lifecycle phase
-type NamespacePhase string
+// Phase represents the lifecycle phase
+type Phase string
 
 const (
-	NamespacePhasePending     NamespacePhase = "Pending"
-	NamespacePhaseActive      NamespacePhase = "Active"
-	NamespacePhaseTerminating NamespacePhase = "Terminating"
-	NamespacePhaseUnknown     NamespacePhase = "Unknown"
+	PhasePending     Phase = "Pending"
+	PhaseActive      Phase = "Active"
+	PhaseTerminating Phase = "Terminating"
+	PhaseUnknown     Phase = "Unknown"
 )
 
 // ResourceUsage tracks current resource consumption
@@ -101,16 +102,22 @@ type Namespace struct {
 	Labels      map[string]string `json:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty"`
 
-	Spec   NamespaceSpec   `json:"spec"`
-	Status NamespaceStatus `json:"status"`
+	Spec   Spec   `json:"spec"`
+	Status Status `json:"status"`
 
 	CreatedAt time.Time  `json:"createdAt"`
 	UpdatedAt time.Time  `json:"updatedAt"`
 	DeletedAt *time.Time `json:"deletedAt,omitempty"`
 }
 
-// NamespaceList represents a list of namespaces
-type NamespaceList struct {
+// List represents a list of namespaces
+type List struct {
 	Items []Namespace `json:"items"`
 	Total int         `json:"total"`
+}
+
+// Filter defines filters for namespace queries
+type Filter struct {
+	Labels map[string]string
+	Phase  Phase
 }

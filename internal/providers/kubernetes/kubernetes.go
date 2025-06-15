@@ -2,7 +2,8 @@ package kubernetes
 
 import (
 	"context"
-	"fabric/internal/types"
+	"fabric/internal/providers"
+	"fabric/internal/workload"
 	"fmt"
 	"strings"
 	"time"
@@ -63,36 +64,36 @@ func (k *KubernetesProvider) Name() string {
 }
 
 // Type returns the provider type
-func (k *KubernetesProvider) Type() types.ProviderType {
-	return types.ProviderTypeKubernetes
+func (k *KubernetesProvider) Type() providers.ProviderType {
+	return providers.ProviderTypeKubernetes
 }
 
 // CreateWorkload creates a new workload in Kubernetes
-func (k *KubernetesProvider) CreateWorkload(ctx context.Context, workload *types.Workload) error {
+func (k *KubernetesProvider) CreateWorkload(ctx context.Context, w *workload.Workload) error {
 	// Convert Fabric workload to Kubernetes Pod
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      workload.Name,
+			Name:      w.Name,
 			Namespace: k.namespace,
 			Labels: map[string]string{
-				"fabric.workload.id":   workload.ID,
-				"fabric.workload.name": workload.Name,
+				"fabric.workload.id":   w.ID,
+				"fabric.workload.name": w.Name,
 			},
 		},
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
 				{
-					Name:  workload.Name,
-					Image: workload.Spec.Image,
+					Name:  w.Name,
+					Image: w.Spec.Image,
 				},
 			},
 		},
 	}
 
 	// Set environment variables
-	if len(workload.Spec.Env) > 0 {
+	if len(w.Spec.Env) > 0 {
 		var envVars []corev1.EnvVar
-		for key, value := range workload.Spec.Env {
+		for key, value := range w.Spec.Env {
 			envVars = append(envVars, corev1.EnvVar{
 				Name:  key,
 				Value: value,
@@ -102,26 +103,26 @@ func (k *KubernetesProvider) CreateWorkload(ctx context.Context, workload *types
 	}
 
 	// Set resource requirements
-	if workload.Spec.Resources.CPU != "" || workload.Spec.Resources.Memory != "" {
+	if w.Spec.Resources.CPU != "" || w.Spec.Resources.Memory != "" {
 		resources := corev1.ResourceRequirements{
 			Requests: corev1.ResourceList{},
 			Limits:   corev1.ResourceList{},
 		}
 
-		if workload.Spec.Resources.CPU != "" {
-			cpuQuantity := resource.MustParse(workload.Spec.Resources.CPU)
+		if w.Spec.Resources.CPU != "" {
+			cpuQuantity := resource.MustParse(w.Spec.Resources.CPU)
 			resources.Requests[corev1.ResourceCPU] = cpuQuantity
 			resources.Limits[corev1.ResourceCPU] = cpuQuantity
 		}
 
-		if workload.Spec.Resources.Memory != "" {
-			memQuantity := resource.MustParse(workload.Spec.Resources.Memory)
+		if w.Spec.Resources.Memory != "" {
+			memQuantity := resource.MustParse(w.Spec.Resources.Memory)
 			resources.Requests[corev1.ResourceMemory] = memQuantity
 			resources.Limits[corev1.ResourceMemory] = memQuantity
 		}
 
-		if workload.Spec.Resources.GPU != "" {
-			gpuQuantity := resource.MustParse(workload.Spec.Resources.GPU)
+		if w.Spec.Resources.GPU != "" {
+			gpuQuantity := resource.MustParse(w.Spec.Resources.GPU)
 			resources.Requests[corev1.ResourceName("nvidia.com/gpu")] = gpuQuantity
 			resources.Limits[corev1.ResourceName("nvidia.com/gpu")] = gpuQuantity
 		}
@@ -130,9 +131,9 @@ func (k *KubernetesProvider) CreateWorkload(ctx context.Context, workload *types
 	}
 
 	// Set ports
-	if len(workload.Spec.Ports) > 0 {
+	if len(w.Spec.Ports) > 0 {
 		var ports []corev1.ContainerPort
-		for _, port := range workload.Spec.Ports {
+		for _, port := range w.Spec.Ports {
 			protocol := corev1.ProtocolTCP
 			if strings.ToUpper(port.Protocol) == "UDP" {
 				protocol = corev1.ProtocolUDP
@@ -156,7 +157,7 @@ func (k *KubernetesProvider) CreateWorkload(ctx context.Context, workload *types
 }
 
 // GetWorkload retrieves a workload from Kubernetes
-func (k *KubernetesProvider) GetWorkload(ctx context.Context, id string) (*types.Workload, error) {
+func (k *KubernetesProvider) GetWorkload(ctx context.Context, id string) (*workload.Workload, error) {
 	pods, err := k.client.CoreV1().Pods(k.namespace).List(ctx, metav1.ListOptions{
 		LabelSelector: fmt.Sprintf("fabric.workload.id=%s", id),
 	})
@@ -173,11 +174,11 @@ func (k *KubernetesProvider) GetWorkload(ctx context.Context, id string) (*types
 }
 
 // UpdateWorkload updates a workload in Kubernetes
-func (k *KubernetesProvider) UpdateWorkload(ctx context.Context, workload *types.Workload) error {
+func (k *KubernetesProvider) UpdateWorkload(ctx context.Context, w *workload.Workload) error {
 	// For now, we'll just update the labels/annotations
 	// In a full implementation, you might need to recreate the pod
 	pods, err := k.client.CoreV1().Pods(k.namespace).List(ctx, metav1.ListOptions{
-		LabelSelector: fmt.Sprintf("fabric.workload.id=%s", workload.ID),
+		LabelSelector: fmt.Sprintf("fabric.workload.id=%s", w.ID),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to list pods: %w", err)
@@ -191,7 +192,7 @@ func (k *KubernetesProvider) UpdateWorkload(ctx context.Context, workload *types
 	if pod.Labels == nil {
 		pod.Labels = make(map[string]string)
 	}
-	pod.Labels["fabric.workload.name"] = workload.Name
+	pod.Labels["fabric.workload.name"] = w.Name
 
 	_, err = k.client.CoreV1().Pods(k.namespace).Update(ctx, pod, metav1.UpdateOptions{})
 	return err
@@ -217,7 +218,7 @@ func (k *KubernetesProvider) DeleteWorkload(ctx context.Context, id string) erro
 }
 
 // ListWorkloads lists workloads in a namespace
-func (k *KubernetesProvider) ListWorkloads(ctx context.Context, namespace string) ([]*types.Workload, error) {
+func (k *KubernetesProvider) ListWorkloads(ctx context.Context, namespace string) ([]*workload.Workload, error) {
 	if namespace == "" {
 		namespace = k.namespace
 	}
@@ -229,17 +230,17 @@ func (k *KubernetesProvider) ListWorkloads(ctx context.Context, namespace string
 		return nil, fmt.Errorf("failed to list pods: %w", err)
 	}
 
-	var workloads []*types.Workload
+	var workloads []*workload.Workload
 	for _, pod := range pods.Items {
-		workload := k.podToWorkload(&pod)
-		workloads = append(workloads, workload)
+		w := k.podToWorkload(&pod)
+		workloads = append(workloads, w)
 	}
 
 	return workloads, nil
 }
 
 // GetAvailableResources returns available resources in the cluster
-func (k *KubernetesProvider) GetAvailableResources(ctx context.Context) (*types.ResourceAvailability, error) {
+func (k *KubernetesProvider) GetAvailableResources(ctx context.Context) (*providers.ResourceAvailability, error) {
 	nodes, err := k.client.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list nodes: %w", err)
@@ -247,7 +248,7 @@ func (k *KubernetesProvider) GetAvailableResources(ctx context.Context) (*types.
 
 	var totalCPU, totalMemory resource.Quantity
 	var usedCPU, usedMemory resource.Quantity
-	gpuTypes := make(map[string]types.GPUTypeInfo)
+	gpuTypes := make(map[string]providers.GPUTypeInfo)
 
 	for _, node := range nodes.Items {
 		// Add node capacity
@@ -263,7 +264,7 @@ func (k *KubernetesProvider) GetAvailableResources(ctx context.Context) (*types.
 			if strings.Contains(string(resourceName), "gpu") {
 				gpuType := string(resourceName)
 				if _, exists := gpuTypes[gpuType]; !exists {
-					gpuTypes[gpuType] = types.GPUTypeInfo{
+					gpuTypes[gpuType] = providers.GPUTypeInfo{
 						Name:         gpuType,
 						Memory:       "16Gi", // Default GPU memory
 						Total:        int(quantity.Value()),
@@ -295,21 +296,21 @@ func (k *KubernetesProvider) GetAvailableResources(ctx context.Context) (*types.
 	availableMemory := totalMemory.DeepCopy()
 	availableMemory.Sub(usedMemory)
 
-	return &types.ResourceAvailability{
-		CPU: types.ResourcePool{
+	return &providers.ResourceAvailability{
+		CPU: providers.ResourcePool{
 			Total:     totalCPU.String(),
 			Available: availableCPU.String(),
 			Used:      usedCPU.String(),
 		},
-		Memory: types.ResourcePool{
+		Memory: providers.ResourcePool{
 			Total:     totalMemory.String(),
 			Available: availableMemory.String(),
 			Used:      usedMemory.String(),
 		},
-		GPU: types.GPUPool{
+		GPU: providers.GPUPool{
 			Types: gpuTypes,
 		},
-		Regions: []types.RegionInfo{
+		Regions: []providers.RegionInfo{
 			{
 				Name:        "default",
 				DisplayName: "Default Cluster",
@@ -321,39 +322,39 @@ func (k *KubernetesProvider) GetAvailableResources(ctx context.Context) (*types.
 }
 
 // GetPricing returns pricing information for the provider
-func (k *KubernetesProvider) GetPricing(ctx context.Context) (*types.PricingInfo, error) {
+func (k *KubernetesProvider) GetPricing(ctx context.Context) (*providers.PricingInfo, error) {
 	// For Kubernetes, pricing is typically $0 as it's self-hosted
 	// In a real implementation, you might calculate costs based on node pricing
-	return &types.PricingInfo{
+	return &providers.PricingInfo{
 		Currency: "USD",
-		CPU: types.PricePerUnit{
+		CPU: providers.PricePerUnit{
 			Amount: 0.0,
 			Unit:   "hour",
 		},
-		Memory: types.PricePerUnit{
+		Memory: providers.PricePerUnit{
 			Amount: 0.0,
 			Unit:   "hour",
 		},
-		GPU: map[string]types.PricePerUnit{
+		GPU: map[string]providers.PricePerUnit{
 			"nvidia.com/gpu": {
 				Amount: 0.0,
 				Unit:   "hour",
 			},
 		},
-		Storage: types.PricePerUnit{
+		Storage: providers.PricePerUnit{
 			Amount: 0.0,
 			Unit:   "month",
 		},
-		Network: types.NetworkPricing{
-			Ingress: types.PricePerUnit{
+		Network: providers.NetworkPricing{
+			Ingress: providers.PricePerUnit{
 				Amount: 0.0,
 				Unit:   "gb",
 			},
-			Egress: types.PricePerUnit{
+			Egress: providers.PricePerUnit{
 				Amount: 0.0,
 				Unit:   "gb",
 			},
-			Internal: types.PricePerUnit{
+			Internal: providers.PricePerUnit{
 				Amount: 0.0,
 				Unit:   "gb",
 			},
@@ -371,7 +372,7 @@ func (k *KubernetesProvider) HealthCheck(ctx context.Context) error {
 }
 
 // GetStatus returns the current status of the provider
-func (k *KubernetesProvider) GetStatus(ctx context.Context) (*types.ProviderStatus, error) {
+func (k *KubernetesProvider) GetStatus(ctx context.Context) (*providers.ProviderStatus, error) {
 	// Check if cluster is available
 	available := true
 	if err := k.HealthCheck(ctx); err != nil {
@@ -422,9 +423,9 @@ func (k *KubernetesProvider) GetStatus(ctx context.Context) (*types.ProviderStat
 		}
 	}
 
-	status := &types.ProviderStatus{
+	status := &providers.ProviderStatus{
 		Available: available,
-		Regions: []types.RegionStatus{
+		Regions: []providers.RegionStatus{
 			{
 				Name:      "default",
 				Available: available,
@@ -432,7 +433,7 @@ func (k *KubernetesProvider) GetStatus(ctx context.Context) (*types.ProviderStat
 				Latency:   latency,
 			},
 		},
-		Metrics: types.ProviderMetrics{
+		Metrics: providers.ProviderMetrics{
 			ActiveWorkloads:  activeWorkloads,
 			TotalWorkloads:   totalWorkloads,
 			SuccessRate:      1.0,
@@ -445,15 +446,15 @@ func (k *KubernetesProvider) GetStatus(ctx context.Context) (*types.ProviderStat
 }
 
 // Helper function to convert Kubernetes Pod to Fabric Workload
-func (k *KubernetesProvider) podToWorkload(pod *corev1.Pod) *types.Workload {
-	workload := &types.Workload{
+func (k *KubernetesProvider) podToWorkload(pod *corev1.Pod) *workload.Workload {
+	w := &workload.Workload{
 		ID:        pod.Labels["fabric.workload.id"],
 		Name:      pod.Name,
 		Namespace: pod.Namespace,
-		Spec: types.WorkloadSpec{
+		Spec: workload.Spec{
 			Image: pod.Spec.Containers[0].Image,
 		},
-		Status: types.WorkloadStatus{
+		Status: workload.Status{
 			Phase:    k.podPhaseToWorkloadPhase(pod.Status.Phase),
 			NodeID:   pod.Spec.NodeName,
 			Provider: k.name,
@@ -468,36 +469,36 @@ func (k *KubernetesProvider) podToWorkload(pod *corev1.Pod) *types.Workload {
 		for _, envVar := range pod.Spec.Containers[0].Env {
 			env[envVar.Name] = envVar.Value
 		}
-		workload.Spec.Env = env
+		w.Spec.Env = env
 	}
 
 	// Convert ports
 	if len(pod.Spec.Containers[0].Ports) > 0 {
-		var ports []types.Port
+		var ports []workload.Port
 		for _, port := range pod.Spec.Containers[0].Ports {
-			ports = append(ports, types.Port{
+			ports = append(ports, workload.Port{
 				ContainerPort: port.ContainerPort,
 				Protocol:      string(port.Protocol),
 			})
 		}
-		workload.Spec.Ports = ports
+		w.Spec.Ports = ports
 	}
 
-	return workload
+	return w
 }
 
 // Helper function to convert Pod phase to Workload phase
-func (k *KubernetesProvider) podPhaseToWorkloadPhase(phase corev1.PodPhase) types.WorkloadPhase {
+func (k *KubernetesProvider) podPhaseToWorkloadPhase(phase corev1.PodPhase) workload.Phase {
 	switch phase {
 	case corev1.PodPending:
-		return types.WorkloadPhasePending
+		return workload.PhasePending
 	case corev1.PodRunning:
-		return types.WorkloadPhaseRunning
+		return workload.PhaseRunning
 	case corev1.PodSucceeded:
-		return types.WorkloadPhaseSucceeded
+		return workload.PhaseSucceeded
 	case corev1.PodFailed:
-		return types.WorkloadPhaseFailed
+		return workload.PhaseFailed
 	default:
-		return types.WorkloadPhaseUnknown
+		return workload.PhaseUnknown
 	}
 }

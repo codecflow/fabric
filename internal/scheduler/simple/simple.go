@@ -2,21 +2,22 @@ package simple
 
 import (
 	"context"
+	"fabric/internal/providers"
 	"fabric/internal/scheduler"
-	"fabric/internal/types"
+	"fabric/internal/workload"
 	"fmt"
 	"time"
 )
 
 // SimpleScheduler implements a basic cost-aware scheduler
 type SimpleScheduler struct {
-	providers map[string]types.Provider
+	providers map[string]providers.Provider
 	config    *scheduler.SchedulerConfig
 	stats     *scheduler.SchedulerStats
 }
 
 // New creates a new simple scheduler
-func New(providers map[string]types.Provider, config *scheduler.SchedulerConfig) *SimpleScheduler {
+func New(providerMap map[string]providers.Provider, config *scheduler.SchedulerConfig) *SimpleScheduler {
 	if config == nil {
 		config = &scheduler.SchedulerConfig{
 			DefaultPolicy: scheduler.SchedulingPolicy{
@@ -33,7 +34,7 @@ func New(providers map[string]types.Provider, config *scheduler.SchedulerConfig)
 	}
 
 	return &SimpleScheduler{
-		providers: providers,
+		providers: providerMap,
 		config:    config,
 		stats: &scheduler.SchedulerStats{
 			ProviderStats:   make(map[string]*scheduler.ProviderStats),
@@ -44,11 +45,11 @@ func New(providers map[string]types.Provider, config *scheduler.SchedulerConfig)
 }
 
 // Schedule schedules a workload across available providers
-func (s *SimpleScheduler) Schedule(ctx context.Context, workload *types.Workload) (*scheduler.ScheduleResult, error) {
+func (s *SimpleScheduler) Schedule(ctx context.Context, w *workload.Workload) (*scheduler.ScheduleResult, error) {
 	start := time.Now()
 
 	// Get recommendations
-	recommendations, err := s.GetRecommendations(ctx, workload)
+	recommendations, err := s.GetRecommendations(ctx, w)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get recommendations: %w", err)
 	}
@@ -90,7 +91,7 @@ func (s *SimpleScheduler) Schedule(ctx context.Context, workload *types.Workload
 	}
 
 	result := &scheduler.ScheduleResult{
-		WorkloadID:    workload.ID,
+		WorkloadID:    w.ID,
 		Provider:      best.Provider,
 		Region:        best.Region,
 		MachineType:   best.MachineType,
@@ -101,13 +102,13 @@ func (s *SimpleScheduler) Schedule(ctx context.Context, workload *types.Workload
 	}
 
 	// Update stats
-	s.updateStats(workload.ID, best.Provider, best.Region, true, time.Since(start), 0, "")
+	s.updateStats(w.ID, best.Provider, best.Region, true, time.Since(start), 0, "")
 
 	return result, nil
 }
 
 // GetRecommendations returns scheduling recommendations without scheduling
-func (s *SimpleScheduler) GetRecommendations(ctx context.Context, workload *types.Workload) ([]*scheduler.Recommendation, error) {
+func (s *SimpleScheduler) GetRecommendations(ctx context.Context, w *workload.Workload) ([]*scheduler.Recommendation, error) {
 	recommendations := make([]*scheduler.Recommendation, 0)
 
 	for name, provider := range s.providers {
@@ -123,10 +124,10 @@ func (s *SimpleScheduler) GetRecommendations(ctx context.Context, workload *type
 		}
 
 		// Calculate estimated cost
-		cost := s.calculateCost(workload, pricing)
+		cost := s.calculateCost(w, pricing)
 
 		// Calculate score based on policy
-		score := s.calculateScore(workload, provider, cost)
+		score := s.calculateScore(w, provider, cost)
 
 		// Get available resources to determine regions and machine types
 		resources, err := provider.GetAvailableResources(ctx)
@@ -146,7 +147,7 @@ func (s *SimpleScheduler) GetRecommendations(ctx context.Context, workload *type
 		}
 
 		// Select appropriate machine type based on workload requirements
-		selectedMachineType := s.selectMachineType(workload, resources)
+		selectedMachineType := s.selectMachineType(w, resources)
 
 		rec := &scheduler.Recommendation{
 			Provider:      name,
@@ -179,10 +180,10 @@ func (s *SimpleScheduler) Reschedule(ctx context.Context, workloadID string, con
 	start := time.Now()
 
 	// Create a mock workload for rescheduling (in real implementation, would fetch from repository)
-	workload := &types.Workload{
+	w := &workload.Workload{
 		ID: workloadID,
-		Spec: types.WorkloadSpec{
-			Resources: types.ResourceRequests{
+		Spec: workload.Spec{
+			Resources: workload.ResourceRequests{
 				CPU:    "2",
 				Memory: "4Gi",
 			},
@@ -190,7 +191,7 @@ func (s *SimpleScheduler) Reschedule(ctx context.Context, workloadID string, con
 	}
 
 	// Get recommendations with constraints
-	recommendations, err := s.getConstrainedRecommendations(ctx, workload, constraints)
+	recommendations, err := s.getConstrainedRecommendations(ctx, w, constraints)
 	if err != nil {
 		s.updateStats(workloadID, "", "", false, time.Since(start), 0, err.Error())
 		return nil, fmt.Errorf("failed to get constrained recommendations: %w", err)
@@ -235,7 +236,7 @@ func (s *SimpleScheduler) Reschedule(ctx context.Context, workloadID string, con
 }
 
 // getConstrainedRecommendations gets recommendations with rescheduling constraints
-func (s *SimpleScheduler) getConstrainedRecommendations(ctx context.Context, workload *types.Workload, constraints *scheduler.RescheduleConstraints) ([]*scheduler.Recommendation, error) {
+func (s *SimpleScheduler) getConstrainedRecommendations(ctx context.Context, w *workload.Workload, constraints *scheduler.RescheduleConstraints) ([]*scheduler.Recommendation, error) {
 	recommendations := make([]*scheduler.Recommendation, 0)
 
 	for name, provider := range s.providers {
@@ -278,7 +279,7 @@ func (s *SimpleScheduler) getConstrainedRecommendations(ctx context.Context, wor
 		}
 
 		// Calculate estimated cost
-		cost := s.calculateCost(workload, pricing)
+		cost := s.calculateCost(w, pricing)
 
 		// Apply cost constraints
 		if constraints.MaxCostIncrease != nil {
@@ -322,10 +323,10 @@ func (s *SimpleScheduler) getConstrainedRecommendations(ctx context.Context, wor
 		}
 
 		// Calculate score
-		score := s.calculateScore(workload, provider, cost)
+		score := s.calculateScore(w, provider, cost)
 
 		// Select machine type
-		selectedMachineType := s.selectMachineType(workload, resources)
+		selectedMachineType := s.selectMachineType(w, resources)
 
 		rec := &scheduler.Recommendation{
 			Provider:      name,
@@ -368,19 +369,19 @@ func (s *SimpleScheduler) HealthCheck(ctx context.Context) error {
 }
 
 // calculateCost estimates the cost for a workload
-func (s *SimpleScheduler) calculateCost(workload *types.Workload, pricing *types.PricingInfo) *types.CostEstimate {
+func (s *SimpleScheduler) calculateCost(w *workload.Workload, pricing *providers.PricingInfo) *providers.CostEstimate {
 	// Simple cost calculation based on resources
 	cpuCost := 2.0 * pricing.CPU.Amount       // Assume 2 vCPUs
 	memoryCost := 4.0 * pricing.Memory.Amount // Assume 4GB memory
 
 	hourlyCost := cpuCost + memoryCost
 
-	return &types.CostEstimate{
+	return &providers.CostEstimate{
 		Currency:    pricing.Currency,
 		HourlyCost:  hourlyCost,
 		DailyCost:   hourlyCost * 24,
 		MonthlyCost: hourlyCost * 24 * 30,
-		Breakdown: []types.CostBreakdown{
+		Breakdown: []providers.CostBreakdown{
 			{
 				Component:   "cpu",
 				Description: "2 vCPUs",
@@ -401,7 +402,7 @@ func (s *SimpleScheduler) calculateCost(workload *types.Workload, pricing *types
 }
 
 // calculateScore calculates a score for a provider based on the scheduling policy
-func (s *SimpleScheduler) calculateScore(workload *types.Workload, provider types.Provider, cost *types.CostEstimate) float64 {
+func (s *SimpleScheduler) calculateScore(w *workload.Workload, provider providers.Provider, cost *providers.CostEstimate) float64 {
 	policy := s.config.DefaultPolicy
 
 	// Base score
@@ -470,15 +471,15 @@ func (s *SimpleScheduler) updateStats(workloadID, provider, region string, succe
 }
 
 // selectMachineType selects an appropriate machine type based on workload requirements
-func (s *SimpleScheduler) selectMachineType(workload *types.Workload, resources *types.ResourceAvailability) string {
+func (s *SimpleScheduler) selectMachineType(w *workload.Workload, resources *providers.ResourceAvailability) string {
 	// Parse workload resource requirements
-	cpuRequired := s.parseCPURequirement(workload.Spec.Resources.CPU)
-	memoryRequired := s.parseMemoryRequirement(workload.Spec.Resources.Memory)
-	gpuRequired := workload.Spec.Resources.GPU != ""
+	cpuRequired := s.parseCPURequirement(w.Spec.Resources.CPU)
+	memoryRequired := s.parseMemoryRequirement(w.Spec.Resources.Memory)
+	gpuRequired := w.Spec.Resources.GPU != ""
 
 	// If GPU is required, select appropriate GPU machine type
 	if gpuRequired {
-		return s.selectGPUMachineType(workload.Spec.Resources.GPU, resources)
+		return s.selectGPUMachineType(w.Spec.Resources.GPU, resources)
 	}
 
 	// Select CPU/Memory machine type based on requirements
@@ -592,7 +593,7 @@ func (s *SimpleScheduler) parseFloat(str string) float64 {
 }
 
 // selectGPUMachineType selects appropriate GPU machine type
-func (s *SimpleScheduler) selectGPUMachineType(gpuSpec string, resources *types.ResourceAvailability) string {
+func (s *SimpleScheduler) selectGPUMachineType(gpuSpec string, resources *providers.ResourceAvailability) string {
 	// Parse GPU requirements (e.g., "nvidia-tesla-v100", "1", "nvidia-a100:2")
 	if len(resources.GPU.Types) == 0 {
 		return "gpu-standard" // Fallback

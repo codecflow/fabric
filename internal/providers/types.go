@@ -1,7 +1,8 @@
-package types
+package providers
 
 import (
 	"context"
+	"fabric/internal/workload"
 )
 
 // Provider defines the interface for cloud providers
@@ -11,11 +12,11 @@ type Provider interface {
 	Type() ProviderType
 
 	// Workload lifecycle
-	CreateWorkload(ctx context.Context, workload *Workload) error
-	GetWorkload(ctx context.Context, id string) (*Workload, error)
-	UpdateWorkload(ctx context.Context, workload *Workload) error
+	CreateWorkload(ctx context.Context, workload *workload.Workload) error
+	GetWorkload(ctx context.Context, id string) (*workload.Workload, error)
+	UpdateWorkload(ctx context.Context, workload *workload.Workload) error
 	DeleteWorkload(ctx context.Context, id string) error
-	ListWorkloads(ctx context.Context, namespace string) ([]*Workload, error)
+	ListWorkloads(ctx context.Context, namespace string) ([]*workload.Workload, error)
 
 	// Resource management
 	GetAvailableResources(ctx context.Context) (*ResourceAvailability, error)

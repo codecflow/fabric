@@ -1,11 +1,11 @@
-package types
+package workload
 
 import (
 	"time"
 )
 
 // WorkloadSpec defines the desired state of a workload
-type WorkloadSpec struct {
+type Spec struct {
 	Image     string            `json:"image"`
 	Command   []string          `json:"command,omitempty"`
 	Args      []string          `json:"args,omitempty"`
@@ -75,14 +75,14 @@ type Toleration struct {
 	Effect   string `json:"effect,omitempty"` // NoSchedule, PreferNoSchedule, NoExecute
 }
 
-// WorkloadStatus represents the current state of a workload
-type WorkloadStatus struct {
-	Phase        WorkloadPhase `json:"phase"`
-	Message      string        `json:"message,omitempty"`
-	Reason       string        `json:"reason,omitempty"`
-	StartTime    *time.Time    `json:"startTime,omitempty"`
-	FinishTime   *time.Time    `json:"finishTime,omitempty"`
-	RestartCount int32         `json:"restartCount"`
+// Status represents the current state of a workload
+type Status struct {
+	Phase        Phase      `json:"phase"`
+	Message      string     `json:"message,omitempty"`
+	Reason       string     `json:"reason,omitempty"`
+	StartTime    *time.Time `json:"startTime,omitempty"`
+	FinishTime   *time.Time `json:"finishTime,omitempty"`
+	RestartCount int32      `json:"restartCount"`
 
 	// Runtime information
 	NodeID      string `json:"nodeId,omitempty"`
@@ -95,16 +95,16 @@ type WorkloadStatus struct {
 	LastSnapshot *time.Time `json:"lastSnapshot,omitempty"`
 }
 
-// WorkloadPhase represents the lifecycle phase
-type WorkloadPhase string
+// Phase represents the lifecycle phase
+type Phase string
 
 const (
-	WorkloadPhasePending   WorkloadPhase = "Pending"
-	WorkloadPhaseScheduled WorkloadPhase = "Scheduled"
-	WorkloadPhaseRunning   WorkloadPhase = "Running"
-	WorkloadPhaseSucceeded WorkloadPhase = "Succeeded"
-	WorkloadPhaseFailed    WorkloadPhase = "Failed"
-	WorkloadPhaseUnknown   WorkloadPhase = "Unknown"
+	PhasePending   Phase = "Pending"
+	PhaseScheduled Phase = "Scheduled"
+	PhaseRunning   Phase = "Running"
+	PhaseSucceeded Phase = "Succeeded"
+	PhaseFailed    Phase = "Failed"
+	PhaseUnknown   Phase = "Unknown"
 )
 
 // Workload represents a complete workload definition
@@ -115,16 +115,25 @@ type Workload struct {
 	Labels      map[string]string `json:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty"`
 
-	Spec   WorkloadSpec   `json:"spec"`
-	Status WorkloadStatus `json:"status"`
+	Spec   Spec   `json:"spec"`
+	Status Status `json:"status"`
 
 	CreatedAt time.Time  `json:"createdAt"`
 	UpdatedAt time.Time  `json:"updatedAt"`
 	DeletedAt *time.Time `json:"deletedAt,omitempty"`
 }
 
-// WorkloadList represents a list of workloads
-type WorkloadList struct {
+// List represents a list of workloads
+type List struct {
 	Items []Workload `json:"items"`
 	Total int        `json:"total"`
+}
+
+// Filter defines filters for workload queries
+type Filter struct {
+	Namespace string
+	Labels    map[string]string
+	Phase     Phase
+	Provider  string
+	NodeID    string
 }

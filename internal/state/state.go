@@ -3,12 +3,12 @@ package state
 import (
 	"fabric/internal/metering"
 	"fabric/internal/network"
+	"fabric/internal/providers"
 	"fabric/internal/proxy"
 	"fabric/internal/repository"
 	"fabric/internal/scheduler"
 	"fabric/internal/storage"
 	"fabric/internal/stream"
-	"fabric/internal/types"
 )
 
 // State represents the application state with all dependencies
@@ -20,29 +20,29 @@ type State struct {
 	Network    network.Network
 	Scheduler  scheduler.Scheduler
 	Proxy      *proxy.Server
-	Providers  map[string]types.Provider
+	Providers  map[string]providers.Provider
 }
 
 // New creates a new State instance
 func New() *State {
 	return &State{
-		Providers: make(map[string]types.Provider),
+		Providers: make(map[string]providers.Provider),
 	}
 }
 
 // AddProvider adds a provider to the state
-func (s *State) AddProvider(name string, provider types.Provider) {
+func (s *State) AddProvider(name string, provider providers.Provider) {
 	s.Providers[name] = provider
 }
 
 // GetProvider retrieves a provider by name
-func (s *State) GetProvider(name string) (types.Provider, bool) {
+func (s *State) GetProvider(name string) (providers.Provider, bool) {
 	provider, exists := s.Providers[name]
 	return provider, exists
 }
 
 // ListProviders returns all available providers
-func (s *State) ListProviders() map[string]types.Provider {
+func (s *State) ListProviders() map[string]providers.Provider {
 	return s.Providers
 }
 

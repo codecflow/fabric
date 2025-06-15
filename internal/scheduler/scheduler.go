@@ -2,17 +2,18 @@ package scheduler
 
 import (
 	"context"
-	"fabric/internal/types"
+	"fabric/internal/providers"
+	"fabric/internal/workload"
 	"time"
 )
 
 // Scheduler defines the interface for workload scheduling
 type Scheduler interface {
 	// Schedule a workload across available providers
-	Schedule(ctx context.Context, workload *types.Workload) (*ScheduleResult, error)
+	Schedule(ctx context.Context, workload *workload.Workload) (*ScheduleResult, error)
 
 	// Get scheduling recommendations without actually scheduling
-	GetRecommendations(ctx context.Context, workload *types.Workload) ([]*Recommendation, error)
+	GetRecommendations(ctx context.Context, workload *workload.Workload) ([]*Recommendation, error)
 
 	// Reschedule an existing workload (for migration/optimization)
 	Reschedule(ctx context.Context, workloadID string, constraints *RescheduleConstraints) (*ScheduleResult, error)
@@ -26,15 +27,15 @@ type Scheduler interface {
 
 // ScheduleResult represents the result of a scheduling operation
 type ScheduleResult struct {
-	WorkloadID    string                 `json:"workloadId"`
-	Provider      string                 `json:"provider"`
-	Region        string                 `json:"region"`
-	MachineType   string                 `json:"machineType"`
-	EstimatedCost *types.CostEstimate    `json:"estimatedCost,omitempty"`
-	Placement     *PlacementDecision     `json:"placement"`
-	Alternatives  []*Alternative         `json:"alternatives,omitempty"`
-	ScheduledAt   time.Time              `json:"scheduledAt"`
-	Metadata      map[string]interface{} `json:"metadata,omitempty"`
+	WorkloadID    string                  `json:"workloadId"`
+	Provider      string                  `json:"provider"`
+	Region        string                  `json:"region"`
+	MachineType   string                  `json:"machineType"`
+	EstimatedCost *providers.CostEstimate `json:"estimatedCost,omitempty"`
+	Placement     *PlacementDecision      `json:"placement"`
+	Alternatives  []*Alternative          `json:"alternatives,omitempty"`
+	ScheduledAt   time.Time               `json:"scheduledAt"`
+	Metadata      map[string]interface{}  `json:"metadata,omitempty"`
 }
 
 // PlacementDecision contains detailed placement information
@@ -51,22 +52,22 @@ type PlacementDecision struct {
 
 // Alternative represents an alternative scheduling option
 type Alternative struct {
-	Placement     *PlacementDecision  `json:"placement"`
-	EstimatedCost *types.CostEstimate `json:"estimatedCost,omitempty"`
-	Rank          int                 `json:"rank"` // 1 = best alternative
-	Reason        string              `json:"reason"`
+	Placement     *PlacementDecision      `json:"placement"`
+	EstimatedCost *providers.CostEstimate `json:"estimatedCost,omitempty"`
+	Rank          int                     `json:"rank"` // 1 = best alternative
+	Reason        string                  `json:"reason"`
 }
 
 // Recommendation represents a scheduling recommendation
 type Recommendation struct {
-	Provider      string              `json:"provider"`
-	Region        string              `json:"region"`
-	MachineType   string              `json:"machineType"`
-	Score         float64             `json:"score"`
-	EstimatedCost *types.CostEstimate `json:"estimatedCost,omitempty"`
-	Pros          []string            `json:"pros"`
-	Cons          []string            `json:"cons"`
-	Confidence    float64             `json:"confidence"` // 0-1
+	Provider      string                  `json:"provider"`
+	Region        string                  `json:"region"`
+	MachineType   string                  `json:"machineType"`
+	Score         float64                 `json:"score"`
+	EstimatedCost *providers.CostEstimate `json:"estimatedCost,omitempty"`
+	Pros          []string                `json:"pros"`
+	Cons          []string                `json:"cons"`
+	Confidence    float64                 `json:"confidence"` // 0-1
 }
 
 // RescheduleConstraints defines constraints for rescheduling
