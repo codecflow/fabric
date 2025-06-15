@@ -79,15 +79,50 @@ func (s *Server) CreateWorkload(ctx context.Context, req *weaver.CreateWorkloadR
 		UpdatedAt: now,
 	}
 
-	// TODO: Store workload in repository
-	// For now, just simulate successful creation
+	// Store workload in repository
+	if s.appState.Repository != nil {
+		if err := s.appState.Repository.CreateWorkload(ctx, workload); err != nil {
+			return nil, fmt.Errorf("failed to store workload: %v", err)
+		}
+	}
 
-	// Add proxy route if proxy is enabled and workload has ports
-	if s.appState.Proxy != nil && len(workload.Spec.Ports) > 0 {
-		// Simulate target URL (in real implementation, this would come from the provider)
-		targetURL := "http://localhost:8080" // This would be the actual workload endpoint
-		if err := s.appState.Proxy.AddRoute(workload, targetURL); err != nil {
-			return nil, fmt.Errorf("failed to add proxy route: %v", err)
+	// Schedule workload to get actual deployment details
+	if s.appState.Scheduler != nil {
+		placement, err := s.appState.Scheduler.Schedule(ctx, workload)
+		if err != nil {
+			return nil, fmt.Errorf("failed to schedule workload: %v", err)
+		}
+
+		// Update workload status with placement information
+		workload.Status.Provider = placement.Provider
+		if placement.Placement != nil {
+			workload.Status.NodeID = placement.Placement.NodeID
+		}
+		workload.Status.Phase = types.WorkloadPhaseScheduled
+
+		// Update workload in repository with placement info
+		if s.appState.Repository != nil {
+			if err := s.appState.Repository.UpdateWorkload(ctx, workload); err != nil {
+				s.logger.Warnf("Failed to update workload with placement info: %v", err)
+			}
+		}
+
+		// Add proxy route if proxy is enabled and workload has ports
+		if s.appState.Proxy != nil && len(workload.Spec.Ports) > 0 && placement.Placement != nil {
+			// Construct endpoint URL from placement information
+			// In a real implementation, this would query the provider for the actual endpoint
+			var endpoint string
+			if placement.Placement.NodeID != "" {
+				// For now, construct a basic endpoint - in production this would come from the provider
+				port := workload.Spec.Ports[0].ContainerPort
+				endpoint = fmt.Sprintf("http://%s:%d", placement.Placement.NodeID, port)
+			}
+
+			if endpoint != "" {
+				if err := s.appState.Proxy.AddRoute(workload, endpoint); err != nil {
+					return nil, fmt.Errorf("failed to add proxy route: %v", err)
+				}
+			}
 		}
 	}
 
@@ -101,18 +136,83 @@ func (s *Server) CreateWorkload(ctx context.Context, req *weaver.CreateWorkloadR
 }
 
 func (s *Server) GetWorkload(ctx context.Context, req *weaver.GetWorkloadRequest) (*weaver.GetWorkloadResponse, error) {
-	// TODO: Implement workload retrieval
-	return nil, fmt.Errorf("not implemented")
+	if s.appState.Repository == nil {
+		return nil, fmt.Errorf("repository not configured")
+	}
+
+	workload, err := s.appState.Repository.GetWorkload(ctx, req.Id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get workload: %v", err)
+	}
+
+	return &weaver.GetWorkloadResponse{
+		Workload: &weaver.Workload{
+			Id:          workload.ID,
+			Name:        workload.Name,
+			Namespace:   workload.Namespace,
+			Labels:      workload.Labels,
+			Annotations: workload.Annotations,
+			Spec:        convertWorkloadSpecToProto(&workload.Spec),
+			Status:      convertWorkloadStatus(&workload.Status),
+			CreatedAt:   timestamppb.New(workload.CreatedAt),
+			UpdatedAt:   timestamppb.New(workload.UpdatedAt),
+		},
+	}, nil
 }
 
 func (s *Server) ListWorkloads(ctx context.Context, req *weaver.ListWorkloadsRequest) (*weaver.ListWorkloadsResponse, error) {
-	// TODO: Implement workload listing
-	return nil, fmt.Errorf("not implemented")
+	if s.appState.Repository == nil {
+		return nil, fmt.Errorf("repository not configured")
+	}
+
+	workloads, err := s.appState.Repository.ListWorkloads(ctx, req.Namespace, req.LabelSelector)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list workloads: %v", err)
+	}
+
+	var protoWorkloads []*weaver.Workload
+	for _, workload := range workloads {
+		protoWorkloads = append(protoWorkloads, &weaver.Workload{
+			Id:          workload.ID,
+			Name:        workload.Name,
+			Namespace:   workload.Namespace,
+			Labels:      workload.Labels,
+			Annotations: workload.Annotations,
+			Spec:        convertWorkloadSpecToProto(&workload.Spec),
+			Status:      convertWorkloadStatus(&workload.Status),
+			CreatedAt:   timestamppb.New(workload.CreatedAt),
+			UpdatedAt:   timestamppb.New(workload.UpdatedAt),
+		})
+	}
+
+	return &weaver.ListWorkloadsResponse{
+		Workloads: protoWorkloads,
+		Total:     int32(len(protoWorkloads)),
+	}, nil
 }
 
 func (s *Server) DeleteWorkload(ctx context.Context, req *weaver.DeleteWorkloadRequest) (*emptypb.Empty, error) {
-	// TODO: Implement workload deletion
-	return nil, fmt.Errorf("not implemented")
+	if s.appState.Repository == nil {
+		return nil, fmt.Errorf("repository not configured")
+	}
+
+	// Get workload first to remove proxy route
+	workload, err := s.appState.Repository.GetWorkload(ctx, req.Id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get workload: %v", err)
+	}
+
+	// Remove proxy route if proxy is enabled
+	if s.appState.Proxy != nil {
+		s.appState.Proxy.RemoveRoute(workload)
+	}
+
+	// Delete workload from repository
+	if err := s.appState.Repository.DeleteWorkload(ctx, req.Id); err != nil {
+		return nil, fmt.Errorf("failed to delete workload: %v", err)
+	}
+
+	return &emptypb.Empty{}, nil
 }
 
 // Provider management
@@ -125,23 +225,95 @@ func (s *Server) ListProviders(ctx context.Context, req *emptypb.Empty) (*weaver
 }
 
 func (s *Server) GetProviderRegions(ctx context.Context, req *weaver.GetProviderRegionsRequest) (*weaver.GetProviderRegionsResponse, error) {
-	_, exists := s.appState.Providers[req.Provider]
+	provider, exists := s.appState.Providers[req.Provider]
 	if !exists {
 		return nil, fmt.Errorf("provider not found")
 	}
 
-	// TODO: Update to use new provider interface
-	return nil, fmt.Errorf("not implemented")
+	// Get available resources which includes region information
+	resources, err := provider.GetAvailableResources(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get provider resources: %v", err)
+	}
+
+	var regions []string
+	for _, region := range resources.Regions {
+		if region.Available {
+			regions = append(regions, region.Name)
+		}
+	}
+
+	return &weaver.GetProviderRegionsResponse{
+		Regions: regions,
+	}, nil
 }
 
 func (s *Server) GetProviderMachineTypes(ctx context.Context, req *weaver.GetProviderMachineTypesRequest) (*weaver.GetProviderMachineTypesResponse, error) {
-	_, exists := s.appState.Providers[req.Provider]
+	provider, exists := s.appState.Providers[req.Provider]
 	if !exists {
 		return nil, fmt.Errorf("provider not found")
 	}
 
-	// TODO: Update to use new provider interface
-	return nil, fmt.Errorf("not implemented")
+	// Get pricing information to determine machine types
+	pricing, err := provider.GetPricing(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get provider pricing: %v", err)
+	}
+
+	// Get available resources for GPU information
+	resources, err := provider.GetAvailableResources(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get provider resources: %v", err)
+	}
+
+	var machineTypes []*weaver.MachineType
+
+	// Standard CPU/Memory machine types
+	standardTypes := []struct {
+		name   string
+		cpu    string
+		memory string
+		cpuNum float64
+		memGB  float64
+	}{
+		{"micro", "0.5", "1Gi", 0.5, 1.0},
+		{"small", "1", "2Gi", 1.0, 2.0},
+		{"medium", "2", "4Gi", 2.0, 4.0},
+		{"large", "4", "8Gi", 4.0, 8.0},
+		{"xlarge", "8", "16Gi", 8.0, 16.0},
+		{"2xlarge", "16", "32Gi", 16.0, 32.0},
+		{"4xlarge", "32", "64Gi", 32.0, 64.0},
+		{"8xlarge", "64", "128Gi", 64.0, 128.0},
+		{"16xlarge", "128", "256Gi", 128.0, 256.0},
+	}
+
+	for _, mt := range standardTypes {
+		price := mt.cpuNum*pricing.CPU.Amount + mt.memGB*pricing.Memory.Amount
+		machineTypes = append(machineTypes, &weaver.MachineType{
+			Name:         mt.name,
+			Cpu:          mt.cpu,
+			Memory:       mt.memory,
+			Gpu:          "",
+			PricePerHour: price,
+		})
+	}
+
+	// GPU machine types
+	for gpuType, gpuInfo := range resources.GPU.Types {
+		if gpuInfo.Available > 0 {
+			machineTypes = append(machineTypes, &weaver.MachineType{
+				Name:         fmt.Sprintf("gpu-%s", gpuType),
+				Cpu:          "8", // Standard 8 vCPU for GPU instances
+				Memory:       "32Gi",
+				Gpu:          gpuType,
+				PricePerHour: gpuInfo.PricePerHour,
+			})
+		}
+	}
+
+	return &weaver.GetProviderMachineTypesResponse{
+		MachineTypes: machineTypes,
+	}, nil
 }
 
 // Scheduler
@@ -170,8 +342,30 @@ func (s *Server) ScheduleWorkload(ctx context.Context, req *weaver.ScheduleWorkl
 		return nil, fmt.Errorf("scheduler not configured")
 	}
 
-	// TODO: Parse workload from request body and schedule it
-	return nil, fmt.Errorf("not implemented")
+	// Create a temporary workload for scheduling
+	workload := &types.Workload{
+		ID:   generateID(),
+		Spec: convertWorkloadSpec(req.Spec),
+	}
+
+	// Schedule the workload
+	result, err := s.appState.Scheduler.Schedule(ctx, workload)
+	if err != nil {
+		return nil, fmt.Errorf("failed to schedule workload: %v", err)
+	}
+
+	response := &weaver.ScheduleWorkloadResponse{
+		Provider:      result.Provider,
+		Region:        result.Region,
+		EstimatedCost: result.EstimatedCost.HourlyCost,
+	}
+
+	if result.Placement != nil {
+		response.Zone = result.Placement.Zone
+		response.NodeId = result.Placement.NodeID
+	}
+
+	return response, nil
 }
 
 func (s *Server) GetRecommendations(ctx context.Context, req *weaver.GetRecommendationsRequest) (*weaver.GetRecommendationsResponse, error) {
@@ -179,8 +373,33 @@ func (s *Server) GetRecommendations(ctx context.Context, req *weaver.GetRecommen
 		return nil, fmt.Errorf("scheduler not configured")
 	}
 
-	// TODO: Parse workload from query params and get recommendations
-	return nil, fmt.Errorf("not implemented")
+	// Create a temporary workload for getting recommendations
+	workload := &types.Workload{
+		ID:   generateID(),
+		Spec: convertWorkloadSpec(req.Spec),
+	}
+
+	// Get recommendations from scheduler
+	recommendations, err := s.appState.Scheduler.GetRecommendations(ctx, workload)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get recommendations: %v", err)
+	}
+
+	var protoRecommendations []*weaver.ScheduleRecommendation
+	for _, rec := range recommendations {
+		protoRecommendations = append(protoRecommendations, &weaver.ScheduleRecommendation{
+			Provider:         rec.Provider,
+			Region:           rec.Region,
+			Zone:             "", // Zone not available in current recommendation structure
+			CostPerHour:      rec.EstimatedCost.HourlyCost,
+			PerformanceScore: rec.Score,
+			Reason:           fmt.Sprintf("Score: %.2f, Confidence: %.2f", rec.Score, rec.Confidence),
+		})
+	}
+
+	return &weaver.GetRecommendationsResponse{
+		Recommendations: protoRecommendations,
+	}, nil
 }
 
 func (s *Server) GetSchedulerStats(ctx context.Context, req *emptypb.Empty) (*weaver.GetSchedulerStatsResponse, error) {
@@ -193,10 +412,25 @@ func (s *Server) GetSchedulerStats(ctx context.Context, req *emptypb.Empty) (*we
 		return nil, err
 	}
 
+	// Calculate pending workloads from repository if available
+	var pendingWorkloads int32
+	if s.appState.Repository != nil {
+		// Get all workloads and count those in pending state
+		workloads, err := s.appState.Repository.ListWorkloads(ctx, "", nil)
+		if err == nil {
+			for _, workload := range workloads {
+				if workload.Status.Phase == types.WorkloadPhasePending ||
+					workload.Status.Phase == types.WorkloadPhaseScheduled {
+					pendingWorkloads++
+				}
+			}
+		}
+	}
+
 	return &weaver.GetSchedulerStatsResponse{
 		TotalWorkloads:      int32(stats.TotalScheduled),
 		RunningWorkloads:    int32(stats.SuccessfulSchedules),
-		PendingWorkloads:    0, // TODO: Add pending workloads tracking
+		PendingWorkloads:    pendingWorkloads,
 		FailedWorkloads:     int32(stats.FailedSchedules),
 		WorkloadsByProvider: convertProviderStats(stats.ProviderStats),
 		TotalCostPerHour:    calculateTotalCost(stats.ProviderStats),
@@ -339,4 +573,76 @@ func calculateTotalCost(providerStats map[string]*scheduler.ProviderStats) float
 		}
 	}
 	return totalCost
+}
+
+func convertWorkloadSpecToProto(spec *types.WorkloadSpec) *weaver.WorkloadSpec {
+	if spec == nil {
+		return nil
+	}
+
+	result := &weaver.WorkloadSpec{
+		Image:         spec.Image,
+		Command:       spec.Command,
+		Args:          spec.Args,
+		Env:           spec.Env,
+		RestartPolicy: string(spec.Restart),
+	}
+
+	// Convert resources
+	result.Resources = &weaver.ResourceRequests{
+		Cpu:    spec.Resources.CPU,
+		Memory: spec.Resources.Memory,
+		Gpu:    spec.Resources.GPU,
+	}
+
+	// Convert volumes
+	for _, volume := range spec.Volumes {
+		result.Volumes = append(result.Volumes, &weaver.VolumeMount{
+			Name:      volume.Name,
+			MountPath: volume.MountPath,
+			ReadOnly:  volume.ReadOnly,
+			ContentId: volume.ContentID,
+		})
+	}
+
+	// Convert ports
+	for _, port := range spec.Ports {
+		result.Ports = append(result.Ports, &weaver.Port{
+			Name:          port.Name,
+			ContainerPort: port.ContainerPort,
+			Protocol:      port.Protocol,
+		})
+	}
+
+	// Convert sidecars
+	for _, sidecar := range spec.Sidecars {
+		result.Sidecars = append(result.Sidecars, &weaver.SidecarSpec{
+			Name:    sidecar.Name,
+			Image:   sidecar.Image,
+			Command: sidecar.Command,
+			Args:    sidecar.Args,
+			Env:     sidecar.Env,
+		})
+	}
+
+	// Convert placement
+	if spec.Placement.Provider != "" || spec.Placement.Region != "" || spec.Placement.Zone != "" {
+		result.Placement = &weaver.PlacementSpec{
+			Provider:   spec.Placement.Provider,
+			Region:     spec.Placement.Region,
+			Zone:       spec.Placement.Zone,
+			NodeLabels: spec.Placement.NodeLabels,
+		}
+
+		for _, toleration := range spec.Placement.Tolerations {
+			result.Placement.Tolerations = append(result.Placement.Tolerations, &weaver.Toleration{
+				Key:      toleration.Key,
+				Operator: toleration.Operator,
+				Value:    toleration.Value,
+				Effect:   toleration.Effect,
+			})
+		}
+	}
+
+	return result
 }

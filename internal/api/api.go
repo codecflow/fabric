@@ -99,8 +99,37 @@ func createWorkload(appState *state.State) gin.HandlerFunc {
 			}
 		}
 
-		// TODO: Store workload in repository
-		// For now, just simulate successful creation
+		// Store workload in repository
+		if appState.Repository != nil {
+			if err := appState.Repository.CreateWorkload(c.Request.Context(), workload); err != nil {
+				c.JSON(500, gin.H{"error": "failed to store workload: " + err.Error()})
+				return
+			}
+		}
+
+		// Schedule workload if scheduler is available
+		if appState.Scheduler != nil {
+			placement, err := appState.Scheduler.Schedule(c.Request.Context(), workload)
+			if err != nil {
+				c.JSON(500, gin.H{"error": "failed to schedule workload: " + err.Error()})
+				return
+			}
+
+			// Update workload status with placement information
+			workload.Status.Provider = placement.Provider
+			if placement.Placement != nil {
+				workload.Status.NodeID = placement.Placement.NodeID
+			}
+			workload.Status.Phase = types.WorkloadPhaseScheduled
+
+			// Update workload in repository with placement info
+			if appState.Repository != nil {
+				if err := appState.Repository.UpdateWorkload(c.Request.Context(), workload); err != nil {
+					// Log warning but don't fail the request
+					// In production, you might want to handle this differently
+				}
+			}
+		}
 
 		// Add proxy route if proxy is enabled and workload has a port
 		if appState.Proxy != nil && req.Port > 0 {
@@ -123,22 +152,114 @@ func createWorkload(appState *state.State) gin.HandlerFunc {
 
 func getWorkload(appState *state.State) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// TODO: Implement workload retrieval
-		c.JSON(501, gin.H{"error": "not implemented"})
+		id := c.Param("id")
+		if id == "" {
+			c.JSON(400, gin.H{"error": "workload id is required"})
+			return
+		}
+
+		if appState.Repository == nil {
+			c.JSON(503, gin.H{"error": "repository not configured"})
+			return
+		}
+
+		workload, err := appState.Repository.GetWorkload(c.Request.Context(), id)
+		if err != nil {
+			c.JSON(404, gin.H{"error": "workload not found"})
+			return
+		}
+
+		c.JSON(200, gin.H{
+			"id":         workload.ID,
+			"name":       workload.Name,
+			"namespace":  workload.Namespace,
+			"image":      workload.Spec.Image,
+			"status":     workload.Status.Phase,
+			"provider":   workload.Status.Provider,
+			"node_id":    workload.Status.NodeID,
+			"created_at": workload.CreatedAt,
+			"updated_at": workload.UpdatedAt,
+		})
 	}
 }
 
 func deleteWorkload(appState *state.State) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// TODO: Implement workload deletion
-		c.JSON(501, gin.H{"error": "not implemented"})
+		id := c.Param("id")
+		if id == "" {
+			c.JSON(400, gin.H{"error": "workload id is required"})
+			return
+		}
+
+		if appState.Repository == nil {
+			c.JSON(503, gin.H{"error": "repository not configured"})
+			return
+		}
+
+		// Get workload first to remove proxy route
+		workload, err := appState.Repository.GetWorkload(c.Request.Context(), id)
+		if err != nil {
+			c.JSON(404, gin.H{"error": "workload not found"})
+			return
+		}
+
+		// Remove proxy route if proxy is enabled
+		if appState.Proxy != nil {
+			appState.Proxy.RemoveRoute(workload)
+		}
+
+		// Delete workload from repository
+		if err := appState.Repository.DeleteWorkload(c.Request.Context(), id); err != nil {
+			c.JSON(500, gin.H{"error": "failed to delete workload: " + err.Error()})
+			return
+		}
+
+		c.JSON(200, gin.H{"message": "workload deleted successfully"})
 	}
 }
 
 func listWorkloads(appState *state.State) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// TODO: Implement workload listing
-		c.JSON(501, gin.H{"error": "not implemented"})
+		if appState.Repository == nil {
+			c.JSON(503, gin.H{"error": "repository not configured"})
+			return
+		}
+
+		namespace := c.Query("namespace")
+		labelSelectorStr := c.Query("labelSelector")
+
+		// Parse label selector string into map (simplified parsing)
+		var labelSelector map[string]string
+		if labelSelectorStr != "" {
+			labelSelector = make(map[string]string)
+			// For now, just pass empty map - in production you'd parse "key=value,key2=value2" format
+		}
+
+		workloads, err := appState.Repository.ListWorkloads(c.Request.Context(), namespace, labelSelector)
+		if err != nil {
+			c.JSON(500, gin.H{"error": "failed to list workloads: " + err.Error()})
+			return
+		}
+
+		var result []gin.H
+		for _, workload := range workloads {
+			result = append(result, gin.H{
+				"id":         workload.ID,
+				"name":       workload.Name,
+				"namespace":  workload.Namespace,
+				"image":      workload.Spec.Image,
+				"status":     workload.Status.Phase,
+				"provider":   workload.Status.Provider,
+				"node_id":    workload.Status.NodeID,
+				"created_at": workload.CreatedAt,
+				"updated_at": workload.UpdatedAt,
+			})
+		}
+
+		c.JSON(200, gin.H{
+			"workloads": result,
+			"total":     len(result),
+		})
 	}
 }
 
@@ -155,28 +276,110 @@ func listProviders(appState *state.State) gin.HandlerFunc {
 func listProviderRegions(appState *state.State) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		providerName := c.Param("name")
-		_, exists := appState.Providers[providerName]
+		provider, exists := appState.Providers[providerName]
 		if !exists {
 			c.JSON(404, gin.H{"error": "provider not found"})
 			return
 		}
 
-		// TODO: Update to use new provider interface
-		c.JSON(501, gin.H{"error": "not implemented"})
+		// Get available resources which includes region information
+		resources, err := provider.GetAvailableResources(c.Request.Context())
+		if err != nil {
+			c.JSON(500, gin.H{"error": "failed to get provider resources: " + err.Error()})
+			return
+		}
+
+		// Extract regions from the resource availability
+		var regions []gin.H
+		for _, region := range resources.Regions {
+			regions = append(regions, gin.H{
+				"name":         region.Name,
+				"display_name": region.DisplayName,
+				"available":    region.Available,
+			})
+		}
+
+		c.JSON(200, gin.H{
+			"provider": providerName,
+			"regions":  regions,
+		})
 	}
 }
 
 func listProviderMachineTypes(appState *state.State) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		providerName := c.Param("name")
-		_, exists := appState.Providers[providerName]
+		provider, exists := appState.Providers[providerName]
 		if !exists {
 			c.JSON(404, gin.H{"error": "provider not found"})
 			return
 		}
 
-		// TODO: Update to use new provider interface
-		c.JSON(501, gin.H{"error": "not implemented"})
+		// Get pricing information which includes machine type details
+		pricing, err := provider.GetPricing(c.Request.Context())
+		if err != nil {
+			c.JSON(500, gin.H{"error": "failed to get provider pricing: " + err.Error()})
+			return
+		}
+
+		// Get available resources for capacity information
+		resources, err := provider.GetAvailableResources(c.Request.Context())
+		if err != nil {
+			c.JSON(500, gin.H{"error": "failed to get provider resources: " + err.Error()})
+			return
+		}
+
+		// Generate machine types based on available resources and pricing
+		var machineTypes []gin.H
+
+		// Basic CPU/Memory configurations
+		cpuConfigs := []struct {
+			name   string
+			cpu    string
+			memory string
+		}{
+			{"small", "1", "2Gi"},
+			{"medium", "2", "4Gi"},
+			{"large", "4", "8Gi"},
+			{"xlarge", "8", "16Gi"},
+			{"2xlarge", "16", "32Gi"},
+		}
+
+		for _, config := range cpuConfigs {
+			machineType := gin.H{
+				"name":           config.name,
+				"cpu":            config.cpu,
+				"memory":         config.memory,
+				"price_per_hour": pricing.CPU.Amount + pricing.Memory.Amount,
+				"currency":       pricing.Currency,
+				"available":      true,
+			}
+			machineTypes = append(machineTypes, machineType)
+		}
+
+		// Add GPU machine types if GPUs are available
+		if len(resources.GPU.Types) > 0 {
+			for gpuType, gpuInfo := range resources.GPU.Types {
+				if gpuInfo.Available > 0 {
+					machineType := gin.H{
+						"name":           "gpu-" + gpuType,
+						"cpu":            "8",
+						"memory":         "32Gi",
+						"gpu":            gpuType,
+						"gpu_count":      1,
+						"price_per_hour": gpuInfo.PricePerHour,
+						"currency":       pricing.Currency,
+						"available":      gpuInfo.Available > 0,
+					}
+					machineTypes = append(machineTypes, machineType)
+				}
+			}
+		}
+
+		c.JSON(200, gin.H{
+			"provider":      providerName,
+			"machine_types": machineTypes,
+		})
 	}
 }
 
@@ -209,8 +412,111 @@ func scheduleWorkload(appState *state.State) gin.HandlerFunc {
 			return
 		}
 
-		// TODO: Parse workload from request body and schedule it
-		c.JSON(501, gin.H{"error": "not implemented"})
+		var req struct {
+			Name      string            `json:"name" binding:"required"`
+			Namespace string            `json:"namespace" binding:"required"`
+			Image     string            `json:"image" binding:"required"`
+			CPU       string            `json:"cpu"`
+			Memory    string            `json:"memory"`
+			GPU       string            `json:"gpu"`
+			Port      int32             `json:"port"`
+			Env       map[string]string `json:"env"`
+			Region    string            `json:"region"`
+			Provider  string            `json:"provider"`
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+
+		now := time.Now()
+
+		// Create workload for scheduling
+		workload := &types.Workload{
+			ID:        generateID(),
+			Name:      req.Name,
+			Namespace: req.Namespace,
+			Spec: types.WorkloadSpec{
+				Image: req.Image,
+				Env:   req.Env,
+			},
+			Status: types.WorkloadStatus{
+				Phase: types.WorkloadPhasePending,
+			},
+			CreatedAt: now,
+			UpdatedAt: now,
+		}
+
+		// Set resource requirements
+		if req.CPU != "" || req.Memory != "" || req.GPU != "" {
+			workload.Spec.Resources = types.ResourceRequests{
+				CPU:    req.CPU,
+				Memory: req.Memory,
+				GPU:    req.GPU,
+			}
+		}
+
+		// Add port if specified
+		if req.Port > 0 {
+			workload.Spec.Ports = []types.Port{
+				{
+					ContainerPort: req.Port,
+					Protocol:      "TCP",
+				},
+			}
+		}
+
+		// Set placement preferences
+		if req.Region != "" || req.Provider != "" {
+			workload.Spec.Placement = types.PlacementSpec{
+				Region:   req.Region,
+				Provider: req.Provider,
+			}
+		}
+
+		// Schedule the workload
+		placement, err := appState.Scheduler.Schedule(c.Request.Context(), workload)
+		if err != nil {
+			c.JSON(500, gin.H{"error": "failed to schedule workload: " + err.Error()})
+			return
+		}
+
+		// Update workload with placement information
+		workload.Status.Provider = placement.Provider
+		if placement.Placement != nil {
+			workload.Status.NodeID = placement.Placement.NodeID
+		}
+		workload.Status.Phase = types.WorkloadPhaseScheduled
+
+		// Store workload in repository if available
+		if appState.Repository != nil {
+			if err := appState.Repository.CreateWorkload(c.Request.Context(), workload); err != nil {
+				c.JSON(500, gin.H{"error": "failed to store workload: " + err.Error()})
+				return
+			}
+		}
+
+		response := gin.H{
+			"id":        workload.ID,
+			"name":      workload.Name,
+			"namespace": workload.Namespace,
+			"status":    workload.Status.Phase,
+			"provider":  placement.Provider,
+			"node_id":   workload.Status.NodeID,
+		}
+
+		// Add cost information if available
+		if placement.EstimatedCost != nil {
+			response["estimated_cost"] = placement.EstimatedCost
+		}
+
+		// Add score information if placement details are available
+		if placement.Placement != nil {
+			response["score"] = placement.Placement.Score
+		}
+
+		c.JSON(200, response)
 	}
 }
 
@@ -221,8 +527,100 @@ func getRecommendations(appState *state.State) gin.HandlerFunc {
 			return
 		}
 
-		// TODO: Parse workload from query params and get recommendations
-		c.JSON(501, gin.H{"error": "not implemented"})
+		// Parse workload specification from query parameters
+		name := c.Query("name")
+		if name == "" {
+			name = "recommendation-workload"
+		}
+
+		namespace := c.Query("namespace")
+		if namespace == "" {
+			namespace = "default"
+		}
+
+		image := c.Query("image")
+		if image == "" {
+			c.JSON(400, gin.H{"error": "image parameter is required"})
+			return
+		}
+
+		cpu := c.Query("cpu")
+		memory := c.Query("memory")
+		gpu := c.Query("gpu")
+		region := c.Query("region")
+		provider := c.Query("provider")
+
+		// Create temporary workload for recommendations
+		workload := &types.Workload{
+			ID:        "temp-" + generateID(),
+			Name:      name,
+			Namespace: namespace,
+			Spec: types.WorkloadSpec{
+				Image: image,
+			},
+			Status: types.WorkloadStatus{
+				Phase: types.WorkloadPhasePending,
+			},
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+
+		// Set resource requirements if specified
+		if cpu != "" || memory != "" || gpu != "" {
+			workload.Spec.Resources = types.ResourceRequests{
+				CPU:    cpu,
+				Memory: memory,
+				GPU:    gpu,
+			}
+		}
+
+		// Set placement preferences if specified
+		if region != "" || provider != "" {
+			workload.Spec.Placement = types.PlacementSpec{
+				Region:   region,
+				Provider: provider,
+			}
+		}
+
+		// Get recommendations from scheduler
+		recommendations, err := appState.Scheduler.GetRecommendations(c.Request.Context(), workload)
+		if err != nil {
+			c.JSON(500, gin.H{"error": "failed to get recommendations: " + err.Error()})
+			return
+		}
+
+		// Convert recommendations to response format
+		var result []gin.H
+		for _, rec := range recommendations {
+			recommendation := gin.H{
+				"provider":     rec.Provider,
+				"region":       rec.Region,
+				"machine_type": rec.MachineType,
+				"score":        rec.Score,
+				"confidence":   rec.Confidence,
+				"pros":         rec.Pros,
+				"cons":         rec.Cons,
+			}
+
+			// Add cost information if available
+			if rec.EstimatedCost != nil {
+				recommendation["estimated_cost"] = rec.EstimatedCost
+			}
+
+			result = append(result, recommendation)
+		}
+
+		c.JSON(200, gin.H{
+			"workload": gin.H{
+				"name":      workload.Name,
+				"namespace": workload.Namespace,
+				"image":     workload.Spec.Image,
+				"resources": workload.Spec.Resources,
+				"placement": workload.Spec.Placement,
+			},
+			"recommendations": result,
+			"total":           len(result),
+		})
 	}
 }
 

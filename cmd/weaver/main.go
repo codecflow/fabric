@@ -62,13 +62,7 @@ func main() {
 
 	// Initialize providers from config
 	if cfg.Providers.Kubernetes.Enabled {
-		k8sConfig := &kubernetes.Config{
-			Kubeconfig: cfg.Providers.Kubernetes.Kubeconfig,
-			InCluster:  false,
-			Namespace:  "default",
-		}
-
-		k8sProvider, err := kubernetes.New("kubernetes", k8sConfig)
+		k8sProvider, err := kubernetes.NewKubernetesProvider("kubernetes", cfg.Providers.Kubernetes.Kubeconfig, "default")
 		if err != nil {
 			logger.Warnf("Failed to initialize Kubernetes provider: %v", err)
 		} else {
