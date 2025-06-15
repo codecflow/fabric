@@ -4,14 +4,40 @@ import (
 	"fabric/internal/config"
 	"fabric/internal/provider"
 	"fmt"
+
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 type Provider struct {
 	config config.K8sConfig
+	client *kubernetes.Clientset
 }
 
 func New(cfg config.K8sConfig) (provider.Provider, error) {
-	return &Provider{config: cfg}, nil
+	var config *rest.Config
+	var err error
+
+	if cfg.Kubeconfig != "" {
+		config, err = clientcmd.BuildConfigFromFlags("", cfg.Kubeconfig)
+	} else {
+		config, err = rest.InClusterConfig()
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get k8s config: %w", err)
+	}
+
+	client, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create k8s client: %w", err)
+	}
+
+	return &Provider{
+		config: cfg,
+		client: client,
+	}, nil
 }
 
 func (k *Provider) Name() string {

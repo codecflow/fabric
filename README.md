@@ -1,6 +1,9 @@
-# Fabric - Weaver Control Plane
+# Fabric - Multi-Cloud Workload Orchestration
 
-Weaver is the control plane component of the Fabric system, providing REST/gRPC APIs for workload scheduling and management across multiple cloud providers.
+Fabric is a multi-cloud workload orchestration system composed of:
+- **Weaver**: Control plane with REST/gRPC APIs, scheduler, and cost-aware placement
+- **Shuttle**: Node runner that joins WireGuard mesh and manages workloads via containerd
+- **Sidecars**: ctrl (input/output) and stream (VNC/WebRTC bridge) components
 
 ## Architecture
 
@@ -71,20 +74,27 @@ graph TB
 ### Build
 
 ```bash
-go build -o weaver ./cmd/weaver
+# Build all components
+make build
+
+# Or build weaver specifically
+make weaver
+
+# Clean build artifacts
+make clean
 ```
 
 ### Run
 
 ```bash
 # With default settings (K8s provider enabled)
-./weaver --k-8-s-enabled
+./build/weaver --k-8-s-enabled
 
 # With custom config
-./weaver --config config.yaml
+./build/weaver --config config.yaml
 
 # See all options
-./weaver --help
+./build/weaver --help
 ```
 
 ### Configuration
@@ -161,17 +171,25 @@ providers:
 
 ### Project Structure
 ```
-cmd/weaver/          # Main application entry point
-internal/
-  api/               # REST API handlers and routes
-  config/            # Configuration management
-  provider/          # Provider interface and implementations
+cmd/                 # Build targets → binaries
+  weaver/            # Controller / scheduler
+  shuttle/           # Node runner
+internal/            # Private libraries
+  api/               # REST + gRPC handlers (weaver)
+  scheduler/         # Bin-packer, cost logic
+  provider/          # Pluggable drivers
     k8s/             # Kubernetes provider
     runpod/          # RunPod provider
     coreweave/       # CoreWeave provider
-  scheduler/         # Workload scheduling logic
+  mesh/              # Tailscale / WG helpers
+  snapshot/          # CRIU + Iroh helpers
+  db/                # Postgres migrations + sqlc code
+  config/            # Configuration management
   state/             # Application state management
+  util/              # Common utilities
 images/              # Docker images
+  weaver/            # Weaver container
+  shuttle/           # Shuttle container
 ```
 
 ### Adding New Providers
