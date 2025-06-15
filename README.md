@@ -2,60 +2,235 @@
 
 A distributed workload orchestration system for cross-cloud computing, built from the ground up for modern cloud-native applications.
 
+## The Problem
+
+Modern applications need to run across multiple cloud providers to optimize for cost, performance, and availability. However, existing solutions are either:
+
+- **Cloud-specific** - Lock you into a single provider
+- **Complex** - Require extensive configuration and management overhead
+- **Inefficient** - Don't optimize for cost or performance across providers
+- **Insecure** - Lack proper networking and isolation between distributed workloads
+
+Fabric solves these challenges by providing a unified orchestration layer that intelligently schedules workloads across any cloud provider while maintaining security, performance, and cost efficiency.
+
+## Solution Overview
+
+Fabric provides a complete cross-cloud orchestration platform with three core principles:
+
+1. **Intelligent Scheduling** - Cost-aware placement with real-time optimization
+2. **Secure Networking** - Zero-trust mesh networking across all providers
+3. **Unified Management** - Single API for all cloud resources
+
+```mermaid
+graph TB
+    subgraph "User Applications"
+        CLI[CLI Client]
+        API[API Client]
+        WEB[Web Dashboard]
+    end
+    
+    subgraph FABRIC ["Fabric Control Plane"]
+        WEAVER[Weaver]
+        SCHED[Scheduler]
+    end
+    
+    subgraph "CoreWeave"
+        CW_SHUTTLE[Shuttle]
+        subgraph CW_WORKLOAD ["Workload"]
+            CW_GPU["GPU Training"]
+            
+            subgraph CW_SIDECARS ["Sidecars"]
+                CW_GAUGE[Gauge]
+                CW_CTRL[ctrl]
+                CW_STREAM[stream]
+            end
+        end
+    end
+    
+    subgraph "RunPod"
+        RP_SHUTTLE[Shuttle]
+        subgraph RP_WORKLOAD ["Workload"]
+            RP_ML["ML Training"]
+            
+            subgraph RP_SIDECARS ["Sidecars"]
+                RP_GAUGE[Gauge]
+                RP_DOTS[...]
+            end
+        end
+    end
+    
+    subgraph "AWS"
+        AWS_SHUTTLE[Shuttle]
+        subgraph AWS_WORKLOAD ["Workload"]
+            AWS_WS["Web Services"]
+            
+            subgraph AWS_SIDECARS ["Sidecars"]
+                AWS_GAUGE[Gauge]
+                AWS_DOTS[...]
+            end
+        end
+    end
+    
+    subgraph "GCP"
+        GCP_SHUTTLE[Shuttle]
+        subgraph GCP_WORKLOAD ["Workload"]
+            GCP_DATA["Data Processing"]
+            
+            subgraph GCP_SIDECARS ["Sidecars"]
+                GCP_GAUGE[Gauge]
+                GCP_DOTS[...]
+            end
+        end
+    end
+    
+    CLI --> FABRIC
+    API --> FABRIC
+    WEB --> FABRIC
+    
+    WEAVER --> SCHED
+    
+    SCHED --> CW_SHUTTLE
+    SCHED --> RP_SHUTTLE
+    SCHED --> AWS_SHUTTLE
+    SCHED --> GCP_SHUTTLE
+    
+    CW_SHUTTLE --> CW_WORKLOAD
+    RP_SHUTTLE --> RP_WORKLOAD
+    AWS_SHUTTLE --> AWS_WORKLOAD
+    GCP_SHUTTLE --> GCP_WORKLOAD
+    
+    CW_GPU ~~~ CW_SIDECARS
+    RP_ML ~~~ RP_SIDECARS
+    AWS_WS ~~~ AWS_SIDECARS
+    GCP_DATA ~~~ GCP_SIDECARS
+    
+    CW_GAUGE ~~~ CW_CTRL
+    CW_CTRL ~~~ CW_STREAM
+    RP_GAUGE ~~~ RP_DOTS
+    AWS_GAUGE ~~~ AWS_DOTS
+    GCP_GAUGE ~~~ GCP_DOTS
+    
+    CW_GAUGE -.->|Metrics| CW_SHUTTLE
+    RP_GAUGE -.->|Metrics| RP_SHUTTLE
+    AWS_GAUGE -.->|Metrics| AWS_SHUTTLE
+    GCP_GAUGE -.->|Metrics| GCP_SHUTTLE
+```
+
 ## Architecture
 
-Fabric consists of three main components:
+Fabric consists of two main components and supporting sidecars:
 
-### Weaver (Control Plane)
-The central orchestration service that manages workload scheduling and placement across multiple cloud providers.
+### 🎯 Weaver (Control Plane)
 
-**Features:**
-- gRPC API for workload management
-- Cost-aware scheduling with multiple strategies
-- Provider drivers for CoreWeave, RunPod, GCP, K8s, KubeVirt, Nosana, AWS-Mac
-- PostgreSQL state storage with NATS event streaming
-- CRIU snapshot management with Iroh content addressing
-- Built-in proxy for workload access
+The brain of the system - makes intelligent scheduling decisions and manages the global state.
 
-**Key Components:**
-- Scheduler with pluggable strategies (cost-optimized, performance, balanced)
-- Provider abstraction layer
-- State management with PostgreSQL
-- Event streaming with NATS
-- Snapshot management with CRIU → Iroh CID
-- Usage metering bridge
+**Key Responsibilities:**
+- **Workload Scheduling** - Determines optimal placement across providers
+- **Cost Optimization** - Real-time cost analysis and optimization
+- **State Management** - Maintains global view of all resources
+- **API Gateway** - Unified gRPC API for all operations
+- **Access Control** - Secure proxy for workload access
 
-### Shuttle (Node Runner)
-The node agent that runs on compute nodes and manages workload execution.
+**Core Components:**
+- gRPC API with protobuf definitions
+- Scheduler engine with multiple strategies
+- Provider drivers (CoreWeave, RunPod, GCP, K8s, KubeVirt, Nosana, AWS-Mac)
+- State store (PostgreSQL) with event streaming (NATS)
+- Snapshot management (CRIU → Iroh CID)
 
-**Features:**
-- WireGuard mesh networking (Tailscale integration)
-- containerd integration for container management
-- Support for runc, Firecracker, and Kata containers
-- OpenMeter integration for usage tracking
-- Multi-architecture support (linux/amd64, linux/arm64, darwin/arm64)
+### 🚀 Shuttle (Node Runner)
 
-**Key Components:**
-- Tailscale mesh networking
-- containerd runtime management
-- Metrics collection and reporting
-- gRPC server for control plane communication
+The execution engine - runs on compute nodes and manages workload lifecycle.
 
-### Gauge (Metering)
-Standalone metering service for usage tracking and billing.
+**Key Responsibilities:**
+- **Container Runtime** - Manages containers with multiple runtime support
+- **Mesh Networking** - Secure WireGuard mesh via Tailscale
+- **Resource Monitoring** - Real-time usage tracking and reporting
+- **Workload Isolation** - Security boundaries between workloads
+- **Sidecar Management** - Deploys and manages sidecar containers
 
-**Features:**
-- OpenMeter integration
-- Usage data collection from Shuttle nodes
-- Billing and cost tracking
-- Export capabilities for external systems
+**Core Components:**
+- containerd integration with runc, Firecracker, and Kata support
+- Tailscale mesh networking for secure cross-cloud communication
+- Sidecar orchestration and lifecycle management
+- Host-level resource monitoring and reporting
 
-## Side-cars
+## Sidecar Services
 
-Fabric supports declarative side-car containers launched by Shuttle:
+Fabric supports declarative sidecar containers launched by Shuttle for enhanced functionality:
 
-- **ctrl**: Keyboard/mouse/screenshot gRPC service
-- **stream**: VNC/WebRTC bridge for remote access
+### 📊 Gauge (Metering Sidecar)
+- **Usage Tracking** - Monitors workload resource consumption in real-time
+- **Billing Integration** - OpenMeter integration for precise billing
+- **Analytics** - Usage patterns and optimization insights
+- **Deployment** - Runs as a sidecar alongside each workload container
+
+### 🎮 Control & Streaming Sidecars
+- **ctrl** - Keyboard/mouse/screenshot gRPC service for remote control
+- **stream** - VNC/WebRTC bridge for remote desktop access
+
+## Intelligent Scheduling
+
+Fabric's scheduler makes optimal placement decisions based on multiple factors:
+
+**Scheduling Strategies:**
+- **`lowest_cost`** - Minimize hourly costs across all providers
+- **`best_performance`** - Optimize for compute performance and GPU availability
+- **`balanced`** - Balance cost, performance, and reliability
+- **`high_availability`** - Prioritize uptime and fault tolerance
+- **`custom`** - User-defined weights and constraints
+
+**Scheduling Factors:**
+- Cost analysis across providers
+- Performance requirements (CPU, memory, GPU)
+- Provider availability and capacity
+- Network latency and compliance rules
+- Resource constraints and preferences
+
+## Secure Mesh Networking
+
+All Fabric nodes communicate through a secure WireGuard mesh via Tailscale, providing zero-trust networking across cloud boundaries. This enables:
+
+- **Encrypted Communication** - All traffic between nodes is encrypted
+- **NAT Traversal** - Automatic connectivity across different network topologies
+- **Peer-to-Peer** - Direct communication between nodes when possible
+- **Cross-Cloud** - Seamless networking across different cloud providers
+
+## Workload Lifecycle
+
+From creation to termination, Fabric manages the complete workload lifecycle:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Weaver
+    participant Scheduler
+    participant Provider
+    participant Shuttle
+    participant Gauge
+    
+    User->>Weaver: Create Workload
+    Weaver->>Scheduler: Find Optimal Placement
+    Scheduler->>Provider: Check Resources & Pricing
+    Provider-->>Scheduler: Available Resources
+    Scheduler-->>Weaver: Placement Decision
+    
+    Weaver->>Shuttle: Deploy Workload
+    Shuttle->>Provider: Provision Resources
+    Provider-->>Shuttle: Resources Ready
+    Shuttle-->>Weaver: Workload Running
+    
+    loop Runtime
+        Shuttle->>Gauge: Usage Metrics
+        Gauge->>Weaver: Cost Updates
+        Weaver->>Scheduler: Optimization Check
+    end
+    
+    User->>Weaver: Delete Workload
+    Weaver->>Shuttle: Terminate Workload
+    Shuttle->>Provider: Release Resources
+    Shuttle->>Gauge: Final Metrics
+```
 
 ## Quick Start
 
@@ -63,240 +238,81 @@ Fabric supports declarative side-car containers launched by Shuttle:
 
 - Go 1.24+
 - Protocol Buffers compiler (`protoc`)
-- Docker (optional, for containerized deployment)
+- PostgreSQL (for state storage)
+- NATS (for event streaming)
 
 ### Building
 
 ```bash
-# Install dependencies
-make deps
-
 # Build all components
 make build
 
 # Or build individually
 make weaver  # Control plane
 make shuttle # Node runner
-make gauge   # Metering service
-```
-
-### Configuration
-
-Copy and modify the configuration file:
-
-```bash
-cp config.yaml.example config.yaml
-# Edit config.yaml with your settings
+make gauge   # Metering sidecar
 ```
 
 ### Running
 
-#### Development Mode
-
 ```bash
-# Start Weaver (control plane)
-make dev-weaver
-
-# Start Shuttle (node runner)
-make dev-shuttle
-
-# Start Gauge (metering)
-make dev-gauge
-```
-
-#### Production Mode
-
-```bash
-# Start services
+# Start control plane
 ./bin/weaver
+
+# Start node runners (on each compute node)
 ./bin/shuttle
-./bin/gauge
+
+# Gauge sidecars are automatically deployed by Shuttle alongside workloads
 ```
 
-## API
+## Use Cases
 
-Fabric exposes a gRPC API for workload management. The API includes:
+### 🎮 GPU-Intensive Workloads
+- **AI/ML Training** - Automatically find cheapest GPU resources across CoreWeave, RunPod, AWS
+- **Rendering** - Burst to cloud GPUs when local capacity is exceeded
+- **Gaming** - Deploy game servers close to players with cost optimization
 
-### Workload Management
-- `CreateWorkload` - Create and schedule a new workload
-- `GetWorkload` - Retrieve workload details
-- `ListWorkloads` - List workloads with filtering
-- `DeleteWorkload` - Remove a workload
+### 🌐 Multi-Region Applications
+- **Global Web Services** - Deploy close to users while optimizing costs
+- **Data Processing** - Move compute to data location automatically
+- **Disaster Recovery** - Automatic failover across cloud providers
 
-### Provider Management
-- `ListProviders` - Get available cloud providers
-- `GetProviderRegions` - List regions for a provider
-- `GetProviderMachineTypes` - Get available machine types
+### 💰 Cost Optimization
+- **Spot Instance Management** - Intelligent spot instance usage across providers
+- **Right-sizing** - Automatic resource optimization based on usage patterns
+- **Provider Arbitrage** - Take advantage of pricing differences between clouds
 
-### Scheduler
-- `GetSchedulerStatus` - Check scheduler health
-- `ScheduleWorkload` - Manually schedule a workload
-- `GetRecommendations` - Get placement recommendations
-- `GetSchedulerStats` - Retrieve scheduling statistics
+### 🔒 Compliance & Security
+- **Data Sovereignty** - Keep data in specific regions/countries
+- **Zero-Trust Networking** - Secure communication across all environments
+- **Audit Trails** - Complete visibility into workload placement and access
 
-### Health Check
-- `HealthCheck` - Service health status
+## API Reference
 
-## Configuration
+Fabric exposes a comprehensive gRPC API:
 
-Fabric uses YAML configuration files. Key sections include:
-
-```yaml
-server:
-  address: ":8080"
-
-database:
-  host: "localhost"
-  port: 5432
-  name: "fabric"
-  user: "fabric"
-  password: "password"
-
-nats:
-  url: "nats://localhost:4222"
-
-proxy:
-  enabled: true
-  port: 8081
-
-providers:
-  kubernetes:
-    enabled: true
-    kubeconfig: "~/.kube/config"
-  
-  coreweave:
-    enabled: false
-    api_key: ""
-    
-  runpod:
-    enabled: false
-    api_key: ""
-```
-
-## Scheduling
-
-Fabric supports multiple scheduling strategies:
-
-- **lowest_cost** - Minimize cost per hour
-- **best_performance** - Optimize for performance
-- **balanced** - Balance cost and performance
-- **high_availability** - Prioritize reliability
-- **custom** - User-defined weights
-
-Scheduling considers:
-- Resource requirements (CPU, memory, GPU)
-- Cost constraints
-- Provider availability
-- Network latency
-- Compliance requirements
-
-## Networking
-
-Fabric uses Tailscale for secure mesh networking between nodes:
-
-- Automatic node discovery
-- Encrypted communication
-- NAT traversal
-- Cross-cloud connectivity
-
-## Storage
-
-Workload state and snapshots are managed through:
-
-- **PostgreSQL** - Persistent state storage
-- **NATS** - Event streaming and pub/sub
-- **Iroh** - Content-addressed snapshot storage
-- **CRIU** - Container checkpoint/restore
-
-## Monitoring
-
-Built-in observability features:
-
-- Prometheus metrics export
-- Structured logging (JSON)
-- Health check endpoints
-- Usage tracking with OpenMeter
-
-## Development
-
-### Project Structure
-
-```
-fabric/
-├── cmd/                    # Main applications
-│   ├── weaver/            # Control plane
-│   ├── shuttle/           # Node runner
-│   └── gauge/             # Metering service
-├── internal/              # Internal packages
-│   ├── api/               # HTTP API (legacy)
-│   ├── grpc/              # gRPC server
-│   ├── scheduler/         # Scheduling logic
-│   ├── providers/         # Cloud provider drivers
-│   ├── state/             # State management
-│   ├── types/             # Common types
-│   └── ...
-├── proto/                 # Protocol buffer definitions
-└── bin/                   # Built binaries
-```
-
-### Adding Providers
-
-To add a new cloud provider:
-
-1. Implement the `Provider` interface in `internal/providers/`
-2. Add provider configuration to config schema
-3. Register the provider in the provider factory
-4. Add provider-specific machine types and regions
-
-### Testing
-
-```bash
-# Run all tests
-make test
-
-# Run specific package tests
-go test ./internal/scheduler/...
-```
-
-## Deployment
-
-### Kubernetes
-
-Fabric can be deployed on Kubernetes using the provided manifests:
-
-```bash
-kubectl apply -f manifests/
-```
-
-### Docker
-
-Build and run with Docker:
-
-```bash
-# Build images
-docker build -t fabric/weaver .
-docker build -t fabric/shuttle .
-docker build -t fabric/gauge .
-
-# Run with docker-compose
-docker-compose up
-```
+- **Workload Management** - Create, read, update, delete workloads
+- **Provider Operations** - List providers, regions, machine types
+- **Scheduler Control** - Get recommendations, force placement, view stats
+- **Monitoring** - Health checks, metrics, usage data
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
+Fabric is built with modularity in mind. Each component can be developed and tested independently:
+
+```bash
+# Test individual modules
+go test ./weaver/...
+go test ./shuttle/...
+go test ./gauge/...
+
+# Format code
+make fmt
+
+# Generate protobuf
+make proto
+```
 
 ## License
 
 [License information]
-
-## Support
-
-For questions and support:
-- GitHub Issues
-- Documentation: [link]
-- Community: [link]
