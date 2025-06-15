@@ -20,8 +20,9 @@ import (
 
 type Server struct {
 	weaver.UnimplementedWeaverServiceServer
-	appState *state.State
-	logger   *logrus.Logger
+	appState   *state.State
+	logger     *logrus.Logger
+	grpcServer *grpc.Server
 }
 
 func NewServer(appState *state.State, logger *logrus.Logger) *Server {
@@ -37,11 +38,19 @@ func (s *Server) Start(address string) error {
 		return fmt.Errorf("failed to listen: %v", err)
 	}
 
-	grpcServer := grpc.NewServer()
-	weaver.RegisterWeaverServiceServer(grpcServer, s)
+	s.grpcServer = grpc.NewServer()
+	weaver.RegisterWeaverServiceServer(s.grpcServer, s)
 
 	s.logger.Infof("Starting gRPC server on %s", address)
-	return grpcServer.Serve(lis)
+	return s.grpcServer.Serve(lis)
+}
+
+func (s *Server) Stop() {
+	if s.grpcServer != nil {
+		s.logger.Info("Stopping gRPC server...")
+		s.grpcServer.GracefulStop()
+		s.logger.Info("gRPC server stopped")
+	}
 }
 
 // generateID creates a random ID for workloads

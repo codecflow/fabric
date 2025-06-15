@@ -7,11 +7,12 @@ import (
 
 // Config represents the application configuration
 type Config struct {
-	Server   ServerConfig   `json:"server"`
-	Database DatabaseConfig `json:"database"`
-	NATS     NATSConfig     `json:"nats"`
-	Logging  LoggingConfig  `json:"logging"`
-	Proxy    ProxyConfig    `json:"proxy"`
+	Server    ServerConfig    `json:"server"`
+	Database  DatabaseConfig  `json:"database"`
+	NATS      NATSConfig      `json:"nats"`
+	Logging   LoggingConfig   `json:"logging"`
+	Proxy     ProxyConfig     `json:"proxy"`
+	Providers ProvidersConfig `json:"providers"`
 }
 
 // ServerConfig represents HTTP server configuration
@@ -61,6 +62,17 @@ type CRIUConfig struct {
 type IrohConfig struct {
 	Enabled bool   `json:"enabled"`
 	NodeURL string `json:"node_url"`
+}
+
+// ProvidersConfig represents provider configurations
+type ProvidersConfig struct {
+	Kubernetes KubernetesConfig `json:"kubernetes"`
+}
+
+// KubernetesConfig represents Kubernetes provider configuration
+type KubernetesConfig struct {
+	Enabled    bool   `json:"enabled"`
+	Kubeconfig string `json:"kubeconfig"`
 }
 
 // Load loads configuration from environment variables

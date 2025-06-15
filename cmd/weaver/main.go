@@ -4,8 +4,12 @@ import (
 	"context"
 	"fabric/internal/config"
 	"fabric/internal/grpc"
+	"fabric/internal/providers/kubernetes"
 	"fabric/internal/proxy"
+	"fabric/internal/repository/postgres"
 	"fabric/internal/state"
+	"fabric/internal/stream/nats"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -29,11 +33,51 @@ func main() {
 	}
 
 	appState := state.New()
-	// TODO: Initialize appState components (Repository, Stream, Meter, etc.)
+
+	// Initialize repository
+	if cfg.Database.Host != "" {
+		connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+			cfg.Database.Host, cfg.Database.Port, cfg.Database.Username,
+			cfg.Database.Password, cfg.Database.Database, cfg.Database.SSLMode)
+
+		repo, err := postgres.New(connStr)
+		if err != nil {
+			logger.Warnf("Failed to initialize PostgreSQL repository: %v", err)
+		} else {
+			appState.Repository = repo
+			logger.Info("PostgreSQL repository initialized")
+		}
+	}
+
+	// Initialize NATS stream
+	if cfg.NATS.URL != "" {
+		stream, err := nats.New(cfg.NATS.URL)
+		if err != nil {
+			logger.Warnf("Failed to initialize NATS stream: %v", err)
+		} else {
+			appState.Stream = stream
+			logger.Info("NATS stream initialized")
+		}
+	}
+
+	// Initialize providers from config
+	if cfg.Providers.Kubernetes.Enabled {
+		k8sConfig := &kubernetes.Config{
+			Kubeconfig: cfg.Providers.Kubernetes.Kubeconfig,
+			InCluster:  false,
+			Namespace:  "default",
+		}
+
+		k8sProvider, err := kubernetes.New("kubernetes", k8sConfig)
+		if err != nil {
+			logger.Warnf("Failed to initialize Kubernetes provider: %v", err)
+		} else {
+			appState.Providers["kubernetes"] = k8sProvider
+			logger.Info("Kubernetes provider initialized")
+		}
+	}
 
 	// Initialize scheduler with providers
-	// TODO: Load providers from config
-	// For now, create a simple scheduler with empty providers
 	scheduler := simple.New(appState.Providers, nil)
 	appState.Scheduler = scheduler
 
@@ -52,8 +96,6 @@ func main() {
 		logger.Infof("Proxy server started on port %d", cfg.Proxy.Port)
 	}
 
-	defer appState.Close()
-
 	// Create gRPC server
 	grpcServer := grpc.NewServer(appState, logger)
 
@@ -71,7 +113,18 @@ func main() {
 
 	logger.Info("Shutting down server...")
 
-	// TODO: Implement graceful shutdown for gRPC server
-	// For now, just exit
-	logger.Info("Server exited")
+	// Gracefully stop gRPC server
+	grpcServer.Stop()
+
+	// Stop proxy server if running
+	if appState.Proxy != nil {
+		if err := appState.Proxy.Stop(); err != nil {
+			logger.Warnf("Error stopping proxy server: %v", err)
+		}
+	}
+
+	// Close application state (repositories, streams, etc.)
+	appState.Close()
+
+	logger.Info("Server exited gracefully")
 }

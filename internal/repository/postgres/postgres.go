@@ -200,7 +200,52 @@ func (r *PostgresRepository) DeleteWorkload(ctx context.Context, id string) erro
 	return nil
 }
 
-func (r *PostgresRepository) ListWorkloads(ctx context.Context, namespace string) ([]*types.Workload, error) {
+func (r *PostgresRepository) GetWorkloadByName(ctx context.Context, namespace, name string) (*types.Workload, error) {
+	query := `
+		SELECT id, namespace_id, name, spec, status, labels, annotations, created_at, updated_at
+		FROM workloads WHERE namespace_id = $1 AND name = $2
+	`
+
+	var workload types.Workload
+	var specJSON, statusJSON, labelsJSON, annotationsJSON []byte
+
+	err := r.db.QueryRowContext(ctx, query, namespace, name).Scan(
+		&workload.ID,
+		&workload.Namespace,
+		&workload.Name,
+		&specJSON,
+		&statusJSON,
+		&labelsJSON,
+		&annotationsJSON,
+		&workload.CreatedAt,
+		&workload.UpdatedAt,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, repository.ErrNotFound
+		}
+		return nil, err
+	}
+
+	// Parse JSON fields
+	if err := fromJSON(specJSON, &workload.Spec); err != nil {
+		return nil, err
+	}
+	if err := fromJSON(statusJSON, &workload.Status); err != nil {
+		return nil, err
+	}
+	if err := fromJSON(labelsJSON, &workload.Labels); err != nil {
+		return nil, err
+	}
+	if err := fromJSON(annotationsJSON, &workload.Annotations); err != nil {
+		return nil, err
+	}
+
+	return &workload, nil
+}
+
+func (r *PostgresRepository) ListWorkloads(ctx context.Context, namespace string, filters map[string]string) ([]*types.Workload, error) {
 	query := `
 		SELECT id, namespace_id, name, spec, status, labels, annotations, created_at, updated_at
 		FROM workloads WHERE namespace_id = $1 ORDER BY created_at DESC
@@ -322,7 +367,38 @@ func (r *PostgresRepository) GetNamespace(ctx context.Context, id string) (*type
 	return &namespace, nil
 }
 
-func (r *PostgresRepository) ListNamespaces(ctx context.Context) ([]*types.Namespace, error) {
+func (r *PostgresRepository) UpdateNamespace(ctx context.Context, namespace *types.Namespace) error {
+	query := `
+		UPDATE namespaces 
+		SET labels = $2, annotations = $3, resource_quota = $4, network_policy = $5, updated_at = NOW()
+		WHERE id = $1
+	`
+
+	result, err := r.db.ExecContext(ctx, query,
+		namespace.ID,
+		toJSON(namespace.Labels),
+		toJSON(namespace.Annotations),
+		toJSON(namespace.Spec.Quotas),
+		toJSON(namespace.Spec.NetworkPolicy),
+	)
+
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return repository.ErrNotFound
+	}
+
+	return nil
+}
+
+func (r *PostgresRepository) ListNamespaces(ctx context.Context, filters map[string]string) ([]*types.Namespace, error) {
 	query := `
 		SELECT id, name, display_name, description, labels, annotations, resource_quota, network_policy, created_at, updated_at
 		FROM namespaces ORDER BY created_at DESC
@@ -378,6 +454,26 @@ func (r *PostgresRepository) ListNamespaces(ctx context.Context) ([]*types.Names
 	return namespaces, rows.Err()
 }
 
+func (r *PostgresRepository) DeleteNamespace(ctx context.Context, name string) error {
+	query := `DELETE FROM namespaces WHERE name = $1`
+
+	result, err := r.db.ExecContext(ctx, query, name)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return repository.ErrNotFound
+	}
+
+	return nil
+}
+
 // Secret operations
 func (r *PostgresRepository) CreateSecret(ctx context.Context, secret *types.Secret) error {
 	query := `
@@ -398,16 +494,16 @@ func (r *PostgresRepository) CreateSecret(ctx context.Context, secret *types.Sec
 	return err
 }
 
-func (r *PostgresRepository) GetSecret(ctx context.Context, id string) (*types.Secret, error) {
+func (r *PostgresRepository) GetSecret(ctx context.Context, namespace, name string) (*types.Secret, error) {
 	query := `
 		SELECT id, namespace_id, name, type, data, labels, annotations, created_at, updated_at
-		FROM secrets WHERE id = $1
+		FROM secrets WHERE namespace_id = $1 AND name = $2
 	`
 
 	var secret types.Secret
 	var dataJSON, labelsJSON, annotationsJSON []byte
 
-	err := r.db.QueryRowContext(ctx, query, id).Scan(
+	err := r.db.QueryRowContext(ctx, query, namespace, name).Scan(
 		&secret.ID,
 		&secret.Namespace,
 		&secret.Name,
@@ -440,7 +536,39 @@ func (r *PostgresRepository) GetSecret(ctx context.Context, id string) (*types.S
 	return &secret, nil
 }
 
-func (r *PostgresRepository) ListSecrets(ctx context.Context, namespace string) ([]*types.Secret, error) {
+func (r *PostgresRepository) UpdateSecret(ctx context.Context, secret *types.Secret) error {
+	query := `
+		UPDATE secrets 
+		SET type = $2, data = $3, labels = $4, annotations = $5, updated_at = NOW()
+		WHERE namespace_id = $1 AND name = $6
+	`
+
+	result, err := r.db.ExecContext(ctx, query,
+		secret.Namespace,
+		secret.Spec.Type,
+		toJSON(secret.Spec.Data),
+		toJSON(secret.Labels),
+		toJSON(secret.Annotations),
+		secret.Name,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return repository.ErrNotFound
+	}
+
+	return nil
+}
+
+func (r *PostgresRepository) ListSecrets(ctx context.Context, namespace string, filters map[string]string) ([]*types.Secret, error) {
 	query := `
 		SELECT id, namespace_id, name, type, data, labels, annotations, created_at, updated_at
 		FROM secrets WHERE namespace_id = $1 ORDER BY created_at DESC
@@ -489,6 +617,26 @@ func (r *PostgresRepository) ListSecrets(ctx context.Context, namespace string) 
 	}
 
 	return secrets, rows.Err()
+}
+
+func (r *PostgresRepository) DeleteSecret(ctx context.Context, namespace, name string) error {
+	query := `DELETE FROM secrets WHERE namespace_id = $1 AND name = $2`
+
+	result, err := r.db.ExecContext(ctx, query, namespace, name)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return repository.ErrNotFound
+	}
+
+	return nil
 }
 
 // Health check
