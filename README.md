@@ -4,6 +4,56 @@ Weaver is the control plane component of the Fabric system, providing REST/gRPC 
 
 ## Architecture
 
+```mermaid
+graph TB
+    subgraph "Fabric System"
+        subgraph "Control Plane"
+            W[Weaver<br/>REST/gRPC API<br/>Scheduler<br/>Cost-aware Placement]
+            DB[(PostgreSQL<br/>State Storage)]
+            NATS[NATS<br/>Event Bus]
+        end
+        
+        subgraph "Node Runners"
+            S1[Shuttle 1<br/>WireGuard Mesh<br/>containerd]
+            S2[Shuttle 2<br/>WireGuard Mesh<br/>containerd]
+            S3[Shuttle N<br/>WireGuard Mesh<br/>containerd]
+        end
+        
+        subgraph "Side-cars"
+            CTRL[ctrl<br/>Input/Output<br/>gRPC]
+            STREAM[stream<br/>VNC/WebRTC<br/>Bridge]
+        end
+        
+        subgraph "Cloud Providers"
+            K8S[Kubernetes<br/>Clusters]
+            RP[RunPod<br/>GPU Cloud]
+            CW[CoreWeave<br/>GPU Cloud]
+            AWS[AWS<br/>EC2/EKS]
+            GCP[GCP<br/>GCE/GKE]
+        end
+    end
+    
+    W --> DB
+    W --> NATS
+    W --> K8S
+    W --> RP
+    W --> CW
+    W --> AWS
+    W --> GCP
+    
+    NATS --> S1
+    NATS --> S2
+    NATS --> S3
+    
+    S1 --> CTRL
+    S1 --> STREAM
+    S2 --> CTRL
+    S2 --> STREAM
+    S3 --> CTRL
+    S3 --> STREAM
+```
+
+### Component Overview
 - **Control Plane (Weaver)**: REST/gRPC API, scheduler, cost-aware placement, provider drivers
 - **Node Runner (Shuttle)**: Joins WireGuard mesh, manages workloads via containerd
 - **Side-cars**: ctrl (input/output), stream (VNC/WebRTC bridge)
