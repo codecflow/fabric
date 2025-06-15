@@ -30,17 +30,6 @@ type Provider interface {
 // ProviderType defines the type of provider
 type ProviderType string
 
-const (
-	ProviderTypeKubernetes ProviderType = "kubernetes"
-	ProviderTypeRunPod     ProviderType = "runpod"
-	ProviderTypeCoreWeave  ProviderType = "coreweave"
-	ProviderTypeAWS        ProviderType = "aws"
-	ProviderTypeGCP        ProviderType = "gcp"
-	ProviderTypeAzure      ProviderType = "azure"
-	ProviderTypeNosana     ProviderType = "nosana"
-	ProviderTypeAWSMac     ProviderType = "aws-mac"
-)
-
 // ResourceAvailability represents available resources on a provider
 type ResourceAvailability struct {
 	CPU    ResourcePool `json:"cpu"`

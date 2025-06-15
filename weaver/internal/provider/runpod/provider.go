@@ -7,6 +7,8 @@ import (
 	"weaver/internal/workload"
 )
 
+const Type provider.ProviderType = "runpod"
+
 // Provider implements the Provider interface for RunPod
 type Provider struct {
 	client *Client
@@ -46,7 +48,7 @@ func (p *Provider) Name() string {
 }
 
 func (p *Provider) Type() provider.ProviderType {
-	return provider.ProviderTypeRunPod
+	return Type
 }
 
 // CreateWorkload creates a new workload on RunPod

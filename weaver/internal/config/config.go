@@ -67,12 +67,29 @@ type IrohConfig struct {
 // ProvidersConfig represents provider configurations
 type ProvidersConfig struct {
 	Kubernetes KubernetesConfig `json:"kubernetes"`
+	Nosana     NosanaConfig     `json:"nosana"`
+	Fly        FlyConfig        `json:"fly"`
 }
 
 // KubernetesConfig represents Kubernetes provider configuration
 type KubernetesConfig struct {
 	Enabled    bool   `json:"enabled"`
 	Kubeconfig string `json:"kubeconfig"`
+}
+
+// NosanaConfig represents Nosana provider configuration
+type NosanaConfig struct {
+	Enabled bool   `json:"enabled"`
+	APIKey  string `json:"apiKey"`
+	Network string `json:"network"`
+}
+
+// FlyConfig represents Fly.io provider configuration
+type FlyConfig struct {
+	Enabled      bool   `json:"enabled"`
+	APIToken     string `json:"apiToken"`
+	Organization string `json:"organization"`
+	Region       string `json:"region"`
 }
 
 // Load loads configuration from environment variables
@@ -101,6 +118,23 @@ func Load() (*Config, error) {
 		Proxy: ProxyConfig{
 			Enabled: getEnv("PROXY_ENABLED", "false") == "true",
 			Port:    getEnvInt("PROXY_PORT", 8081),
+		},
+		Providers: ProvidersConfig{
+			Kubernetes: KubernetesConfig{
+				Enabled:    getEnv("KUBERNETES_ENABLED", "false") == "true",
+				Kubeconfig: getEnv("KUBERNETES_KUBECONFIG", ""),
+			},
+			Nosana: NosanaConfig{
+				Enabled: getEnv("NOSANA_ENABLED", "false") == "true",
+				APIKey:  getEnv("NOSANA_API_KEY", ""),
+				Network: getEnv("NOSANA_NETWORK", "mainnet"),
+			},
+			Fly: FlyConfig{
+				Enabled:      getEnv("FLY_ENABLED", "false") == "true",
+				APIToken:     getEnv("FLY_API_TOKEN", ""),
+				Organization: getEnv("FLY_ORGANIZATION", ""),
+				Region:       getEnv("FLY_REGION", ""),
+			},
 		},
 	}
 

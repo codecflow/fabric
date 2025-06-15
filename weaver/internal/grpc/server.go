@@ -7,10 +7,11 @@ import (
 	"fmt"
 	"net"
 	"time"
-	weaver "weaver/internal/grpc"
+
 	"weaver/internal/scheduler"
 	"weaver/internal/state"
 	"weaver/internal/workload"
+	"weaver/weaver/proto/weaver"
 
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"

@@ -10,7 +10,9 @@ import (
 
 	"weaver/internal/config"
 	"weaver/internal/grpc"
+	"weaver/internal/provider/fly"
 	"weaver/internal/provider/kubernetes"
+	"weaver/internal/provider/nosana"
 	"weaver/internal/proxy"
 	"weaver/internal/repository/postgres"
 	"weaver/internal/scheduler/simple"
@@ -62,12 +64,43 @@ func main() {
 
 	// Initialize providers from config
 	if cfg.Providers.Kubernetes.Enabled {
-		k8sProvider, err := kubernetes.NewKubernetesProvider("kubernetes", cfg.Providers.Kubernetes.Kubeconfig, "default")
+		k8sProvider, err := kubernetes.New("kubernetes", kubernetes.Config{
+			Kubeconfig: cfg.Providers.Kubernetes.Kubeconfig,
+			Namespace:  "default",
+			InCluster:  cfg.Providers.Kubernetes.Kubeconfig == "",
+		})
 		if err != nil {
 			logger.Warnf("Failed to initialize Kubernetes provider: %v", err)
 		} else {
 			appState.Providers["kubernetes"] = k8sProvider
 			logger.Info("Kubernetes provider initialized")
+		}
+	}
+
+	if cfg.Providers.Nosana.Enabled {
+		nosanaProvider, err := nosana.New("nosana", nosana.Config{
+			APIKey:  cfg.Providers.Nosana.APIKey,
+			Network: cfg.Providers.Nosana.Network,
+		})
+		if err != nil {
+			logger.Warnf("Failed to initialize Nosana provider: %v", err)
+		} else {
+			appState.Providers["nosana"] = nosanaProvider
+			logger.Info("Nosana provider initialized")
+		}
+	}
+
+	if cfg.Providers.Fly.Enabled {
+		flyProvider, err := fly.New("fly", fly.Config{
+			APIToken:     cfg.Providers.Fly.APIToken,
+			Organization: cfg.Providers.Fly.Organization,
+			Region:       cfg.Providers.Fly.Region,
+		})
+		if err != nil {
+			logger.Warnf("Failed to initialize Fly.io provider: %v", err)
+		} else {
+			appState.Providers["fly"] = flyProvider
+			logger.Info("Fly.io provider initialized")
 		}
 	}
 
