@@ -1,25 +1,57 @@
 package main
 
 import (
-	"fmt"
+	"context"
+	"flag"
+	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
-	"github.com/sirupsen/logrus"
+	"fabric/internal/shuttle"
+	"fabric/internal/shuttle/config"
 )
 
 func main() {
-	logger := logrus.New()
-	logger.SetFormatter(&logrus.JSONFormatter{})
-	logger.SetLevel(logrus.InfoLevel)
+	var configPath = flag.String("config", "/etc/shuttle/config.yaml", "Path to configuration file")
+	flag.Parse()
 
-	logger.Info("Shuttle node runner starting...")
+	// Load configuration
+	cfg, err := config.Load(*configPath)
+	if err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
 
-	// TODO: Implement shuttle functionality
-	// - Join Tailscale mesh
-	// - Connect to containerd
-	// - Listen for workload assignments from NATS
-	// - Manage side-car containers (ctrl, stream)
+	// Create shuttle instance
+	s, err := shuttle.New(cfg)
+	if err != nil {
+		log.Fatalf("Failed to create shuttle: %v", err)
+	}
 
-	fmt.Println("Shuttle not implemented yet")
-	os.Exit(1)
+	// Setup graceful shutdown
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Handle shutdown signals
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-sigChan
+		log.Println("Received shutdown signal, gracefully shutting down...")
+		cancel()
+	}()
+
+	// Start shuttle
+	log.Printf("Starting Shuttle node runner (version: %s)", getVersion())
+	if err := s.Run(ctx); err != nil {
+		log.Fatalf("Shuttle failed: %v", err)
+	}
+
+	log.Println("Shuttle shutdown complete")
+}
+
+func getVersion() string {
+	// In a real implementation, this would be set during build
+	return "dev"
 }

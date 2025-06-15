@@ -2,8 +2,14 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"fabric/internal/types"
+)
+
+// Common errors
+var (
+	ErrNotFound = errors.New("resource not found")
 )
 
 // Repository defines the interface for data persistence

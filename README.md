@@ -1,161 +1,271 @@
-# Fabric - Distributed Compute Platform
+# Fabric
 
-Fabric is a distributed compute platform that provides cost-aware scheduling across multiple cloud providers with a focus on performance, reliability, and cost optimization.
+A distributed container orchestration platform for cross-cloud workload scheduling with cost-aware placement and WireGuard mesh networking.
 
 ## Architecture
 
-### Weaver (Control Plane)
-The central control plane that manages workload scheduling and provider coordination.
+Fabric consists of three main components:
 
-**Key Components:**
-- **REST/gRPC API**: HTTP endpoints for workload management
-- **Scheduler**: Cost-aware placement engine with multiple strategies
-- **Provider Drivers**: Unified interface for K8s, RunPod, CoreWeave, GCP, AWS, etc.
-- **State Management**: Postgres integration for persistence
-- **Event Streaming**: NATS/JetStream for real-time updates
-- **Metering**: OpenMeter integration for usage tracking
+### Weaver (Control Plane)
+- **Purpose**: Central orchestration and scheduling
+- **Features**:
+  - REST/gRPC API for workload management
+  - Cost-aware scheduler with multiple placement strategies
+  - Multi-provider support (CoreWeave, RunPod, GCP, K8s, KubeVirt, Nosana, AWS-Mac)
+  - PostgreSQL state storage with NATS event streaming
+  - CRIU snapshot management with Iroh CID integration
+  - OpenMeter usage tracking
 
 ### Shuttle (Node Runner)
-Lightweight node agent that runs workloads and manages sidecars.
+- **Purpose**: Workload execution on compute nodes
+- **Features**:
+  - WireGuard mesh networking (Tailscale integration)
+  - containerd runtime with support for runc, Firecracker, Kata
+  - Prometheus metrics exposure with OpenMeter integration
+  - Multi-architecture support (linux/amd64, linux/arm64, darwin/arm64)
+  - Declarative sidecar management
 
-**Features:**
-- WireGuard mesh networking (Tailscale integration)
-- Multiple runtime support (runc, Firecracker, Kata)
-- Built for linux/amd64, linux/arm64, darwin/arm64
-- Sidecar management for ctrl and stream services
-
-### Sidecars
+### Side-cars (Separate Repositories)
 - **ctrl**: Keyboard/mouse/screenshot gRPC services
 - **stream**: VNC/WebRTC bridge for remote access
 
-## Current Implementation
+## Quick Start
 
-### ✅ Completed
-- **Type System**: Complete workload, namespace, secret, and provider types
-- **Provider Interface**: Unified abstraction for all cloud providers
-- **Scheduler**: Cost-aware scheduling with multiple strategies
-- **API Foundation**: REST endpoints for workload and provider management
-- **Kubernetes Provider**: Basic K8s integration
-- **Configuration**: Environment-based configuration system
-- **State Management**: Dependency injection container
-- **Health Checks**: Built-in monitoring and status endpoints
+### Prerequisites
+- Go 1.24+
+- PostgreSQL (for Weaver)
+- NATS (for event streaming)
+- containerd (for Shuttle)
+- Tailscale (optional, for mesh networking)
 
-### 🚧 In Progress
-- Concrete provider implementations (RunPod, CoreWeave, AWS, GCP)
-- Database integration (Postgres)
-- Event streaming (NATS/JetStream)
-- Usage metering (OpenMeter)
-- P2P storage (Iroh/IPFS)
-
-### 📋 Planned
-- Shuttle node runner implementation
-- Sidecar services (ctrl, stream)
-- CRIU snapshot integration
-- Advanced scheduling algorithms
-- Multi-tenancy enforcement
-- Security and authentication
-
-## API Endpoints
-
-### Health & Status
-- `GET /health` - Service health check
-- `GET /v1/scheduler/status` - Scheduler status and provider count
-
-### Workload Management
-- `POST /v1/workloads` - Create workload
-- `GET /v1/workloads/:id` - Get workload details
-- `DELETE /v1/workloads/:id` - Delete workload
-- `GET /v1/workloads` - List workloads
-
-### Provider Information
-- `GET /v1/providers` - List available providers
-- `GET /v1/providers/:name/regions` - Get provider regions
-- `GET /v1/providers/:name/machine-types` - Get machine types
-
-### Scheduling
-- `POST /v1/scheduler/schedule` - Schedule workload
-- `GET /v1/scheduler/recommendations` - Get scheduling recommendations
-- `GET /v1/scheduler/stats` - Get scheduler statistics
-
-## Configuration
-
-Configuration is managed through environment variables:
+### Build
 
 ```bash
-# Server
-SERVER_ADDRESS=:8080
-SERVER_PORT=8080
-
-# Database
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=fabric
-DB_USER=fabric
-DB_PASSWORD=secret
-
-# NATS
-NATS_URL=nats://localhost:4222
-NATS_SUBJECT=fabric.events
-
-# Logging
-LOG_LEVEL=info
-LOG_FORMAT=json
-```
-
-## Running
-
-```bash
-# Build
+# Build Weaver (control plane)
 go build -o weaver cmd/weaver/main.go
 
-# Run
-./weaver
+# Build Shuttle (node runner)
+go build -o shuttle cmd/shuttle/main.go
 ```
 
-## Key Features
+### Configuration
 
-### Cost-Aware Scheduling
-- Multi-provider cost comparison
-- Real-time pricing updates
-- Cost optimization strategies
-- Budget constraints and limits
+#### Weaver Configuration (weaver.yaml)
+```yaml
+server:
+  host: "0.0.0.0"
+  port: 8080
+  
+database:
+  host: "localhost"
+  port: 5432
+  name: "fabric"
+  user: "fabric"
+  password: "password"
+  
+nats:
+  url: "nats://localhost:4222"
+  
+scheduler:
+  strategy: "cost_aware"
+  
+providers:
+  kubernetes:
+    enabled: true
+    kubeconfig: "~/.kube/config"
+```
 
-### Multi-Cloud Support
-- Kubernetes clusters
-- RunPod GPU instances
-- CoreWeave compute
-- AWS (including Mac instances)
-- Google Cloud Platform
-- Azure
-- Nosana network
+#### Shuttle Configuration (shuttle.yaml)
+```yaml
+node:
+  id: "node-001"
+  name: "worker-node-1"
+  region: "us-west-2"
+  zone: "us-west-2a"
+  
+weaver:
+  endpoint: "http://localhost:8080"
+  
+runtime:
+  type: "containerd"
+  socket: "/run/containerd/containerd.sock"
+  namespace: "fabric"
+  
+tailscale:
+  enabled: true
+  auth_key: "tskey-auth-..."
+  hostname: "fabric-node-001"
+  
+metrics:
+  enabled: true
+  port: 9090
+  path: "/metrics"
+```
 
-### Event-Driven Architecture
-- Real-time workload updates
-- Provider status changes
-- Cost optimization events
-- Usage tracking events
+### Running
 
-### Mesh Networking
-- Secure node-to-node communication
-- Tailscale/WireGuard integration
+#### Start Weaver
+```bash
+./weaver --config weaver.yaml
+```
+
+#### Start Shuttle
+```bash
+./shuttle --config shuttle.yaml
+```
+
+## API Reference
+
+### Weaver REST API
+
+#### Create Workload
+```bash
+POST /api/v1/workloads
+Content-Type: application/json
+
+{
+  "name": "my-app",
+  "namespace": "default",
+  "image": "nginx:latest",
+  "resources": {
+    "cpu": "1000m",
+    "memory": "1Gi"
+  },
+  "placement": {
+    "provider": "kubernetes",
+    "region": "us-west-2"
+  }
+}
+```
+
+#### List Workloads
+```bash
+GET /api/v1/workloads
+```
+
+#### Get Workload Status
+```bash
+GET /api/v1/workloads/{id}
+```
+
+#### Delete Workload
+```bash
+DELETE /api/v1/workloads/{id}
+```
+
+### Shuttle Metrics
+
+Shuttle exposes Prometheus metrics on `/metrics`:
+
+- `shuttle_workloads_total`: Total number of workloads
+- `shuttle_uptime_seconds`: Shuttle uptime
+- `shuttle_memory_usage_bytes`: Memory usage
+- `shuttle_cpu_usage_percent`: CPU usage percentage
+
+## Provider Support
+
+### Kubernetes
+- Native Kubernetes API integration
+- Pod and PVC management
+- Resource quota enforcement
+- Multi-cluster support
+
+### Cloud Providers
+- **CoreWeave**: GPU-optimized compute
+- **RunPod**: Serverless GPU containers
+- **GCP**: Google Cloud Platform integration
+- **AWS**: EC2 and ECS support (including Mac instances)
+
+### Virtualization
+- **KubeVirt**: VM workloads on Kubernetes
+- **Nosana**: Decentralized compute network
+
+## Networking
+
+Fabric uses WireGuard mesh networking via Tailscale for secure node-to-node communication:
+
+- Automatic node discovery and registration
+- Encrypted traffic between all nodes
+- NAT traversal and firewall bypass
 - Cross-cloud connectivity
-- Private network isolation
 
-### P2P Storage
-- Content-addressed storage
-- CRIU snapshot distribution
-- Iroh/IPFS integration
-- Efficient data transfer
+## Monitoring & Observability
+
+### Metrics
+- Prometheus metrics from all components
+- OpenMeter integration for usage tracking
+- Custom metrics for workload lifecycle events
+
+### Logging
+- Structured logging with configurable levels
+- Centralized log aggregation support
+- Request tracing and correlation IDs
+
+### Health Checks
+- Component health endpoints
+- Automated failover and recovery
+- Node health monitoring
 
 ## Development
 
-The codebase follows clean architecture principles with dependency injection:
+### Project Structure
+```
+fabric/
+├── cmd/
+│   ├── weaver/          # Control plane entry point
+│   └── shuttle/         # Node runner entry point
+├── internal/
+│   ├── api/             # REST API handlers
+│   ├── config/          # Configuration management
+│   ├── scheduler/       # Workload scheduling logic
+│   ├── providers/       # Cloud provider integrations
+│   ├── state/           # State management
+│   ├── stream/          # Event streaming
+│   ├── metering/        # Usage tracking
+│   ├── storage/         # Storage abstractions
+│   ├── network/         # Networking utilities
+│   ├── types/           # Common data types
+│   ├── repository/      # Data persistence
+│   └── shuttle/         # Node runner components
+│       ├── config/      # Shuttle configuration
+│       ├── containerd/  # Container runtime
+│       ├── tailscale/   # Mesh networking
+│       ├── grpc/        # Weaver communication
+│       └── metrics/     # Metrics collection
+└── docs/                # Documentation
+```
 
-- `internal/types/` - Core domain types
-- `internal/api/` - HTTP API handlers
-- `internal/scheduler/` - Scheduling logic
-- `internal/providers/` - Cloud provider implementations
-- `internal/state/` - Application state management
-- `cmd/weaver/` - Main application entry point
+### Testing
+```bash
+# Run all tests
+go test ./...
 
-All components depend on interfaces, making the system highly testable and modular.
+# Run tests with coverage
+go test -cover ./...
+
+# Run integration tests
+go test -tags=integration ./...
+```
+
+### Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Ensure all tests pass
+6. Submit a pull request
+
+## License
+
+MIT License - see LICENSE file for details.
+
+## Roadmap
+
+- [ ] gRPC API implementation
+- [ ] Advanced scheduling algorithms
+- [ ] Multi-tenancy support
+- [ ] Workload migration capabilities
+- [ ] Enhanced security features
+- [ ] Performance optimizations
+- [ ] Additional provider integrations
