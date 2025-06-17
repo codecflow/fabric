@@ -1,0 +1,35 @@
+syntax = "proto3";
+package proto;
+
+import "common/common.proto";  
+import "google/protobuf/timestamp.proto";   
+
+option go_package = "github.com/codecflow/fabric/generated/go";
+
+// User object definition
+message User {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  common.Status status = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+// Request for creating a user
+message CreateUserRequest {
+  string username = 1;
+  string email = 2;
+  string password = 3;
+}
+
+// Response for user creation
+message CreateUserResponse {
+  User user = 1;
+  common.OperationMetadata metadata = 2;
+}
+
+// User service definition
+service UserService {
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+}
