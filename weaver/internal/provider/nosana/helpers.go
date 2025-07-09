@@ -3,7 +3,8 @@ package nosana
 import (
 	"strconv"
 	"strings"
-	"weaver/internal/workload"
+
+	"github.com/codecflow/fabric/weaver/internal/workload"
 )
 
 // parseResources converts Fabric resource specifications to Nosana format
@@ -104,35 +105,6 @@ func parseGPU(gpuSpec string) string {
 	}
 
 	return gpuSpec // Return as-is
-}
-
-// parseDisk converts storage specification to Nosana format
-func (p *Provider) parseDisk(storageSpec string) string {
-	if storageSpec == "" {
-		return "20Gi" // Default 20GB
-	}
-
-	// Normalize to Gi format
-	spec := strings.ToLower(storageSpec)
-
-	if strings.HasSuffix(spec, "gi") {
-		return storageSpec // Already in correct format
-	}
-
-	if strings.HasSuffix(spec, "gb") {
-		// Convert GB to Gi
-		gbStr := strings.TrimSuffix(spec, "gb")
-		if gb, err := strconv.Atoi(gbStr); err == nil {
-			return strconv.Itoa(gb) + "Gi"
-		}
-	}
-
-	// Try to parse as direct number (assume GB)
-	if gb, err := strconv.Atoi(spec); err == nil {
-		return strconv.Itoa(gb) + "Gi"
-	}
-
-	return "20Gi" // Default
 }
 
 // calculatePrice calculates job price based on resources and market rates
@@ -247,7 +219,7 @@ func (p *Provider) nosanaStatusToPhase(status string) workload.Phase {
 		return workload.PhaseSucceeded
 	case JobStatusFailed:
 		return workload.PhaseFailed
-	case JobStatusCancelled:
+	case JobStatusCanceled:
 		return workload.PhaseFailed
 	default:
 		return workload.PhaseUnknown
@@ -255,7 +227,7 @@ func (p *Provider) nosanaStatusToPhase(status string) workload.Phase {
 }
 
 // selectMarket selects the best market for a workload
-func (p *Provider) selectMarket(markets []*Market, resources Resources) *Market {
+func (p *Provider) selectMarket(markets []*Market, _ Resources) *Market {
 	if len(markets) == 0 {
 		return nil
 	}

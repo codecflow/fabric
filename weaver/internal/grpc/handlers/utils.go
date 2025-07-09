@@ -4,17 +4,17 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 
-	"weaver/internal/scheduler"
-	"weaver/internal/workload"
-	"weaver/weaver/proto/weaver"
-
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/codecflow/fabric/weaver/internal/scheduler"
+	"github.com/codecflow/fabric/weaver/internal/workload"
+	"github.com/codecflow/fabric/weaver/weaver/proto/weaver"
 )
 
 // generateID creates a random ID for workloads
 func generateID() string {
 	bytes := make([]byte, 8)
-	rand.Read(bytes)
+	_, _ = rand.Read(bytes)
 	return hex.EncodeToString(bytes)
 }
 
@@ -193,7 +193,7 @@ func convertProviderStats(providerStats map[string]*scheduler.ProviderStats) map
 	result := make(map[string]int32)
 	for provider, stats := range providerStats {
 		if stats != nil {
-			result[provider] = int32(stats.TotalScheduled)
+			result[provider] = int32(stats.TotalScheduled) // nolint:gosec
 		}
 	}
 	return result

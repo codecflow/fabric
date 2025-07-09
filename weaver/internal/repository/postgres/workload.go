@@ -3,8 +3,9 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"weaver/internal/repository"
-	"weaver/internal/workload"
+
+	"github.com/codecflow/fabric/weaver/internal/repository"
+	"github.com/codecflow/fabric/weaver/internal/workload"
 )
 
 // WorkloadRepository implements workload.Repository
@@ -60,7 +61,6 @@ func (r *WorkloadRepository) Get(ctx context.Context, id string) (*workload.Work
 		&w.CreatedAt,
 		&w.UpdatedAt,
 	)
-
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, repository.ErrNotFound
@@ -106,7 +106,6 @@ func (r *WorkloadRepository) GetByName(ctx context.Context, namespace, name stri
 		&w.CreatedAt,
 		&w.UpdatedAt,
 	)
-
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, repository.ErrNotFound
@@ -148,7 +147,6 @@ func (r *WorkloadRepository) Update(ctx context.Context, w *workload.Workload) e
 		toJSON(w.Annotations),
 		w.UpdatedAt,
 	)
-
 	if err != nil {
 		return err
 	}
@@ -197,7 +195,7 @@ func (r *WorkloadRepository) List(ctx context.Context, namespace string, filters
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var workloads []*workload.Workload
 
@@ -216,7 +214,6 @@ func (r *WorkloadRepository) List(ctx context.Context, namespace string, filters
 			&w.CreatedAt,
 			&w.UpdatedAt,
 		)
-
 		if err != nil {
 			return nil, err
 		}

@@ -24,7 +24,6 @@ vendor/
 
 # Build directories
 bin/
-build/
 
 # Go specific
 *.test

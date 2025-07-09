@@ -2,7 +2,8 @@ package namespace
 
 import (
 	"time"
-	"weaver/internal/workload"
+
+	"github.com/codecflow/fabric/weaver/internal/workload"
 )
 
 // Spec defines the desired state of a namespace

@@ -3,7 +3,8 @@ package fly
 import (
 	"strconv"
 	"strings"
-	"weaver/internal/workload"
+
+	"github.com/codecflow/fabric/weaver/internal/workload"
 )
 
 // parseGuest converts Fabric resource specifications to Fly.io Guest format
@@ -281,7 +282,7 @@ func machineToWorkload(machine *Machine, appName string) *workload.Workload {
 	// Convert services back to ports
 	for _, service := range machine.Config.Services {
 		port := workload.Port{
-			ContainerPort: int32(service.InternalPort),
+			ContainerPort: int32(service.InternalPort), // nolint:gosec
 			Protocol:      strings.ToUpper(service.Protocol),
 		}
 		w.Spec.Ports = append(w.Spec.Ports, port)
@@ -338,14 +339,4 @@ func generateAppName(workloadName, namespace string) string {
 	}
 
 	return name
-}
-
-// calculateCost estimates the cost of running a machine
-func calculateCost(guest Guest) float64 {
-	// Base pricing (approximate Fly.io pricing)
-	cpuCost := float64(guest.CPUs) * 0.02               // $0.02 per CPU hour
-	memoryCost := float64(guest.MemoryMB) / 1024 * 0.01 // $0.01 per GB hour
-	gpuCost := float64(guest.GPUs) * 2.0                // $2.00 per GPU hour (A100)
-
-	return cpuCost + memoryCost + gpuCost
 }

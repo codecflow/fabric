@@ -6,14 +6,14 @@ import (
 	"net"
 	"time"
 
-	"weaver/internal/grpc/handlers"
-	"weaver/internal/state"
-	"weaver/weaver/proto/weaver"
-
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/codecflow/fabric/weaver/internal/grpc/handlers"
+	"github.com/codecflow/fabric/weaver/internal/state"
+	"github.com/codecflow/fabric/weaver/weaver/proto/weaver"
 )
 
 // Server implements the gRPC server for Weaver

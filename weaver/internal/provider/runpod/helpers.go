@@ -3,7 +3,8 @@ package runpod
 import (
 	"strconv"
 	"strings"
-	"weaver/internal/workload"
+
+	"github.com/codecflow/fabric/weaver/internal/workload"
 )
 
 // selectGPUType maps Fabric GPU requirements to RunPod GPU types
@@ -147,7 +148,7 @@ func (p *Provider) toWorkload(pod *Pod) *workload.Workload {
 		var ports []workload.Port
 		for _, port := range pod.Runtime.Ports {
 			ports = append(ports, workload.Port{
-				ContainerPort: int32(port.PrivatePort),
+				ContainerPort: int32(port.PrivatePort), // nolint:gosec
 				Protocol:      "TCP",
 			})
 		}

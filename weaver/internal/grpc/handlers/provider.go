@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"weaver/internal/state"
-	"weaver/weaver/proto/weaver"
-
 	"github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/types/known/emptypb"
+
+	"github.com/codecflow/fabric/weaver/internal/state"
+	"github.com/codecflow/fabric/weaver/weaver/proto/weaver"
 )
 
 type ProviderHandler struct {

@@ -3,8 +3,9 @@ package runpod
 import (
 	"context"
 	"fmt"
-	"weaver/internal/provider"
-	"weaver/internal/workload"
+
+	"github.com/codecflow/fabric/weaver/internal/provider"
+	"github.com/codecflow/fabric/weaver/internal/workload"
 )
 
 const Type provider.ProviderType = "runpod"

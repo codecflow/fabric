@@ -8,22 +8,22 @@ import (
 	"syscall"
 	"time"
 
-	"weaver/internal/config"
-	"weaver/internal/grpc"
-	"weaver/internal/provider/fly"
-	"weaver/internal/provider/kubernetes"
-	"weaver/internal/provider/nosana"
-	"weaver/internal/proxy"
-	"weaver/internal/repository"
-	"weaver/internal/repository/postgres"
-	"weaver/internal/scheduler/simple"
-	"weaver/internal/state"
-	"weaver/internal/stream/nats"
-
 	"github.com/sirupsen/logrus"
+
+	"github.com/codecflow/fabric/weaver/internal/config"
+	"github.com/codecflow/fabric/weaver/internal/grpc"
+	"github.com/codecflow/fabric/weaver/internal/provider/fly"
+	"github.com/codecflow/fabric/weaver/internal/provider/kubernetes"
+	"github.com/codecflow/fabric/weaver/internal/provider/nosana"
+	"github.com/codecflow/fabric/weaver/internal/proxy"
+	"github.com/codecflow/fabric/weaver/internal/repository"
+	"github.com/codecflow/fabric/weaver/internal/repository/postgres"
+	"github.com/codecflow/fabric/weaver/internal/scheduler/simple"
+	"github.com/codecflow/fabric/weaver/internal/state"
+	"github.com/codecflow/fabric/weaver/internal/stream/nats"
 )
 
-func main() {
+func main() { // nolint:gocyclo
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.JSONFormatter{
 		TimestampFormat: time.RFC3339,
@@ -156,7 +156,9 @@ func main() {
 	}
 
 	// Close application state (repositories, streams, etc.)
-	appState.Close()
+	if err := appState.Close(); err != nil {
+		logger.Warnf("Error closing application state: %v", err)
+	}
 
 	logger.Info("Server exited gracefully")
 }

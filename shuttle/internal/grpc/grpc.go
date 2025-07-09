@@ -2,10 +2,10 @@ package grpc
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"time"
 
-	"shuttle/internal/config"
+	"github.com/codecflow/fabric/shuttle/internal/config"
 )
 
 // Client manages gRPC communication with Weaver
@@ -68,14 +68,14 @@ type NodeHealth struct {
 func (c *Client) RegisterNode(ctx context.Context, nodeInfo *NodeInfo) error {
 	// In a real implementation, this would make a gRPC call to Weaver
 	// For now, we'll simulate the registration
-	fmt.Printf("Registering node %s with Weaver at %s\n", nodeInfo.ID, c.config.Endpoint)
+	log.Printf("Registering node %s with Weaver at %s\n", nodeInfo.ID, c.config.Endpoint)
 	return nil
 }
 
 // UnregisterNode unregisters this node from Weaver
 func (c *Client) UnregisterNode(ctx context.Context, nodeID string) error {
 	// In a real implementation, this would make a gRPC call to Weaver
-	fmt.Printf("Unregistering node %s from Weaver\n", nodeID)
+	log.Printf("Unregistering node %s from Weaver\n", nodeID)
 	return nil
 }
 
@@ -89,14 +89,14 @@ func (c *Client) GetAssignedWorkloads(ctx context.Context, nodeID string) ([]*Wo
 // ReportWorkloadStatus reports workload status to Weaver
 func (c *Client) ReportWorkloadStatus(ctx context.Context, status *WorkloadStatus) error {
 	// In a real implementation, this would make a gRPC call to Weaver
-	fmt.Printf("Reporting workload status: %s = %s\n", status.WorkloadID, status.Status)
+	log.Printf("Reporting workload status: %s = %s\n", status.WorkloadID, status.Status)
 	return nil
 }
 
 // ReportHealth reports node health to Weaver
 func (c *Client) ReportHealth(ctx context.Context, health *NodeHealth) error {
 	// In a real implementation, this would make a gRPC call to Weaver
-	fmt.Printf("Reporting node health: %s = %s (%d workloads)\n",
+	log.Printf("Reporting node health: %s = %s (%d workloads)\n",
 		health.NodeID, health.Status, health.WorkloadCount)
 	return nil
 }

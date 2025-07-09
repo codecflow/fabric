@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"shuttle/internal/config"
+	"github.com/codecflow/fabric/shuttle/internal/config"
 )
 
 // Server manages metrics collection and exposure
@@ -38,8 +38,11 @@ func (s *Server) Start(ctx context.Context) error {
 	mux.HandleFunc("/health", s.handleHealth)
 
 	s.server = &http.Server{
-		Addr:    fmt.Sprintf(":%d", s.config.Port),
-		Handler: mux,
+		Addr:              fmt.Sprintf(":%d", s.config.Port),
+		Handler:           mux,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      10 * time.Second,
 	}
 
 	go func() {
@@ -85,14 +88,14 @@ shuttle_cpu_usage_percent 0
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(metrics))
+	_, _ = w.Write([]byte(metrics))
 }
 
 // handleHealth handles the health endpoint
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"status":"healthy","timestamp":"` + time.Now().Format(time.RFC3339) + `"}`))
+	_, _ = w.Write([]byte(`{"status":"healthy","timestamp":"` + time.Now().Format(time.RFC3339) + `"}`))
 }
 
 // RecordWorkloadStart records a workload start event

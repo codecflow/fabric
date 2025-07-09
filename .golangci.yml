@@ -1,0 +1,86 @@
+version: "2"
+
+linters:
+  enable:
+    - forbidigo
+    - misspell
+    - predeclared
+    - whitespace
+    - errcheck
+    - govet
+    - staticcheck
+    - gosec
+    - gocyclo
+  disable:
+    - containedctx
+    - errname
+    - errorlint
+    - forcetypeassert
+    - funlen
+    - gocognit
+    - goconst
+    - gocritic
+    - godot
+    - interfacebloat
+    - ireturn
+    - musttag
+    - nakedret
+    - nestif
+    - noctx
+    - nonamedreturns
+    - revive
+    - tagliatelle
+    - unconvert
+    - unparam
+
+  settings:
+    forbidigo:
+      forbid:
+        - pattern: ^print(ln)?$
+        - pattern: ^panic$
+        - pattern: ^spew\.Print(f|ln)?$
+        - pattern: ^spew\.Dump$
+    misspell:
+      locale: US
+      ignore-rules:
+        - organisation
+    staticcheck:
+      checks:
+        - all # run everything…
+        - "-ST1000" # …and don’t warn on missing package comments
+        - "-ST1003" # ignore acronym‐casing
+        - "-QF1008" # …except quirky-formatting
+        - "-ST1020" # ignore method‐comment format
+    gocyclo:
+      min-complexity: 15
+    gosec:
+      severity: low
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+    rules:
+      - path: (.+)\.go$
+        text: "package-comments: should have a package comment"
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    gofmt:
+      simplify: true
+    goimports:
+      local-prefixes:
+        - github.com/codecflow/fabric
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+
+issues:
+  max-same-issues: 0

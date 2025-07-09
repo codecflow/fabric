@@ -4,18 +4,18 @@ import (
 	"time"
 )
 
-// WorkloadSpec defines the desired state of a workload
+// Spec defines the specification for a workload
 type Spec struct {
 	Image     string            `json:"image"`
 	Command   []string          `json:"command,omitempty"`
 	Args      []string          `json:"args,omitempty"`
 	Env       map[string]string `json:"env,omitempty"`
-	Resources ResourceRequests  `json:"resources,omitempty"`
+	Resources ResourceRequests  `json:"resources"`
 	Volumes   []VolumeMount     `json:"volumes,omitempty"`
 	Ports     []Port            `json:"ports,omitempty"`
 	Sidecars  []SidecarSpec     `json:"sidecars,omitempty"`
 	Restart   RestartPolicy     `json:"restart,omitempty"`
-	Placement PlacementSpec     `json:"placement,omitempty"`
+	Placement PlacementSpec     `json:"placement"`
 }
 
 // ResourceRequests specifies compute resource requirements

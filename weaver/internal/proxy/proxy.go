@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"weaver/internal/config"
-	"weaver/internal/workload"
+	"github.com/codecflow/fabric/weaver/internal/config"
+	"github.com/codecflow/fabric/weaver/internal/workload"
 )
 
 // Server manages HTTP proxy for workload access
@@ -52,8 +52,11 @@ func (s *Server) Start(ctx context.Context) error {
 	mux.HandleFunc("/routes", s.handleRoutes)
 
 	s.server = &http.Server{
-		Addr:    fmt.Sprintf(":%d", s.config.Port),
-		Handler: s.withLogging(mux),
+		Addr:              fmt.Sprintf(":%d", s.config.Port),
+		Handler:           s.withLogging(mux),
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      10 * time.Second,
 	}
 
 	go func() {
@@ -155,7 +158,7 @@ func (s *Server) handleProxy(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"status":"healthy","timestamp":"` + time.Now().Format(time.RFC3339) + `"}`))
+	_, _ = w.Write([]byte(`{"status":"healthy","timestamp":"` + time.Now().Format(time.RFC3339) + `"}`))
 }
 
 // handleRoutes handles route listing requests
@@ -177,7 +180,7 @@ func (s *Server) handleRoutes(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	fmt.Fprintf(w, `{"routes":%v}`, routes)
+	_, _ = fmt.Fprintf(w, `{"routes":%v}`, routes)
 }
 
 // errorHandler handles proxy errors

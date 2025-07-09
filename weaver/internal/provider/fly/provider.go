@@ -3,11 +3,12 @@ package fly
 import (
 	"context"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
-	"weaver/internal/provider"
-	"weaver/internal/workload"
+	"github.com/codecflow/fabric/weaver/internal/provider"
+	"github.com/codecflow/fabric/weaver/internal/workload"
 )
 
 const Type provider.ProviderType = "fly"
@@ -119,7 +120,9 @@ func (p *Provider) CreateWorkload(ctx context.Context, w *workload.Workload) err
 	machine, err := p.client.CreateMachine(ctx, appName, createMachineReq)
 	if err != nil {
 		// Clean up app if machine creation fails
-		p.client.DeleteApp(ctx, appName)
+		if err := p.client.DeleteApp(ctx, appName); err != nil {
+			log.Printf("failed to delete app after machine creation failure: %v", err)
+		}
 		p.mu.Lock()
 		delete(p.apps, w.ID)
 		p.mu.Unlock()

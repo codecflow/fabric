@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"strings"
 	"time"
-	"weaver/internal/provider"
-	"weaver/internal/workload"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/codecflow/fabric/weaver/internal/provider"
+	"github.com/codecflow/fabric/weaver/internal/workload"
 )
 
 // Provider implements the Provider interface for Kubernetes
@@ -324,7 +325,7 @@ func (p *Provider) GetStatus(ctx context.Context) (*provider.ProviderStatus, err
 	}
 
 	// Measure latency
-	var latency int = 10
+	latency := 10
 	if available {
 		start := time.Now()
 		_, latencyErr := p.client.CoreV1().Namespaces().Get(ctx, p.namespace, metav1.GetOptions{})
