@@ -3,8 +3,9 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"weaver/internal/namespace"
-	"weaver/internal/repository"
+
+	"github.com/codecflow/fabric/weaver/internal/namespace"
+	"github.com/codecflow/fabric/weaver/internal/repository"
 )
 
 // NamespaceRepository implements namespace.Repository
@@ -58,7 +59,6 @@ func (r *NamespaceRepository) Get(ctx context.Context, name string) (*namespace.
 		&ns.CreatedAt,
 		&ns.UpdatedAt,
 	)
-
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, repository.ErrNotFound
@@ -99,7 +99,6 @@ func (r *NamespaceRepository) Update(ctx context.Context, ns *namespace.Namespac
 		toJSON(ns.Status),
 		ns.UpdatedAt,
 	)
-
 	if err != nil {
 		return err
 	}
@@ -148,7 +147,7 @@ func (r *NamespaceRepository) List(ctx context.Context, filters map[string]strin
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var namespaces []*namespace.Namespace
 
@@ -166,7 +165,6 @@ func (r *NamespaceRepository) List(ctx context.Context, filters map[string]strin
 			&ns.CreatedAt,
 			&ns.UpdatedAt,
 		)
-
 		if err != nil {
 			return nil, err
 		}

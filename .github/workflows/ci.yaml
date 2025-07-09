@@ -1,8 +1,11 @@
-name: CI & Docker
+name: Fabric CI Pipeline
 
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
   lint:
@@ -10,26 +13,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: 1.24.3
-
+      - name: Cache Go modules & build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('go.work.sum','**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
       - name: Sync workspace
         run: go work sync
-
       - name: go fmt
-        run: go fmt ./...
-
+        run: |
+          ( cd shuttle && go fmt ./... )
+          ( cd weaver && go fmt ./... )
       - name: go vet
-        run: go vet ./...
-
+        env:
+          GOFLAGS: -mod=readonly
+        run: go vet ./shuttle/... ./weaver/...
+      - name: go mod tidy check
+        run: |
+          ( cd shuttle && go mod tidy )
+          ( cd weaver  && go mod tidy )
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v8
         with:
-          version: v1.57.0
-          args: --timeout 5m
+          version: v2.1
+          args: ./shuttle/... ./weaver/... --timeout 5m
 
   test:
     name: Test ${{ matrix.app }}
@@ -40,28 +55,32 @@ jobs:
         app: [shuttle, weaver]
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: 1.24.3
-
+      - name: Cache Go modules & build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
       - name: Sync workspace
         run: go work sync
-
       - name: Run tests for ${{ matrix.app }}
         working-directory: ${{ matrix.app }}
-        run: |
-          go test ./... -v -coverprofile=coverage.out
-
-      - name: Upload coverage ({{ matrix.app }})
-        uses: actions/upload-artifact@v3
+        run: go test ./... -v -coverprofile=coverage.out
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.app }}
-          path: ${{ matrix.app }}/coverage.out
+          path: coverage.out
 
   build-and-push:
-    name: Build & Push Docker images
+    name: Build & Push ${{ matrix.app }}
     needs: test
     runs-on: ubuntu-latest
     permissions:
@@ -69,33 +88,34 @@ jobs:
       packages: write
     strategy:
       matrix:
-        image:
-          - name: cf-shuttle
-            dockerfile: build/shuttle/Dockerfile
-          - name: cf-weaver
-            dockerfile: build/weaver/Dockerfile
+        include:
+          - app: shuttle
+            docker_name: cf-shuttle
+          - app: weaver
+            docker_name: cf-weaver
+
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
-      - name: Set up Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
+      - uses: docker/setup-qemu-action@v2
+      - uses: docker/setup-buildx-action@v2
+      - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build & Push ${{ matrix.image.name }}
+      - name: Get short SHA
+        id: vars
+        run: echo "short_sha=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_OUTPUT
+
+      - name: Build & Push ${{ matrix.app }}
         uses: docker/build-push-action@v4
         with:
           context: .
-          file: ${{ matrix.image.dockerfile }}
+          file: build/${{ matrix.app }}/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ matrix.image.name }}:${{ github.sha }}
-            ghcr.io/${{ github.repository_owner }}/${{ matrix.image.name }}:latest
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.docker_name }}:${{ steps.vars.outputs.short_sha }}
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.docker_name }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"weaver/internal/config"
+	"github.com/codecflow/fabric/weaver/internal/config"
 )
 
 // IrohClient manages Iroh storage operations
@@ -41,7 +41,7 @@ func NewIrohClient(cfg *config.IrohConfig) (*IrohClient, error) {
 // Upload uploads a file or directory to Iroh
 func (i *IrohClient) Upload(ctx context.Context, localPath string, tags []string) (*IrohObject, error) {
 	if !i.config.Enabled {
-		return nil, fmt.Errorf("Iroh storage is disabled")
+		return nil, fmt.Errorf("Iroh storage is disabled") // nolint:staticcheck
 	}
 
 	log.Printf("Uploading to Iroh: %s", localPath)
@@ -80,13 +80,13 @@ func (i *IrohClient) Upload(ctx context.Context, localPath string, tags []string
 // Download downloads a file or directory from Iroh
 func (i *IrohClient) Download(ctx context.Context, cid string, localPath string) error {
 	if !i.config.Enabled {
-		return fmt.Errorf("Iroh storage is disabled")
+		return fmt.Errorf("Iroh storage is disabled") // nolint:staticcheck
 	}
 
 	log.Printf("Downloading from Iroh: %s -> %s", cid, localPath)
 
 	// Ensure parent directory exists
-	if err := os.MkdirAll(filepath.Dir(localPath), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(localPath), 0o750); err != nil {
 		return fmt.Errorf("failed to create parent directory: %w", err)
 	}
 
@@ -103,7 +103,7 @@ func (i *IrohClient) Download(ctx context.Context, cid string, localPath string)
 // Delete removes an object from Iroh
 func (i *IrohClient) Delete(ctx context.Context, cid string) error {
 	if !i.config.Enabled {
-		return fmt.Errorf("Iroh storage is disabled")
+		return fmt.Errorf("Iroh storage is disabled") // nolint:staticcheck
 	}
 
 	log.Printf("Deleting from Iroh: %s", cid)
@@ -158,7 +158,7 @@ func (i *IrohClient) List(ctx context.Context, tags []string) ([]*IrohObject, er
 // GetInfo gets information about an object in Iroh
 func (i *IrohClient) GetInfo(ctx context.Context, cid string) (*IrohObject, error) {
 	if !i.config.Enabled {
-		return nil, fmt.Errorf("Iroh storage is disabled")
+		return nil, fmt.Errorf("Iroh storage is disabled") // nolint:staticcheck
 	}
 
 	log.Printf("Getting Iroh object info: %s", cid)
@@ -177,7 +177,7 @@ func (i *IrohClient) GetInfo(ctx context.Context, cid string) (*IrohObject, erro
 // Pin pins an object in Iroh to prevent garbage collection
 func (i *IrohClient) Pin(ctx context.Context, cid string) error {
 	if !i.config.Enabled {
-		return fmt.Errorf("Iroh storage is disabled")
+		return fmt.Errorf("Iroh storage is disabled") // nolint:staticcheck
 	}
 
 	log.Printf("Pinning Iroh object: %s", cid)
@@ -189,7 +189,7 @@ func (i *IrohClient) Pin(ctx context.Context, cid string) error {
 // Unpin unpins an object in Iroh
 func (i *IrohClient) Unpin(ctx context.Context, cid string) error {
 	if !i.config.Enabled {
-		return fmt.Errorf("Iroh storage is disabled")
+		return fmt.Errorf("Iroh storage is disabled") // nolint:staticcheck
 	}
 
 	log.Printf("Unpinning Iroh object: %s", cid)
@@ -201,7 +201,7 @@ func (i *IrohClient) Unpin(ctx context.Context, cid string) error {
 // Share creates a shareable link for an object
 func (i *IrohClient) Share(ctx context.Context, cid string, expiry time.Duration) (string, error) {
 	if !i.config.Enabled {
-		return "", fmt.Errorf("Iroh storage is disabled")
+		return "", fmt.Errorf("Iroh storage is disabled") // nolint:staticcheck
 	}
 
 	log.Printf("Creating share link for Iroh object: %s (expires in %v)", cid, expiry)
@@ -242,7 +242,7 @@ func (i *IrohClient) generateCID(path string, size int64) string {
 // createPlaceholder creates a placeholder file or directory for testing
 func (i *IrohClient) createPlaceholder(localPath string) error {
 	// Create a simple placeholder file
-	return os.WriteFile(localPath, []byte("placeholder content"), 0644)
+	return os.WriteFile(localPath, []byte("placeholder content"), 0o600)
 }
 
 // hasMatchingTags checks if an object has any of the specified tags

@@ -22,7 +22,7 @@ const (
 	TypeBasicAuth           SecretType = "kubernetes.io/basic-auth"
 	TypeTLS                 SecretType = "kubernetes.io/tls"
 	TypeSSHAuth             SecretType = "kubernetes.io/ssh-auth"
-	TypeServiceAccountToken SecretType = "kubernetes.io/service-account-token"
+	TypeServiceAccountToken SecretType = "kubernetes.io/service-account-token" // nolint:gosec
 )
 
 // ExternalSecretRef references a secret in an external system

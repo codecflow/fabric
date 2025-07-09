@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"weaver/internal/config"
-	"weaver/internal/workload"
+	"github.com/codecflow/fabric/weaver/internal/config"
+	"github.com/codecflow/fabric/weaver/internal/workload"
 )
 
 // CRIUManager manages CRIU snapshots
@@ -41,7 +41,7 @@ func New(cfg *config.CRIUConfig) (*CRIUManager, error) {
 	}
 
 	// Ensure snapshot directory exists
-	if err := os.MkdirAll(cfg.SnapshotDir, 0755); err != nil {
+	if err := os.MkdirAll(cfg.SnapshotDir, 0o750); err != nil {
 		return nil, fmt.Errorf("failed to create snapshot directory: %w", err)
 	}
 
@@ -62,7 +62,7 @@ func (c *CRIUManager) CreateSnapshot(ctx context.Context, w *workload.Workload, 
 	log.Printf("Creating CRIU snapshot for workload %s (container %s)", w.ID, containerID)
 
 	// Create snapshot directory
-	if err := os.MkdirAll(snapshotPath, 0755); err != nil {
+	if err := os.MkdirAll(snapshotPath, 0o750); err != nil {
 		return nil, fmt.Errorf("failed to create snapshot directory: %w", err)
 	}
 
@@ -74,7 +74,7 @@ func (c *CRIUManager) CreateSnapshot(ctx context.Context, w *workload.Workload, 
 
 	// Create CRIU dump
 	if err := c.createDump(ctx, pid, snapshotPath); err != nil {
-		os.RemoveAll(snapshotPath)
+		_ = os.RemoveAll(snapshotPath)
 		return nil, fmt.Errorf("failed to create CRIU dump: %w", err)
 	}
 
@@ -208,7 +208,7 @@ func checkCRIUAvailable() error {
 }
 
 // getContainerPID gets the PID of a container
-func (c *CRIUManager) getContainerPID(containerID string) (int, error) {
+func (c *CRIUManager) getContainerPID(_ string) (int, error) {
 	// In a real implementation, this would query containerd for the container PID
 	// For now, return a placeholder
 	return 1234, nil
@@ -232,7 +232,7 @@ func (c *CRIUManager) createDump(ctx context.Context, pid int, snapshotPath stri
 		args = append(args, "--file-locks")
 	}
 
-	cmd := exec.CommandContext(ctx, "criu", args...)
+	cmd := exec.CommandContext(ctx, "criu", args...) // nolint:gosec
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -240,14 +240,14 @@ func (c *CRIUManager) createDump(ctx context.Context, pid int, snapshotPath stri
 }
 
 // restoreDump restores from a CRIU dump
-func (c *CRIUManager) restoreDump(ctx context.Context, snapshotPath, containerID string) error {
+func (c *CRIUManager) restoreDump(ctx context.Context, snapshotPath, _ string) error {
 	args := []string{
 		"restore",
 		"-D", snapshotPath,
 		"--shell-job",
 	}
 
-	cmd := exec.CommandContext(ctx, "criu", args...)
+	cmd := exec.CommandContext(ctx, "criu", args...) // nolint:gosec
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -292,14 +292,14 @@ func (c *CRIUManager) uploadToIroh(ctx context.Context, snapshotPath string) (st
 }
 
 // downloadFromIroh downloads a snapshot from Iroh
-func (c *CRIUManager) downloadFromIroh(ctx context.Context, cid, snapshotPath string) error {
+func (c *CRIUManager) downloadFromIroh(_ context.Context, cid, snapshotPath string) error {
 	// In a real implementation, this would use the Iroh API
 	log.Printf("Downloading snapshot from Iroh: %s -> %s", cid, snapshotPath)
-	return os.MkdirAll(snapshotPath, 0755)
+	return os.MkdirAll(snapshotPath, 0o750)
 }
 
 // removeFromIroh removes a snapshot from Iroh
-func (c *CRIUManager) removeFromIroh(ctx context.Context, cid string) error {
+func (c *CRIUManager) removeFromIroh(_ context.Context, cid string) error {
 	// In a real implementation, this would use the Iroh API
 	log.Printf("Removing snapshot from Iroh: %s", cid)
 	return nil

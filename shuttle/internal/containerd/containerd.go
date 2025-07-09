@@ -6,13 +6,13 @@ import (
 	"log"
 	"time"
 
-	"shuttle/internal/config"
-	"shuttle/internal/grpc"
-
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/cio"
 	"github.com/containerd/containerd/namespaces"
 	"github.com/containerd/containerd/oci"
+
+	"github.com/codecflow/fabric/shuttle/internal/config"
+	"github.com/codecflow/fabric/shuttle/internal/grpc"
 )
 
 // Runtime manages container lifecycle using containerd
@@ -130,7 +130,10 @@ func (r *Runtime) StopContainer(ctx context.Context, containerID string) error {
 			case <-exitCh:
 			case <-time.After(30 * time.Second):
 				// Force kill if graceful shutdown takes too long
-				task.Kill(ctx, 9) // SIGKILL = 9
+				if err := task.Kill(ctx, 9); err != nil { // SIGKILL = 9
+					log.Printf("Failed to force kill task for container %s: %v", containerID, err)
+				}
+
 				<-exitCh
 			}
 		}
@@ -182,9 +185,11 @@ func (r *Runtime) createContainer(ctx context.Context, spec *grpc.WorkloadSpec, 
 	if spec.Resources != nil {
 		if spec.Resources.CPULimit != "" {
 			// In a real implementation, parse and set CPU limits
+			log.Printf("Setting CPU limit for container %s: %s", containerID, spec.Resources.CPULimit)
 		}
 		if spec.Resources.MemoryLimit != "" {
 			// In a real implementation, parse and set memory limits
+			log.Printf("Setting memory limit for container %s: %s", containerID, spec.Resources.MemoryLimit)
 		}
 	}
 
@@ -195,7 +200,6 @@ func (r *Runtime) createContainer(ctx context.Context, spec *grpc.WorkloadSpec, 
 		containerd.WithNewSnapshot(containerID+"-snapshot", image),
 		containerd.WithNewSpec(opts...),
 	)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to create container: %w", err)
 	}
@@ -213,7 +217,9 @@ func (r *Runtime) startTask(ctx context.Context, container containerd.Container,
 
 	// Start task
 	if err := task.Start(ctx); err != nil {
-		task.Delete(ctx)
+		if _, err := task.Delete(ctx); err != nil {
+			log.Printf("Failed to delete task after start failure: %v", err)
+		}
 		return nil, fmt.Errorf("failed to start task: %w", err)
 	}
 

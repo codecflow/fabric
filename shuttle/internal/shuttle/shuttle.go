@@ -7,11 +7,11 @@ import (
 	"sync"
 	"time"
 
-	"shuttle/internal/config"
-	"shuttle/internal/containerd"
-	"shuttle/internal/grpc"
-	"shuttle/internal/metrics"
-	"shuttle/internal/tailscale"
+	"github.com/codecflow/fabric/shuttle/internal/config"
+	"github.com/codecflow/fabric/shuttle/internal/containerd"
+	"github.com/codecflow/fabric/shuttle/internal/grpc"
+	"github.com/codecflow/fabric/shuttle/internal/metrics"
+	"github.com/codecflow/fabric/shuttle/internal/tailscale"
 )
 
 // Shuttle represents the node runner
@@ -94,7 +94,7 @@ func New(cfg *config.Config) (*Shuttle, error) {
 	return s, nil
 }
 
-// Run starts the shuttle and runs until context is cancelled
+// Run starts the shuttle and runs until context is canceled
 func (s *Shuttle) Run(ctx context.Context) error {
 	log.Printf("Starting Shuttle node: %s", s.config.Node.ID)
 
@@ -104,7 +104,7 @@ func (s *Shuttle) Run(ctx context.Context) error {
 		if err := s.tailscale.Start(ctx); err != nil {
 			return fmt.Errorf("failed to start Tailscale: %w", err)
 		}
-		defer s.tailscale.Stop()
+		defer func() { _ = s.tailscale.Stop() }()
 	}
 
 	// Start container runtime
@@ -112,7 +112,7 @@ func (s *Shuttle) Run(ctx context.Context) error {
 	if err := s.runtime.Start(ctx); err != nil {
 		return fmt.Errorf("failed to start container runtime: %w", err)
 	}
-	defer s.runtime.Stop()
+	defer func() { _ = s.runtime.Stop() }()
 
 	// Start metrics server
 	if s.metrics != nil {
@@ -120,7 +120,7 @@ func (s *Shuttle) Run(ctx context.Context) error {
 		if err := s.metrics.Start(ctx); err != nil {
 			return fmt.Errorf("failed to start metrics server: %w", err)
 		}
-		defer s.metrics.Stop()
+		defer func() { _ = s.metrics.Stop() }()
 	}
 
 	// Register with Weaver

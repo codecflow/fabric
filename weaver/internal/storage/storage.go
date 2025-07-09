@@ -181,7 +181,7 @@ const (
 	TransferStatusActive    TransferStatus = "active"
 	TransferStatusCompleted TransferStatus = "completed"
 	TransferStatusFailed    TransferStatus = "failed"
-	TransferStatusCancelled TransferStatus = "cancelled"
+	TransferStatusCanceled  TransferStatus = "canceled"
 )
 
 // PinInfo represents information about pinned content

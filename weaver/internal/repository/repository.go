@@ -3,14 +3,13 @@ package repository
 import (
 	"context"
 	"errors"
-	"weaver/internal/namespace"
-	"weaver/internal/secret"
-	"weaver/internal/workload"
+
+	"github.com/codecflow/fabric/weaver/internal/namespace"
+	"github.com/codecflow/fabric/weaver/internal/secret"
+	"github.com/codecflow/fabric/weaver/internal/workload"
 )
 
-var (
-	ErrNotFound = errors.New("resource not found")
-)
+var ErrNotFound = errors.New("resource not found")
 
 type Repository struct {
 	Workload  workload.Repository

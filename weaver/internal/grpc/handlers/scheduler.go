@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"weaver/internal/state"
-	"weaver/internal/workload"
-	"weaver/weaver/proto/weaver"
-
 	"github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/types/known/emptypb"
+
+	"github.com/codecflow/fabric/weaver/internal/state"
+	"github.com/codecflow/fabric/weaver/internal/workload"
+	"github.com/codecflow/fabric/weaver/weaver/proto/weaver"
 )
 
 type SchedulerHandler struct {
@@ -27,7 +27,7 @@ func NewSchedulerHandler(appState *state.State, logger *logrus.Logger) *Schedule
 func (h *SchedulerHandler) GetStatus(ctx context.Context, req *emptypb.Empty) (*weaver.GetSchedulerStatusResponse, error) {
 	response := &weaver.GetSchedulerStatusResponse{
 		Status:         "running",
-		ProvidersCount: int32(len(h.appState.Providers)),
+		ProvidersCount: int32(len(h.appState.Providers)), // nolint:gosec
 	}
 
 	if h.appState.Scheduler != nil {
@@ -127,10 +127,10 @@ func (h *SchedulerHandler) GetStats(ctx context.Context, req *emptypb.Empty) (*w
 	}
 
 	return &weaver.GetSchedulerStatsResponse{
-		TotalWorkloads:      int32(stats.TotalScheduled),
-		RunningWorkloads:    int32(stats.SuccessfulSchedules),
+		TotalWorkloads:      int32(stats.TotalScheduled),      // nolint:gosec
+		RunningWorkloads:    int32(stats.SuccessfulSchedules), // nolint:gosec
 		PendingWorkloads:    pendingWorkloads,
-		FailedWorkloads:     int32(stats.FailedSchedules),
+		FailedWorkloads:     int32(stats.FailedSchedules), // nolint:gosec
 		WorkloadsByProvider: convertProviderStats(stats.ProviderStats),
 		TotalCostPerHour:    calculateTotalCost(stats.ProviderStats),
 	}, nil

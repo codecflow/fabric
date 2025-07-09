@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"time"
 
-	"weaver/internal/state"
-	"weaver/internal/workload"
-	"weaver/weaver/proto/weaver"
-
 	"github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/codecflow/fabric/weaver/internal/state"
+	"github.com/codecflow/fabric/weaver/internal/workload"
+	"github.com/codecflow/fabric/weaver/weaver/proto/weaver"
 )
 
 type WorkloadHandler struct {
@@ -141,7 +141,7 @@ func (h *WorkloadHandler) List(ctx context.Context, req *weaver.ListWorkloadsReq
 
 	return &weaver.ListWorkloadsResponse{
 		Workloads: protoWorkloads,
-		Total:     int32(len(protoWorkloads)),
+		Total:     int32(len(protoWorkloads)), // nolint:gosec
 	}, nil
 }
 

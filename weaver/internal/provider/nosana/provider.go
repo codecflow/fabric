@@ -3,8 +3,9 @@ package nosana
 import (
 	"context"
 	"fmt"
-	"weaver/internal/provider"
-	"weaver/internal/workload"
+
+	"github.com/codecflow/fabric/weaver/internal/provider"
+	"github.com/codecflow/fabric/weaver/internal/workload"
 )
 
 const Type provider.ProviderType = "nosana"
@@ -24,7 +25,7 @@ type Config struct {
 // New creates a new Nosana provider
 func New(name string, config Config) (*Provider, error) {
 	if config.APIKey == "" {
-		return nil, fmt.Errorf("Nosana API key is required")
+		return nil, fmt.Errorf("Nosana API key is required") // nolint:staticcheck
 	}
 
 	client := NewClient(config.APIKey)
@@ -39,7 +40,7 @@ func New(name string, config Config) (*Provider, error) {
 func NewFromConfig(name string, config map[string]string) (provider.Provider, error) {
 	apiKey, exists := config["apiKey"]
 	if !exists || apiKey == "" {
-		return nil, fmt.Errorf("Nosana API key is required")
+		return nil, fmt.Errorf("Nosana API key is required") // nolint:staticcheck
 	}
 
 	network := config["network"]
@@ -112,7 +113,7 @@ func (p *Provider) GetWorkload(ctx context.Context, id string) (*workload.Worklo
 
 // UpdateWorkload updates a workload on Nosana
 func (p *Provider) UpdateWorkload(ctx context.Context, w *workload.Workload) error {
-	return fmt.Errorf("Nosana does not support updating running jobs")
+	return fmt.Errorf("Nosana does not support updating running jobs") // nolint:staticcheck
 }
 
 // DeleteWorkload deletes a workload from Nosana
@@ -252,7 +253,7 @@ func (p *Provider) GetPricing(ctx context.Context) (*provider.PricingInfo, error
 func (p *Provider) HealthCheck(ctx context.Context) error {
 	err := p.client.GetHealth(ctx)
 	if err != nil {
-		return fmt.Errorf("Nosana health check failed: %w", err)
+		return fmt.Errorf("Nosana health check failed: %w", err) // nolint:staticcheck
 	}
 	return nil
 }

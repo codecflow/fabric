@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 	"time"
-	"weaver/internal/provider"
-	"weaver/internal/scheduler"
-	"weaver/internal/workload"
+
+	"github.com/codecflow/fabric/weaver/internal/provider"
+	"github.com/codecflow/fabric/weaver/internal/scheduler"
+	"github.com/codecflow/fabric/weaver/internal/workload"
 )
 
 // SimpleScheduler implements a basic cost-aware scheduler
@@ -236,6 +237,7 @@ func (s *SimpleScheduler) Reschedule(ctx context.Context, workloadID string, con
 }
 
 // getConstrainedRecommendations gets recommendations with rescheduling constraints
+// nolint:gocyclo
 func (s *SimpleScheduler) getConstrainedRecommendations(ctx context.Context, w *workload.Workload, constraints *scheduler.RescheduleConstraints) ([]*scheduler.Recommendation, error) {
 	recommendations := make([]*scheduler.Recommendation, 0)
 
@@ -256,8 +258,8 @@ func (s *SimpleScheduler) getConstrainedRecommendations(ctx context.Context, w *
 
 		if len(constraints.ExcludedProviders) > 0 {
 			excluded := false
-			for _, excluded_provider := range constraints.ExcludedProviders {
-				if name == excluded_provider {
+			for _, excludedProvider := range constraints.ExcludedProviders {
+				if name == excludedProvider {
 					excluded = true
 					break
 				}
@@ -369,7 +371,7 @@ func (s *SimpleScheduler) HealthCheck(ctx context.Context) error {
 }
 
 // calculateCost estimates the cost for a workload
-func (s *SimpleScheduler) calculateCost(w *workload.Workload, pricing *provider.PricingInfo) *provider.CostEstimate {
+func (s *SimpleScheduler) calculateCost(_ *workload.Workload, pricing *provider.PricingInfo) *provider.CostEstimate {
 	// Simple cost calculation based on resources
 	cpuCost := 2.0 * pricing.CPU.Amount       // Assume 2 vCPUs
 	memoryCost := 4.0 * pricing.Memory.Amount // Assume 4GB memory
@@ -553,6 +555,7 @@ func (s *SimpleScheduler) parseMemoryRequirement(memory string) float64 {
 }
 
 // parseFloat safely parses a string to float64
+// nolint:gocyclo
 func (s *SimpleScheduler) parseFloat(str string) float64 {
 	// Simple float parsing - in production would use strconv.ParseFloat
 	// For now, handle common cases

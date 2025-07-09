@@ -8,12 +8,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	"shuttle/internal/config"
-	"shuttle/internal/shuttle"
+	"github.com/codecflow/fabric/shuttle/internal/config"
+	"github.com/codecflow/fabric/shuttle/internal/shuttle"
 )
 
 func main() {
-	var configPath = flag.String("config", "/etc/shuttle/config.yaml", "Path to configuration file")
+	configPath := flag.String("config", "/etc/shuttle/config.yaml", "Path to configuration file")
 	flag.Parse()
 
 	// Load configuration

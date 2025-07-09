@@ -1,17 +1,9 @@
-.PHONY: all build clean weaver shuttle gauge test proto deps dev-weaver dev-shuttle dev-gauge
+.PHONY: all build clean weaver shuttle test deps fmt lint docker-weaver docker-shuttle workspace-sync
 
-# Build all components
 all: build
 
-build: proto weaver shuttle gauge
+build: weaver shuttle
 
-# Generate protobuf files
-proto:
-	protoc --go_out=weaver/internal/grpc --go_opt=paths=source_relative \
-		--go-grpc_out=weaver/internal/grpc --go-grpc_opt=paths=source_relative \
-		weaver/internal/grpc/weaver.proto
-
-# Build individual components
 weaver:
 	mkdir -p bin
 	go build -o bin/weaver ./weaver
@@ -20,41 +12,27 @@ shuttle:
 	mkdir -p bin
 	go build -o bin/shuttle ./shuttle
 
-gauge:
-	mkdir -p bin
-	go build -o bin/gauge ./gauge
-
-# Test all packages
 test:
-	go test weaver/...
-	go test shuttle/...
-	go test gauge/...
+	go test ./shuttle/...
+	go test ./weaver/...
 
-# Clean build artifacts
+lint:
+	golangci-lint run ./shuttle/... ./weaver/... --timeout 5m
+
+fmt:
+	go fmt ./shuttle/...
+	go fmt ./weaver/...
+
 clean:
 	rm -rf bin/
-	rm -f weaver/internal/grpc/*.pb.go
 
-# Install dependencies for all modules
 deps:
 	go work sync
+	go mod tidy -C shuttle
+	go mod tidy -C weaver
 
-# Run components in development mode
-dev-weaver:
-	go run weaver
+docker-weaver:
+	DOCKER_BUILDKIT=1 docker build -t cf-weaver:dev -f build/weaver/Dockerfile .
 
-dev-shuttle:
-	go run shuttle
-
-dev-gauge:
-	go run gauge
-
-# Development helpers
-fmt:
-	go fmt weaver/...
-	go fmt shuttle/...
-	go fmt gauge/...
-
-# Workspace operations
-workspace-sync:
-	go work sync
+docker-shuttle:
+	DOCKER_BUILDKIT=1 docker build -t cf-shuttle:dev -f build/shuttle/Dockerfile .

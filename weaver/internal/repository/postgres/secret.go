@@ -3,8 +3,9 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"weaver/internal/repository"
-	"weaver/internal/secret"
+
+	"github.com/codecflow/fabric/weaver/internal/repository"
+	"github.com/codecflow/fabric/weaver/internal/secret"
 )
 
 // SecretRepository implements secret.Repository
@@ -60,7 +61,6 @@ func (r *SecretRepository) Get(ctx context.Context, namespace, name string) (*se
 		&s.CreatedAt,
 		&s.UpdatedAt,
 	)
-
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, repository.ErrNotFound
@@ -106,7 +106,6 @@ func (r *SecretRepository) GetByID(ctx context.Context, id string) (*secret.Secr
 		&s.CreatedAt,
 		&s.UpdatedAt,
 	)
-
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, repository.ErrNotFound
@@ -148,7 +147,6 @@ func (r *SecretRepository) Update(ctx context.Context, s *secret.Secret) error {
 		toJSON(s.Annotations),
 		s.UpdatedAt,
 	)
-
 	if err != nil {
 		return err
 	}
@@ -197,7 +195,7 @@ func (r *SecretRepository) List(ctx context.Context, filter secret.Filter) (*sec
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }() // nolint:errcheck
 
 	var secrets []secret.Secret
 
@@ -216,7 +214,6 @@ func (r *SecretRepository) List(ctx context.Context, filter secret.Filter) (*sec
 			&s.CreatedAt,
 			&s.UpdatedAt,
 		)
-
 		if err != nil {
 			return nil, err
 		}

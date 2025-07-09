@@ -178,11 +178,11 @@ type Invoice struct {
 type InvoiceStatus string
 
 const (
-	InvoiceStatusDraft     InvoiceStatus = "draft"
-	InvoiceStatusSent      InvoiceStatus = "sent"
-	InvoiceStatusPaid      InvoiceStatus = "paid"
-	InvoiceStatusOverdue   InvoiceStatus = "overdue"
-	InvoiceStatusCancelled InvoiceStatus = "cancelled"
+	InvoiceStatusDraft    InvoiceStatus = "draft"
+	InvoiceStatusSent     InvoiceStatus = "sent"
+	InvoiceStatusPaid     InvoiceStatus = "paid"
+	InvoiceStatusOverdue  InvoiceStatus = "overdue"
+	InvoiceStatusCanceled InvoiceStatus = "canceled"
 )
 
 // LineItem represents a single line item on an invoice

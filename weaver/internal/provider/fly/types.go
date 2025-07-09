@@ -1,10 +1,10 @@
 package fly
 
 import (
-	"weaver/internal/provider"
+	"github.com/codecflow/fabric/weaver/internal/provider"
 )
 
-// ProviderType for Fly.io
+// ProviderTypeFly represents the Fly.io provider type
 const ProviderTypeFly provider.ProviderType = "fly"
 
 // App represents a Fly.io application

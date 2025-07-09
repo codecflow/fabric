@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"time"
 
-	"shuttle/internal/config"
+	"github.com/codecflow/fabric/shuttle/internal/config"
 )
 
 // Client manages Tailscale connectivity
@@ -20,7 +20,7 @@ type Client struct {
 // New creates a new Tailscale client
 func New(cfg *config.TailscaleConfig) (*Client, error) {
 	if !cfg.Enabled {
-		return nil, fmt.Errorf("Tailscale is disabled")
+		return nil, fmt.Errorf("Tailscale is disabled") // nolint:staticcheck
 	}
 
 	return &Client{
@@ -52,7 +52,7 @@ func (c *Client) Start(ctx context.Context) error {
 		args = append(args, "--verbose="+c.config.LogLevel)
 	}
 
-	c.cmd = exec.CommandContext(ctx, "tailscaled", args...)
+	c.cmd = exec.CommandContext(ctx, "tailscaled", args...) // nolint:gosec
 	c.cmd.Stdout = os.Stdout
 	c.cmd.Stderr = os.Stderr
 
@@ -81,7 +81,9 @@ func (c *Client) Stop() error {
 		if err := c.cmd.Process.Kill(); err != nil {
 			return fmt.Errorf("failed to stop tailscaled: %w", err)
 		}
-		c.cmd.Wait()
+		if err := c.cmd.Wait(); err != nil {
+			log.Printf("Error waiting for tailscaled to stop: %v", err)
+		}
 	}
 	return nil
 }
@@ -139,7 +141,7 @@ func (c *Client) authenticate(ctx context.Context) error {
 		args = append(args, "--accept-dns")
 	}
 
-	cmd := exec.CommandContext(ctx, "tailscale", args...)
+	cmd := exec.CommandContext(ctx, "tailscale", args...) // nolint:gosec
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 

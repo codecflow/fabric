@@ -3,10 +3,12 @@ package nats
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
-	"weaver/internal/stream"
 
 	"github.com/nats-io/nats.go"
+
+	"github.com/codecflow/fabric/weaver/internal/stream"
 )
 
 // NATSStream implements the Stream interface using NATS JetStream
@@ -93,9 +95,10 @@ func (s *NATSStream) Subscribe(ctx context.Context, subject string, handler stre
 			Timestamp: time.Now(),
 		}
 
-		handler(streamMsg)
+		if err := handler(streamMsg); err != nil {
+			log.Printf("failed to handle message: %v", err)
+		}
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to subscribe: %w", err)
 	}
@@ -113,9 +116,10 @@ func (s *NATSStream) QueueSubscribe(ctx context.Context, subject, queue string, 
 			Timestamp: time.Now(),
 		}
 
-		handler(streamMsg)
+		if err := handler(streamMsg); err != nil {
+			log.Printf("failed to handle message: %v", err)
+		}
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to queue subscribe: %w", err)
 	}
