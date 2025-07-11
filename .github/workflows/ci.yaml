@@ -14,6 +14,7 @@ permissions:
 jobs:
   lint_commit:
     name: Lint Commit Message
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,10 +22,21 @@ jobs:
         with:
           node-version: "lts/*"
       - run: npm install -g @commitlint/cli @commitlint/config-conventional commitlint-plugin-regex-match
-      - name: Lint PR title
+
+      - name: Get PR title
+        id: get_pr_title
         run: |
           PR_TITLE="${{ github.event.pull_request.title }}"
-          echo "$PR_TITLE" | npx commitlint
+          # Escape quotes for JSON
+          PR_TITLE_ESCAPED=$(echo "$PR_TITLE" | sed 's/"/\\"/g')
+          echo "pr_title=$PR_TITLE_ESCAPED" >> $GITHUB_OUTPUT
+
+      - name: Lint PR title
+        run: |
+          # Write title to temp file
+          echo "${{ steps.get_pr_title.outputs.pr_title }}" > pr_title.txt
+          # Lint from file
+          npx commitlint --edit pr_title.txt
 
   lint_code:
     name: Lint Go Code
