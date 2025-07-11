@@ -7,9 +7,27 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
-  lint:
-    name: Lint (all modules)
+  lint_commit:
+    name: Lint Commit Message
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+      - run: npm install -g @commitlint/cli @commitlint/config-conventional commitlint-plugin-regex-match
+      - name: Lint PR title
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          echo "$PR_TITLE" | npx commitlint
+
+  lint_code:
+    name: Lint Go Code
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -46,9 +64,9 @@ jobs:
           version: v2.1
           args: ./shuttle/... ./weaver/... --timeout 5m
 
-  test:
+  test_unit:
     name: Test ${{ matrix.app }}
-    needs: lint
+    needs: lint_code
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -79,9 +97,9 @@ jobs:
           name: coverage-${{ matrix.app }}
           path: coverage.out
 
-  build-and-push:
+  build_and_push:
     name: Build & Push ${{ matrix.app }}
-    needs: test
+    needs: test_unit
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -113,9 +131,30 @@ jobs:
         with:
           context: .
           file: build/${{ matrix.app }}/Dockerfile
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: |
             ghcr.io/${{ github.repository_owner }}/${{ matrix.docker_name }}:${{ steps.vars.outputs.short_sha }}
-            ghcr.io/${{ github.repository_owner }}/${{ matrix.docker_name }}:latest
+            ${{ github.event_name == 'push' && format('ghcr.io/{0}/{1}:latest', github.repository_owner, matrix.docker_name) || '' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  release:
+    name: Release
+    needs:
+      - test_unit
+      - build_and_push
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+      - name: Install semantic-release & plugins
+        run: npm install -g semantic-release@20.1.0 @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/changelog @semantic-release/exec @semantic-release/git @semantic-release/github
+      - name: Run semantic-release
+        run: npx semantic-release
