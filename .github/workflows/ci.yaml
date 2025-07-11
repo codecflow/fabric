@@ -97,7 +97,7 @@ jobs:
           name: coverage-${{ matrix.app }}
           path: coverage.out
 
-  build-and-push:
+  build_and_push:
     name: Build & Push ${{ matrix.app }}
     needs: test_unit
     runs-on: ubuntu-latest
@@ -142,7 +142,7 @@ jobs:
     name: Release
     needs:
       - test_unit
-      - build-and-push
+      - build_and_push
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
