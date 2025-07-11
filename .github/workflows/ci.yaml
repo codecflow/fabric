@@ -125,27 +125,17 @@ jobs:
   #         cache-to: type=gha,mode=max
 
   lint_commit:
-    name: Lint commits & MR title
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: "18"
+          node-version: "lts/*"
       - run: npm install -g @commitlint/cli @commitlint/config-conventional commitlint-plugin-regex-match
-      - name: Run commitlint
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            TITLE="${{ github.event.pull_request.title }}"
-            # strip leading "Draft: " if present
-            TITLE="${TITLE#Draft: }"
-            echo "$TITLE" | npx commitlint
-          else
-            git log -1 --pretty=format:"%s" | npx commitlint
-          fi
+      - name: Lint commit message
+        run: git log -1 --pretty=format:"%s" | npx commitlint
 
   calculate_tag:
-    name: Calculate next version tag
     needs: lint_commit
     runs-on: ubuntu-latest
     env:
@@ -154,23 +144,38 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
       - uses: actions/setup-node@v3
         with:
-          node-version: "18"
+          node-version: "lts/*"
+
       - run: npm install -g semantic-release@20.1.0 @semantic-release/exec @semantic-release/github
+
       - name: Dry-run semantic-release
         id: dryrun
-        run: npx semantic-release --dry-run --no-ci > dry-run.log 2>&1
+        run: |
+          set -o pipefail
+          npx semantic-release --dry-run --no-ci 2>&1 | tee dry-run.log
+        continue-on-error: true
+
+      - name: Dump dry-run.log
+        if: always()
+        run: |
+          echo "=== semantic-release dry-run output ==="
+          cat dry-run.log
+
       - name: Export next version
+        if: success()
         run: grep "The next release version is" -m1 dry-run.log > release.env
+
       - name: Upload version artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: release-env
           path: release.env
 
   release_build:
-    name: Build and release
     needs: calculate_tag
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -180,13 +185,16 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Download version artifact
-        uses: actions/download-artifact@v4
+
+      - uses: actions/download-artifact@v4
         with:
           name: release-env
+
       - uses: actions/setup-node@v3
         with:
-          node-version: "18"
+          node-version: "lts/*"
+
       - run: npm install -g semantic-release@20.1.0 @semantic-release/exec @semantic-release/github
+
       - name: Run semantic-release
         run: npx semantic-release
