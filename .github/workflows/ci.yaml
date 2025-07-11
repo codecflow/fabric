@@ -125,6 +125,7 @@ jobs:
   #         cache-to: type=gha,mode=max
 
   lint_commit:
+    name: Lint Commit Message
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -136,6 +137,7 @@ jobs:
         run: git log -1 --pretty=format:"%s" | npx commitlint
 
   calculate_tag:
+    name: Calculate Release Tag
     needs: lint_commit
     runs-on: ubuntu-latest
     env:
@@ -149,7 +151,13 @@ jobs:
         with:
           node-version: "lts/*"
 
-      - run: npm install -g semantic-release@20.1.0 @semantic-release/exec @semantic-release/github
+      - run: npm install -g semantic-release@20.1.0 \
+          @semantic-release/commit-analyzer \
+          @semantic-release/release-notes-generator \
+          @semantic-release/changelog \
+          @semantic-release/exec \
+          @semantic-release/git \
+          @semantic-release/github
 
       - name: Dry-run semantic-release
         id: dryrun
@@ -176,6 +184,7 @@ jobs:
           path: release.env
 
   release_build:
+    name: Release Build
     needs: calculate_tag
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -194,7 +203,13 @@ jobs:
         with:
           node-version: "lts/*"
 
-      - run: npm install -g semantic-release@20.1.0 @semantic-release/exec @semantic-release/github
+      - run: npm install -g semantic-release@20.1.0 \
+          @semantic-release/commit-analyzer \
+          @semantic-release/release-notes-generator \
+          @semantic-release/changelog \
+          @semantic-release/exec \
+          @semantic-release/git \
+          @semantic-release/github
 
       - name: Run semantic-release
         run: npx semantic-release
