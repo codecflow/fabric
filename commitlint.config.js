@@ -25,5 +25,9 @@ module.exports = {
     'scope-empty': [2, 'never'],
     // allow any subject-case
     'subject-case': [0]
-  }
+  },
+  ignores: [
+    (message) => message.includes('Draft:')
+  ]
+
 };

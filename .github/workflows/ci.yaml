@@ -145,7 +145,6 @@ jobs:
           fi
 
   calculate_tag:
-    name: Calculate next tag
     needs: lint_commit
     runs-on: ubuntu-latest
     steps:
@@ -161,16 +160,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release --dry-run --no-ci > dry-run.log 2>&1
-      - name: Export version to env
-        run: |
-          grep "The next release version is" -m1 dry-run.log > release.env
-      - uses: actions/upload-artifact@v3
+      - name: Export next version
+        run: grep "The next release version is" -m1 dry-run.log > release.env
+      - name: Upload version artifact
+        uses: actions/upload-artifact@v4
         with:
           name: release-env
           path: release.env
 
   release_build:
-    name: Release to GitHub
     needs: calculate_tag
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -178,7 +176,8 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: actions/download-artifact@v3
+      - name: Download version artifact
+        uses: actions/download-artifact@v4
         with:
           name: release-env
       - uses: actions/setup-node@v3
