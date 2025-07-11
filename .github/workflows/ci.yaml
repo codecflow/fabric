@@ -143,6 +143,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    outputs:
+      next_version: ${{ steps.set_version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -155,6 +157,9 @@ jobs:
 
       - name: Dry-run semantic-release
         id: dryrun
+        env:
+          # Override branch detection to simulate main branch
+          GITHUB_REF: refs/heads/main
         run: |
           set -o pipefail
           npx semantic-release --dry-run --no-ci 2>&1 | tee dry-run.log
@@ -164,12 +169,19 @@ jobs:
         run: |
           echo "=== semantic-release dry-run output ==="
           cat dry-run.log
-      - name: Export next version
-        if: success()
+      - name: Extract next version
+        id: set_version
         run: |
-          grep "The next release version is" -m1 dry-run.log | cut -d' ' -f6 > release.env
+          # Simple and reliable version extraction
+          VERSION=$(grep -E "The next release version is [0-9]+\.[0-9]+\.[0-9]+" dry-run.log | awk '{print $NF}')
+          VERSION=${VERSION:-$(grep -E "next release version is [0-9]+\.[0-9]+\.[0-9]+" dry-run.log | awk '{print $NF}')}
+          VERSION=${VERSION:-$(grep -E "would publish version [0-9]+\.[0-9]+\.[0-9]+" dry-run.log | awk '{print $NF}')}
+          VERSION=${VERSION:-unknown}
+
+          echo "Next release version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "$VERSION" > release.env
       - name: Upload version artifact
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: release-env
@@ -189,11 +201,13 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: release-env
+      - name: Display next version
+        run: |
+          echo "Next release version: $(cat release.env)"
       - uses: actions/setup-node@v4
         with:
           node-version: "lts/*"
       - name: Install semantic-release & plugins
         run: npm install -g semantic-release@20.1.0 @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/changelog @semantic-release/exec @semantic-release/git @semantic-release/github
-
       - name: Run semantic-release
         run: npx semantic-release
