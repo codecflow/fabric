@@ -14,7 +14,6 @@ permissions:
 jobs:
   lint_commit:
     name: Lint Commit Message
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -152,6 +151,11 @@ jobs:
 
   release:
     name: Release
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      deployments: write
     needs:
       - test_unit
       - build_and_push
