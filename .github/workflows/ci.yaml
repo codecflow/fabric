@@ -7,6 +7,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   # lint:
   #   name: Lint (all modules)
@@ -120,52 +124,71 @@ jobs:
   #         cache-from: type=gha
   #         cache-to: type=gha,mode=max
 
-  commit-lint:
+  lint-commit:
+    name: Lint commits & MR title
     runs-on: ubuntu-latest
+    container: node:lts-alpine
     steps:
-      - name: Check out code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0 # needed to compare against history
-      - name: Install dependencies
-        run: npm ci
+      - uses: actions/checkout@v3
+      - run: |
+          apk add --no-cache git openssh npm
+          npm install -g @commitlint/cli \
+                         @commitlint/config-conventional \
+                         commitlint-plugin-regex-match
       - name: Run commitlint
         run: |
-          git fetch origin main --depth=1
-          npx commitlint --from=origin/main --to=HEAD
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            title="${{ github.event.pull_request.title#Draft: }}"
+            echo "$title" | npx commitlint
+          else
+            git log -1 --pretty=format:"%s" | npx commitlint
+          fi
 
-  calculate-next-release:
-    needs: commit-lint
+  calculate0tag:
+    name: Calculate next tag
     runs-on: ubuntu-latest
+    container: node:lts-alpine
+    needs: lint-commit
     steps:
-      - name: Check out code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Install dependencies
-        run: npm ci
-      - name: Dry-run semantic-release
-        id: dryrun
+      - run: |
+          apk add --no-cache git openssh npm
+          npm install -g semantic-release@20.1.0 \
+                         @semantic-release/exec \
+                         @semantic-release/github
+      - id: dryrun
+        name: Dry-run semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          npx semantic-release --dry-run --no-ci \
-            > dry-run.log 2>&1
-      - name: Show next version
-        run: |
-          grep "The next release version is" -m1 dry-run.log
+        run: npx semantic-release --dry-run --no-ci > dry-run.log 2>&1
+      - name: Export version to env
+        run: grep "The next release version is" -m1 dry-run.log > release.env
+      - uses: actions/upload-artifact@v3
+        with:
+          name: release-env
+          path: release.env
 
-  release:
-    needs: [commit-lint, calculate-next-release]
+  release_build:
+    name: Release to GitHub
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    container: node:lts-alpine
+    needs: calculate_tag
     steps:
-      - name: Check out code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Install dependencies
-        run: npm ci
+      - uses: actions/download-artifact@v3
+        with:
+          name: release-env
+          path: .
+      - run: |
+          apk add --no-cache git openssh npm
+          npm install -g semantic-release@20.1.0 \
+                         @semantic-release/exec \
+                         @semantic-release/github
       - name: Run semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
