@@ -151,13 +151,15 @@ jobs:
         with:
           node-version: "lts/*"
 
-      - run: npm install -g semantic-release@20.1.0 \
-          @semantic-release/commit-analyzer \
-          @semantic-release/release-notes-generator \
-          @semantic-release/changelog \
-          @semantic-release/exec \
-          @semantic-release/git \
-          @semantic-release/github
+      - name: Install semantic-release & plugins
+        run: >
+          npm install -g semantic-release@20.1.0
+            @semantic-release/commit-analyzer
+            @semantic-release/release-notes-generator
+            @semantic-release/changelog
+            @semantic-release/exec
+            @semantic-release/git
+            @semantic-release/github
 
       - name: Dry-run semantic-release
         id: dryrun
@@ -203,13 +205,15 @@ jobs:
         with:
           node-version: "lts/*"
 
-      - run: npm install -g semantic-release@20.1.0 \
-          @semantic-release/commit-analyzer \
-          @semantic-release/release-notes-generator \
-          @semantic-release/changelog \
-          @semantic-release/exec \
-          @semantic-release/git \
-          @semantic-release/github
+      - name: Install semantic-release & plugins
+        run: >
+          npm install -g semantic-release@20.1.0
+            @semantic-release/commit-analyzer
+            @semantic-release/release-notes-generator
+            @semantic-release/changelog
+            @semantic-release/exec
+            @semantic-release/git
+            @semantic-release/github
 
       - name: Run semantic-release
         run: npx semantic-release
