@@ -128,13 +128,14 @@ jobs:
     name: Lint Commit Message
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "lts/*"
       - run: npm install -g @commitlint/cli @commitlint/config-conventional commitlint-plugin-regex-match
       - name: Lint commit message
-        run: git log -1 --pretty=format:"%s" | npx commitlint
+        run: |
+          git log -1 --pretty=format:"%s" | npx commitlint
 
   calculate_tag:
     name: Calculate Release Tag
@@ -143,23 +144,14 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: "lts/*"
-
       - name: Install semantic-release & plugins
-        run: >
-          npm install -g semantic-release@20.1.0
-            @semantic-release/commit-analyzer
-            @semantic-release/release-notes-generator
-            @semantic-release/changelog
-            @semantic-release/exec
-            @semantic-release/git
-            @semantic-release/github
+        run: npm install -g semantic-release@20.1.0 @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/changelog @semantic-release/exec @semantic-release/git @semantic-release/github
 
       - name: Dry-run semantic-release
         id: dryrun
@@ -167,17 +159,15 @@ jobs:
           set -o pipefail
           npx semantic-release --dry-run --no-ci 2>&1 | tee dry-run.log
         continue-on-error: true
-
       - name: Dump dry-run.log
         if: always()
         run: |
           echo "=== semantic-release dry-run output ==="
           cat dry-run.log
-
       - name: Export next version
         if: success()
-        run: grep "The next release version is" -m1 dry-run.log > release.env
-
+        run: |
+          grep "The next release version is" -m1 dry-run.log | cut -d' ' -f6 > release.env
       - name: Upload version artifact
         if: success()
         uses: actions/upload-artifact@v4
@@ -193,27 +183,17 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - uses: actions/download-artifact@v4
         with:
           name: release-env
-
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: "lts/*"
-
       - name: Install semantic-release & plugins
-        run: >
-          npm install -g semantic-release@20.1.0
-            @semantic-release/commit-analyzer
-            @semantic-release/release-notes-generator
-            @semantic-release/changelog
-            @semantic-release/exec
-            @semantic-release/git
-            @semantic-release/github
+        run: npm install -g semantic-release@20.1.0 @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/changelog @semantic-release/exec @semantic-release/git @semantic-release/github
 
       - name: Run semantic-release
         run: npx semantic-release
