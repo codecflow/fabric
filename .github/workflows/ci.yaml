@@ -145,8 +145,11 @@ jobs:
           fi
 
   calculate_tag:
+    name: Calculate next version tag
     needs: lint_commit
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -157,8 +160,6 @@ jobs:
       - run: npm install -g semantic-release@20.1.0 @semantic-release/exec @semantic-release/github
       - name: Dry-run semantic-release
         id: dryrun
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release --dry-run --no-ci > dry-run.log 2>&1
       - name: Export next version
         run: grep "The next release version is" -m1 dry-run.log > release.env
@@ -169,9 +170,12 @@ jobs:
           path: release.env
 
   release_build:
+    name: Build and release
     needs: calculate_tag
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -185,6 +189,4 @@ jobs:
           node-version: "18"
       - run: npm install -g semantic-release@20.1.0 @semantic-release/exec @semantic-release/github
       - name: Run semantic-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release
