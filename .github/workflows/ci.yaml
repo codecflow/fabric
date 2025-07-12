@@ -135,14 +135,13 @@ jobs:
           PR_NUMBER=${{ github.event.pull_request.number }}
 
           if [ -z "$PR_NUMBER" ]; then
-            # Main branch build - push with short SHA
+            # Main branch build - push with short SHA only
             echo "tags=ghcr.io/${{ github.repository_owner }}/${{ matrix.docker_name }}:$SHORT_SHA" >> $GITHUB_OUTPUT
-            echo "push=true" >> $GITHUB_OUTPUT
           else
-            # PR build - use pr-<number> tag that will be overwritten
+            # PR build - use pr-<number> tag
             echo "tags=ghcr.io/${{ github.repository_owner }}/${{ matrix.docker_name }}:pr-$PR_NUMBER" >> $GITHUB_OUTPUT
-            echo "push=true" >> $GITHUB_OUTPUT
           fi
+          echo "push=true" >> $GITHUB_OUTPUT
 
       - name: Build & Push ${{ matrix.app }}
         uses: docker/build-push-action@v4
@@ -180,7 +179,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install semantic-release & plugins
-        run: npm install -g semantic-release@20.1.0 @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/changelog @semantic-release/exec @semantic-release/github
+        run: npm install -g semantic-release@20.1.0 @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/changelog @semantic-release/exec @semantic-release/github @semantic-release/git
 
       - name: Configure Git
         run: |
@@ -190,18 +189,34 @@ jobs:
       - name: Run semantic-release
         id: semantic-release
         run: |
-          npx semantic-release | tee release.log
-          # Capture version from semantic-release output
-          VERSION=$(grep "next release version" release.log | awk '{print $NF}')
-          echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
+          # Only create release if there are significant changes
+          npx semantic-release --dry-run | tee release.log
+
+          # Check if release would occur
+          if grep -q "next release version" release.log; then
+            VERSION=$(grep "next release version" release.log | awk '{print $NF}')
+            echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
+            echo "SHOULD_RELEASE=true" >> $GITHUB_ENV
+          else
+            echo "No new release to be created"
+          fi
         env:
           GIT_AUTHOR_NAME: GitHub Actions
           GIT_AUTHOR_EMAIL: actions@users.noreply.github.com
           GIT_COMMITTER_NAME: GitHub Actions
           GIT_COMMITTER_EMAIL: actions@users.noreply.github.com
 
-      - name: Tag and Push Versioned Images
-        if: env.RELEASE_VERSION != ''
+      - name: Create Release
+        if: env.SHOULD_RELEASE == 'true'
+        run: npx semantic-release
+        env:
+          GIT_AUTHOR_NAME: GitHub Actions
+          GIT_AUTHOR_EMAIL: actions@users.noreply.github.com
+          GIT_COMMITTER_NAME: GitHub Actions
+          GIT_COMMITTER_EMAIL: actions@users.noreply.github.com
+
+      - name: Tag and Push Released Images
+        if: env.SHOULD_RELEASE == 'true' && env.RELEASE_VERSION != ''
         run: |
           SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
 
