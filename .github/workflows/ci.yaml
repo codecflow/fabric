@@ -21,10 +21,16 @@ jobs:
         with:
           node-version: "lts/*"
       - run: npm install -g @commitlint/cli @commitlint/config-conventional commitlint-plugin-regex-match
-      - name: Lint PR title
+      - name: Lint Message
         run: |
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          echo "$PR_TITLE" | npx commitlint
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            # Use PR title for PRs
+            MESSAGE="${{ github.event.pull_request.title }}"
+          else
+            # Use commit subject for direct pushes
+            MESSAGE=$(git log -1 --pretty=%s)
+          fi
+          echo "$MESSAGE" | npx commitlint
 
   lint_code:
     name: Lint Go Code
@@ -122,19 +128,27 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get short SHA
+      - name: Get version info
         id: vars
-        run: echo "short_sha=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_OUTPUT
+        run: |
+          SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          if [ -z "$PR_NUMBER" ]; then
+            # Main branch build
+            echo "tags=ghcr.io/${{ github.repository_owner }}/${{ matrix.docker_name }}:$SHORT_SHA,ghcr.io/${{ github.repository_owner }}/${{ matrix.docker_name }}:latest" >> $GITHUB_OUTPUT
+          else
+            # PR build
+            echo "tags=ghcr.io/${{ github.repository_owner }}/${{ matrix.docker_name }}:pr-$PR_NUMBER" >> $GITHUB_OUTPUT
+          fi
+          echo "push=${{ github.event_name != 'pull_request' }}" >> $GITHUB_OUTPUT
 
       - name: Build & Push ${{ matrix.app }}
         uses: docker/build-push-action@v4
         with:
           context: .
           file: build/${{ matrix.app }}/Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ matrix.docker_name }}:${{ steps.vars.outputs.short_sha }}
-            ${{ github.event_name == 'push' && format('ghcr.io/{0}/{1}:latest', github.repository_owner, matrix.docker_name) || '' }}
+          push: ${{ steps.vars.outputs.push }}
+          tags: ${{ steps.vars.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -155,6 +169,15 @@ jobs:
         with:
           node-version: "lts/*"
       - name: Install semantic-release & plugins
-        run: npm install -g semantic-release@20.1.0 @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/changelog @semantic-release/exec @semantic-release/git @semantic-release/github
+        run: npm install -g semantic-release@20.1.0 @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/changelog @semantic-release/exec @semantic-release/github
+      - name: Configure Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@users.noreply.github.com"
       - name: Run semantic-release
         run: npx semantic-release
+        env:
+          GIT_AUTHOR_NAME: GitHub Actions
+          GIT_AUTHOR_EMAIL: actions@users.noreply.github.com
+          GIT_COMMITTER_NAME: GitHub Actions
+          GIT_COMMITTER_EMAIL: actions@users.noreply.github.com
