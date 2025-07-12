@@ -23,8 +23,15 @@ module.exports = {
     ],
     // require a scope (optional—remove if you don’t want to enforce)
     'scope-empty': [2, 'never'],
-    // allow any subject-case
-    'subject-case': [0]
+  },
+  parserPreset: {
+    parserOpts: {
+      headerCorrespondence: [
+        'type',
+        'scope',
+        'subject'
+      ]
+    }
   },
   ignores: [
     (message) => message.includes('Draft:')
