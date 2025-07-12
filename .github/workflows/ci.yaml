@@ -125,25 +125,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Only needed on main, but harmless on PRs
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "lts/*"
-
-      - name: Install semantic-release (for version detection)
-        run: |
-          npm install -g semantic-release@20 @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/github @semantic-release/exec @semantic-release/git
-
-      - name: Determine image tags
-        id: tag
-        run: |
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          if [ -n "$PR_NUMBER" ]; then
-            echo "IMAGE_TAG=pr-$PR_NUMBER" >> $GITHUB_OUTPUT
-          else
-            echo "IMAGE_TAG=latest" >> $GITHUB_OUTPUT
-          fi
-          echo "PUSH=true" >> $GITHUB_OUTPUT
+      # optional: speed up builds by setting up buildx
+      - uses: docker/setup-buildx-action@v2
 
       - uses: docker/login-action@v3
         with:
@@ -151,13 +134,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build & Push ${{ matrix.app }}
+      - name: Build & Push Docker Image
         uses: docker/build-push-action@v4
         with:
           context: .
           file: build/${{ matrix.app }}/Dockerfile
-          push: ${{ steps.tag.outputs.PUSH }}
-          tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.docker_name }}:${{ steps.tag.outputs.IMAGE_TAG }}
+          push: true
+          tags: ${{ github.event_name == 'pull_request' && format('ghcr.io/{0}/{1}:pr-{2}', github.repository_owner, matrix.docker_name, github.event.pull_request.number) || format('ghcr.io/{0}/{1}:latest', github.repository_owner, matrix.docker_name) }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -169,9 +152,6 @@ jobs:
     permissions:
       contents: write
 
-    env:
-      GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -180,26 +160,23 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "lts/*"
+          node-version: lts/*
 
       - run: npm install -g semantic-release@20 @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/github @semantic-release/exec @semantic-release/git
 
-      - run: npx semantic-release
+      - name: Run semantic-release
+        run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
 
-      - name: Load released version
+      - name: Retag & Push Versioned Images
         run: |
-          source release.env
-          echo "RELEASE_VERSION=$VERSION_TAG" >> $GITHUB_ENV
-
-      - name: Retag & Push Images as ${{ env.RELEASE_VERSION }}
-        run: |
+          VERSION=$(cut -d'"' -f4 release.json)  # or however your release step outputs it
           for app in shuttle weaver; do
             name=cf-$app
             docker pull ghcr.io/${{ github.repository_owner }}/$name:latest
             docker tag \
               ghcr.io/${{ github.repository_owner }}/$name:latest \
-              ghcr.io/${{ github.repository_owner }}/$name:${RELEASE_VERSION}
-            docker push ghcr.io/${{ github.repository_owner }}/$name:${RELEASE_VERSION}
+              ghcr.io/${{ github.repository_owner }}/$name:$VERSION
+            docker push ghcr.io/${{ github.repository_owner }}/$name:$VERSION
           done
