@@ -74,7 +74,7 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "echo \"VERSION_TAG=v${nextRelease.version}\" > release.env"
+        "prepareCmd": "echo VERSION_TAG=${nextRelease.version} > release.env"
       }
     ],
     [

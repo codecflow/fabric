@@ -169,14 +169,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
 
+      - name: Load released version
+        run: |
+          source release.env
+          echo "RELEASE_VERSION=$VERSION_TAG" >> $GITHUB_ENV
+
       - name: Retag & Push Versioned Images
         run: |
-          VERSION=$(cut -d'"' -f4 release.json)  # or however your release step outputs it
           for app in shuttle weaver; do
             name=cf-$app
             docker pull ghcr.io/${{ github.repository_owner }}/$name:latest
             docker tag \
               ghcr.io/${{ github.repository_owner }}/$name:latest \
-              ghcr.io/${{ github.repository_owner }}/$name:$VERSION
-            docker push ghcr.io/${{ github.repository_owner }}/$name:$VERSION
+              ghcr.io/${{ github.repository_owner }}/$name:${{ env.RELEASE_VERSION }}
+            docker push ghcr.io/${{ github.repository_owner }}/$name:${{ env.RELEASE_VERSION }}
           done
