@@ -133,11 +133,12 @@ jobs:
         run: |
           SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
           PR_NUMBER=${{ github.event.pull_request.number }}
+
           if [ -z "$PR_NUMBER" ]; then
             # Main branch build
             echo "tags=ghcr.io/${{ github.repository_owner }}/${{ matrix.docker_name }}:$SHORT_SHA,ghcr.io/${{ github.repository_owner }}/${{ matrix.docker_name }}:latest" >> $GITHUB_OUTPUT
           else
-            # PR build
+            # PR build - use pr-<number> tag that will be overwritten
             echo "tags=ghcr.io/${{ github.repository_owner }}/${{ matrix.docker_name }}:pr-$PR_NUMBER" >> $GITHUB_OUTPUT
           fi
           echo "push=${{ github.event_name != 'pull_request' }}" >> $GITHUB_OUTPUT
@@ -151,6 +152,8 @@ jobs:
           tags: ${{ steps.vars.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # Allow overwriting PR tags
+          allow: ${{ github.event_name == 'pull_request' }}
 
   release:
     name: Release
@@ -169,7 +172,7 @@ jobs:
         with:
           node-version: "lts/*"
       - name: Install semantic-release & plugins
-        run: npm install -g semantic-release@20.1.0 @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/changelog @semantic-release/exec @semantic-release/github
+        run: npm install -g semantic-release@20.1.0 @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/changelog @semantic-release/exec @semantic-release/github @semantic-release/git
       - name: Configure Git
         run: |
           git config user.name "GitHub Actions"
