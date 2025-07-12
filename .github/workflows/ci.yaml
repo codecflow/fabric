@@ -109,7 +109,7 @@ jobs:
     needs: test_unit
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       packages: write
 
     strategy:
@@ -122,44 +122,58 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - uses: docker/setup-qemu-action@v2
-      - uses: docker/setup-buildx-action@v2
+      # Only needed on main, but harmless on PRs
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+
+      - name: Install semantic-release (for version detection)
+        run: |
+          npm install -g semantic-release@20 @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/changelog @semantic-release/github @semantic-release/exec @semantic-release/git
+
+      - name: Determine image tags
+        id: tag
+        run: |
+          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+            echo "TAG=pr-${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+            echo "PUSH=true"               >> $GITHUB_OUTPUT
+          else
+            VERSION=$(npx semantic-release --dry-run \
+                        | grep "next release version" \
+                        | awk '{print $NF}')
+            echo "TAG=v$VERSION"           >> $GITHUB_OUTPUT
+            echo "LATEST=true"             >> $GITHUB_OUTPUT
+            echo "PUSH=true"               >> $GITHUB_OUTPUT
+          fi
+
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Determine image tag
-        id: tag
-        run: |
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          if [ -n "$PR_NUMBER" ]; then
-            echo "IMAGE_TAG=pr-$PR_NUMBER" >> $GITHUB_OUTPUT
-          else
-            echo "IMAGE_TAG=latest" >> $GITHUB_OUTPUT
-          fi
-          echo "PUSH=true" >> $GITHUB_OUTPUT
-
-      - name: Build & Push ${{ matrix.app }}
-        uses: docker/build-push-action@v4
+      - uses: docker/build-push-action@v4
         with:
           context: .
           file: build/${{ matrix.app }}/Dockerfile
           push: ${{ steps.tag.outputs.PUSH }}
-          tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.docker_name }}:${{ steps.tag.outputs.IMAGE_TAG }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.docker_name }}:${{ steps.tag.outputs.TAG }}
+            ${{ steps.tag.outputs.LATEST && format(
+                'ghcr.io/{0}/{1}:latest',
+                github.repository_owner,
+                matrix.docker_name
+            ) || '' }}
   release:
-    name: Publish Release & Retag Images
+    name: Publish GitHub Release
     needs: build_and_push
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      packages: write
 
     env:
       GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
@@ -174,36 +188,8 @@ jobs:
         with:
           node-version: "lts/*"
 
-      - uses: docker/setup-buildx-action@v2
-      - uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.RELEASE_TOKEN }}
+      - run: npm install -g semantic-release@20 @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/changelog @semantic-release/github @semantic-release/exec @semantic-release/git
 
-      - name: Install semantic-release & plugins
-        run: |
-          npm install -g semantic-release@20 @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/changelog @semantic-release/github @semantic-release/exec @semantic-release/git
-
-      - name: Run semantic-release
-        id: sr
+      - run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        run: npx semantic-release
-
-      - name: Retag & Push Images with v${{ steps.sr.outputs.nextRelease_version }}
-        run: |
-          VERSION=v${{ steps.sr.outputs.nextRelease_version }}
-          for app in shuttle weaver; do
-            name=cf-$app
-            # pull the latest image we pushed in build_and_push
-            docker pull ghcr.io/${{ github.repository_owner }}/$name:latest
-
-            # tag it with the new semver and as latest
-            docker tag ghcr.io/${{ github.repository_owner }}/$name:latest \
-                       ghcr.io/${{ github.repository_owner }}/$name:$VERSION
-
-            # push both
-            docker push ghcr.io/${{ github.repository_owner }}/$name:$VERSION
-            docker push ghcr.io/${{ github.repository_owner }}/$name:latest
-          done
