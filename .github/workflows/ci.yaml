@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, edited]
   workflow_dispatch:
 
 permissions:
@@ -22,16 +23,12 @@ jobs:
         with:
           node-version: "lts/*"
       - run: npm install -g @commitlint/cli @commitlint/config-conventional commitlint-plugin-regex-match
-      - name: Lint Message
+
+      - name: Lint PR Title (or squashed commit)
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            # Use PR title for PRs
-            MESSAGE="${{ github.event.pull_request.title }}"
-          else
-            # Use commit subject for direct pushes
-            MESSAGE=$(git log -1 --pretty=%s)
-          fi
-          echo "$MESSAGE" | npx commitlint
+          TITLE="${{ github.event.pull_request.title || github.event.head_commit.message }}"
+          echo "Linting: $TITLE"
+          echo "$TITLE" | npx commitlint
 
   lint_code:
     name: Lint Go Code
