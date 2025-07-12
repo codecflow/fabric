@@ -109,7 +109,7 @@ jobs:
     needs: test_unit
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
 
     strategy:
@@ -162,7 +162,7 @@ jobs:
         with:
           node-version: lts/*
 
-      - run: npm install -g semantic-release@20 @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/github @semantic-release/exec @semantic-release/git
+      - run: npm install -g semantic-release@20 @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/github @semantic-release/exec
 
       - name: Run semantic-release
         run: npx semantic-release
