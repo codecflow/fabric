@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  packages: write
   pull-requests: write
 
 jobs:
@@ -108,7 +109,7 @@ jobs:
     needs: test_unit
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
     strategy:
       matrix:
@@ -161,7 +162,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
