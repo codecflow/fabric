@@ -153,8 +153,6 @@ jobs:
           tags: ${{ steps.vars.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          # Allow overwriting PR tags
-          allow: ${{ github.event_name == 'pull_request' }}
 
   release:
     name: Release and Tag Images
