@@ -3,8 +3,8 @@ FROM golang:1.24-alpine AS builder
 WORKDIR /app
 
 COPY go.work go.work.sum  ./
+COPY pkg/ pkg/
 COPY weaver/ weaver/
-#todo: can this be removed?
 COPY shuttle/ shuttle/
 
 RUN go mod download
