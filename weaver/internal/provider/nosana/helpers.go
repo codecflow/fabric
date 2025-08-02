@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/codecflow/fabric/weaver/internal/workload"
+	"github.com/codecflow/fabric/pkg/workload"
 )
 
 // parseResources converts Fabric resource specifications to Nosana format

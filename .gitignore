@@ -14,6 +14,7 @@
 # IDE and editor specific files
 .vscode/
 .idea/
+.testdata/
 *.swp
 
 # Dependency directories

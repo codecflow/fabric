@@ -10,7 +10,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/codecflow/fabric/weaver/internal/config"
+	"github.com/codecflow/fabric/pkg/config"
 	"github.com/codecflow/fabric/weaver/internal/grpc"
 	"github.com/codecflow/fabric/weaver/internal/provider/fly"
 	"github.com/codecflow/fabric/weaver/internal/provider/kubernetes"

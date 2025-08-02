@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/codecflow/fabric/pkg/secret"
 	"github.com/codecflow/fabric/weaver/internal/repository"
-	"github.com/codecflow/fabric/weaver/internal/secret"
 )
 
 // SecretRepository implements secret.Repository

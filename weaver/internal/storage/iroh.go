@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/codecflow/fabric/weaver/internal/config"
+	"github.com/codecflow/fabric/pkg/config"
 )
 
 // IrohClient manages Iroh storage operations

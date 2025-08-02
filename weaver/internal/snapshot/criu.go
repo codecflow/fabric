@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/codecflow/fabric/weaver/internal/config"
-	"github.com/codecflow/fabric/weaver/internal/workload"
+	"github.com/codecflow/fabric/pkg/config"
+	"github.com/codecflow/fabric/pkg/workload"
 )
 
 // CRIUManager manages CRIU snapshots

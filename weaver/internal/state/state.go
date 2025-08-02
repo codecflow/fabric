@@ -3,8 +3,8 @@ package state
 import (
 	"context"
 
-	"github.com/codecflow/fabric/weaver/internal/metering"
-	"github.com/codecflow/fabric/weaver/internal/network"
+	"github.com/codecflow/fabric/pkg/metering"
+	"github.com/codecflow/fabric/pkg/network"
 	"github.com/codecflow/fabric/weaver/internal/provider"
 	"github.com/codecflow/fabric/weaver/internal/proxy"
 	"github.com/codecflow/fabric/weaver/internal/repository"

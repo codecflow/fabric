@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
+	"github.com/codecflow/fabric/pkg/secret"
+	"github.com/codecflow/fabric/pkg/workload"
 	"github.com/codecflow/fabric/weaver/internal/namespace"
-	"github.com/codecflow/fabric/weaver/internal/secret"
-	"github.com/codecflow/fabric/weaver/internal/workload"
 )
 
 var ErrNotFound = errors.New("resource not found")

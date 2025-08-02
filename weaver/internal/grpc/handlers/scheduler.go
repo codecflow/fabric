@@ -7,8 +7,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/types/known/emptypb"
 
+	"github.com/codecflow/fabric/pkg/workload"
 	"github.com/codecflow/fabric/weaver/internal/state"
-	"github.com/codecflow/fabric/weaver/internal/workload"
 	"github.com/codecflow/fabric/weaver/weaver/proto/weaver"
 )
 

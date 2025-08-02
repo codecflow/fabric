@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/codecflow/fabric/pkg/workload"
 	"github.com/codecflow/fabric/weaver/internal/repository"
-	"github.com/codecflow/fabric/weaver/internal/workload"
 )
 
 // WorkloadRepository implements workload.Repository
