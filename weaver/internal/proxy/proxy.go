@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/codecflow/fabric/weaver/internal/config"
-	"github.com/codecflow/fabric/weaver/internal/workload"
+	"github.com/codecflow/fabric/pkg/config"
+	"github.com/codecflow/fabric/pkg/workload"
 )
 
 // Server manages HTTP proxy for workload access

@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/codecflow/fabric/weaver/internal/workload"
+	"github.com/codecflow/fabric/pkg/workload"
 )
 
 // selectGPUType maps Fabric GPU requirements to RunPod GPU types

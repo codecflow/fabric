@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/codecflow/fabric/pkg/workload"
 	"github.com/codecflow/fabric/weaver/internal/provider"
 	"github.com/codecflow/fabric/weaver/internal/scheduler"
-	"github.com/codecflow/fabric/weaver/internal/workload"
 )
 
 // SimpleScheduler implements a basic cost-aware scheduler

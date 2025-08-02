@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/codecflow/fabric/weaver/internal/workload"
+	"github.com/codecflow/fabric/pkg/workload"
 )
 
 // parseGuest converts Fabric resource specifications to Fly.io Guest format

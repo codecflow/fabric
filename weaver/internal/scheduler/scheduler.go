@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/codecflow/fabric/pkg/workload"
 	"github.com/codecflow/fabric/weaver/internal/provider"
-	"github.com/codecflow/fabric/weaver/internal/workload"
 )
 
 // Scheduler defines the interface for workload scheduling

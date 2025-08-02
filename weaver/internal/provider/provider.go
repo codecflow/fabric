@@ -3,7 +3,7 @@ package provider
 import (
 	"context"
 
-	"github.com/codecflow/fabric/weaver/internal/workload"
+	"github.com/codecflow/fabric/pkg/workload"
 )
 
 // Provider defines the interface for cloud providers

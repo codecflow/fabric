@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/codecflow/fabric/pkg/workload"
 	"github.com/codecflow/fabric/weaver/internal/provider"
-	"github.com/codecflow/fabric/weaver/internal/workload"
 )
 
 const Type provider.ProviderType = "fly"

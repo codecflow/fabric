@@ -9,8 +9,8 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/codecflow/fabric/pkg/workload"
 	"github.com/codecflow/fabric/weaver/internal/state"
-	"github.com/codecflow/fabric/weaver/internal/workload"
 	"github.com/codecflow/fabric/weaver/weaver/proto/weaver"
 )
 
