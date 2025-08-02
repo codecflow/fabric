@@ -2,6 +2,8 @@ module github.com/codecflow/fabric/shuttle
 
 go 1.24.5
 
+replace github.com/codecflow/fabric/pkg => ../pkg
+
 require (
 	github.com/containerd/containerd v1.7.27
 	gopkg.in/yaml.v3 v3.0.1
