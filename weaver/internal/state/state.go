@@ -5,12 +5,14 @@ import (
 
 	"github.com/codecflow/fabric/pkg/metering"
 	"github.com/codecflow/fabric/pkg/network"
-	"github.com/codecflow/fabric/weaver/internal/provider"
 	"github.com/codecflow/fabric/weaver/internal/proxy"
 	"github.com/codecflow/fabric/weaver/internal/repository"
-	"github.com/codecflow/fabric/weaver/internal/scheduler"
 	"github.com/codecflow/fabric/weaver/internal/storage"
-	"github.com/codecflow/fabric/weaver/internal/stream"
+
+	// todo: service should separated.
+	"github.com/codecflow/fabric/weaver/services/provider"
+	"github.com/codecflow/fabric/weaver/services/scheduler"
+	"github.com/codecflow/fabric/weaver/services/stream"
 )
 
 // State represents the application state with all dependencies
