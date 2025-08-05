@@ -8,19 +8,19 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus" // todo: for consistency use zerolog instead.
 
 	"github.com/codecflow/fabric/pkg/config"
 	"github.com/codecflow/fabric/weaver/internal/grpc"
-	"github.com/codecflow/fabric/weaver/internal/provider/fly"
-	"github.com/codecflow/fabric/weaver/internal/provider/kubernetes"
-	"github.com/codecflow/fabric/weaver/internal/provider/nosana"
 	"github.com/codecflow/fabric/weaver/internal/proxy"
 	"github.com/codecflow/fabric/weaver/internal/repository"
 	"github.com/codecflow/fabric/weaver/internal/repository/postgres"
-	"github.com/codecflow/fabric/weaver/internal/scheduler/simple"
 	"github.com/codecflow/fabric/weaver/internal/state"
-	"github.com/codecflow/fabric/weaver/internal/stream/nats"
+	"github.com/codecflow/fabric/weaver/services/provider/fly"
+	"github.com/codecflow/fabric/weaver/services/provider/kubernetes"
+	"github.com/codecflow/fabric/weaver/services/provider/nosana"
+	"github.com/codecflow/fabric/weaver/services/scheduler/simple"
+	"github.com/codecflow/fabric/weaver/services/stream/nats"
 )
 
 func main() { // nolint:gocyclo

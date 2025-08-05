@@ -11,7 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/codecflow/fabric/pkg/workload"
-	"github.com/codecflow/fabric/weaver/internal/provider"
+	"github.com/codecflow/fabric/weaver/services/provider"
 )
 
 // Provider implements the Provider interface for Kubernetes

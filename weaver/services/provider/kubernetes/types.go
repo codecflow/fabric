@@ -1,8 +1,6 @@
 package kubernetes
 
-import (
-	"github.com/codecflow/fabric/weaver/internal/provider"
-)
+import "github.com/codecflow/fabric/weaver/services/provider"
 
 const Type provider.ProviderType = "kubernetes"
 

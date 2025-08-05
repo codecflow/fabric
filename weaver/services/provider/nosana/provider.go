@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/codecflow/fabric/pkg/workload"
-	"github.com/codecflow/fabric/weaver/internal/provider"
+	"github.com/codecflow/fabric/weaver/services/provider"
 )
 
 const Type provider.ProviderType = "nosana"

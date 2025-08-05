@@ -8,7 +8,7 @@ import (
 
 	"github.com/nats-io/nats.go"
 
-	"github.com/codecflow/fabric/weaver/internal/stream"
+	"github.com/codecflow/fabric/weaver/services/stream"
 )
 
 // NATSStream implements the Stream interface using NATS JetStream

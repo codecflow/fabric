@@ -7,8 +7,10 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/codecflow/fabric/pkg/workload"
-	"github.com/codecflow/fabric/weaver/internal/scheduler"
 	"github.com/codecflow/fabric/weaver/weaver/proto/weaver"
+
+	// todo: service should separated from here.
+	"github.com/codecflow/fabric/weaver/services/scheduler"
 )
 
 // generateID creates a random ID for workloads
