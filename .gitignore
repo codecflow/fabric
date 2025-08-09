@@ -1,41 +1,45 @@
-# Binaries for programs and plugins
-*.exe
-*.dll
-*.so
-*.dylib
+# Binaries
+fabric
+fabric-worker
+fabric-gateway
 
-# Output of the go coverage tool
-*.out
-
-# Temporary files
-*.tmp
-*.temp
-
-# IDE and editor specific files
-.vscode/
-.idea/
-.testdata/
-*.swp
-
-# Dependency directories
-vendor/
-
-# Logs
-*.log
-
-# Build directories
-bin/
-
-# Go specific
-*.test
+# Go
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
-*.a
-*.o
+*.test
 *.out
+go.work
+go.work.sum
 
-# Ignore DevSpace cache and log folder
-.devspace/
+# Directories
+/vendor/
+/bin/
+/dist/
+.meta/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+
+# Env files
+.env
+.env.local
+*.env
+
+# Build artifacts
+/build/
+
+# Test coverage
+coverage.txt
+*.cover
+*.coverprofile
