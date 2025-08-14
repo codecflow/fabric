@@ -1,7 +1,7 @@
 # Binaries
-fabric
-fabric-worker
-fabric-gateway
+/fabric
+/fabric-worker
+/fabric-gateway
 
 # Go
 *.exe
