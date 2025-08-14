@@ -1,38 +1,35 @@
-.PHONY: all build clean weaver shuttle test deps fmt lint docker-weaver docker-shuttle workspace-sync
+.PHONY: all build clean fabric worker gateway test deps fmt lint
 
 all: build
 
-build: weaver shuttle
+build: fabric worker gateway
 
-weaver:
-	mkdir -p bin
-	go build -o bin/weaver ./weaver
+fabric:
+	@mkdir -p bin
+	go build -o bin/fabric ./cmd/fabric
 
-shuttle:
-	mkdir -p bin
-	go build -o bin/shuttle ./shuttle
+worker:
+	@mkdir -p bin
+	go build -o bin/worker ./cmd/worker
+
+gateway:
+	@mkdir -p bin
+	go build -o bin/gateway ./cmd/gateway
 
 test:
-	go test ./shuttle/...
-	go test ./weaver/...
+	go test ./pkg/...
 
 lint:
-	golangci-lint run ./shuttle/... ./weaver/... --timeout 5m
+	golangci-lint run ./cmd/... ./pkg/... --timeout 5m
 
 fmt:
-	go fmt ./shuttle/...
-	go fmt ./weaver/...
+	go fmt ./cmd/...
+	go fmt ./pkg/...
 
 clean:
 	rm -rf bin/
 
 deps:
-	go work sync
-	go mod tidy -C shuttle
-	go mod tidy -C weaver
+	go mod tidy
 
-docker-weaver:
-	DOCKER_BUILDKIT=1 docker build -t cf-weaver:dev -f build/weaver/Dockerfile .
-
-docker-shuttle:
-	DOCKER_BUILDKIT=1 docker build -t cf-shuttle:dev -f build/shuttle/Dockerfile .
+.DEFAULT_GOAL := build
