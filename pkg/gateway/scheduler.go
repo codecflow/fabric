@@ -48,6 +48,11 @@ func (s *Scheduler) UnregisterWorker(workerID string) error {
 
 // SelectWorker selects a worker using round-robin algorithm
 func (s *Scheduler) SelectWorker() (*types.Worker, error) {
+	return s.SelectWorkerWithGPU(0)
+}
+
+// SelectWorkerWithGPU selects a worker with at least the specified number of GPUs
+func (s *Scheduler) SelectWorkerWithGPU(gpuCount int) (*types.Worker, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -55,14 +60,23 @@ func (s *Scheduler) SelectWorker() (*types.Worker, error) {
 		return nil, fmt.Errorf("no workers available")
 	}
 
-	// Convert map to slice for round-robin
-	workerList := make([]*types.Worker, 0, len(s.workers))
+	// Filter workers that have sufficient GPUs
+	var eligibleWorkers []*types.Worker
 	for _, worker := range s.workers {
-		workerList = append(workerList, worker)
+		if worker.Capabilities.GPUCount >= gpuCount {
+			eligibleWorkers = append(eligibleWorkers, worker)
+		}
 	}
 
-	// Round-robin selection
-	worker := workerList[s.index%len(workerList)]
+	if len(eligibleWorkers) == 0 {
+		if gpuCount > 0 {
+			return nil, fmt.Errorf("no workers with %d GPUs available", gpuCount)
+		}
+		return nil, fmt.Errorf("no workers available")
+	}
+
+	// Round-robin selection from eligible workers
+	worker := eligibleWorkers[s.index%len(eligibleWorkers)]
 	s.index++
 
 	return worker, nil

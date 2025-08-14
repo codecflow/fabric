@@ -61,6 +61,18 @@ func (r *DockerRunner) Run(ctx context.Context, spec *Spec) (*Result, error) {
 		AutoRemove: true, // Automatically remove container when it exits
 	}
 
+	// Add GPU resources if requested
+	if spec.GPU > 0 {
+		hostConfig.Resources = container.Resources{
+			DeviceRequests: []container.DeviceRequest{
+				{
+					Count:        spec.GPU,
+					Capabilities: [][]string{{"gpu"}},
+				},
+			},
+		}
+	}
+
 	// Create the container
 	resp, err := r.client.ContainerCreate(ctx, config, hostConfig, nil, nil, "")
 	if err != nil {

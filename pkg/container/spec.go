@@ -13,6 +13,9 @@ type Spec struct {
 
 	// WorkDir is the working directory inside the container
 	WorkDir string
+
+	// GPU is the number of GPUs to allocate (0 = no GPU)
+	GPU int
 }
 
 // Result contains the output from a container execution

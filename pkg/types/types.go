@@ -13,8 +13,9 @@ type Worker struct {
 
 // Capabilities represents the resource capabilities of a worker
 type Capabilities struct {
-	CPU    int   `json:"cpu"`     // CPU cores
-	Memory int64 `json:"memory"`  // Memory in bytes
+	CPU      int   `json:"cpu"`       // CPU cores
+	Memory   int64 `json:"memory"`    // Memory in bytes
+	GPUCount int   `json:"gpu_count"` // Number of GPUs available
 }
 
 // RegisterWorkerRequest is the request body for worker registration
@@ -36,6 +37,7 @@ type CreateContainerRequest struct {
 	Command []string          `json:"command"`
 	Env     map[string]string `json:"env,omitempty"`
 	WorkDir string            `json:"workdir,omitempty"`
+	GPU     int               `json:"gpu,omitempty"` // Number of GPUs required
 }
 
 // CreateContainerResponse represents the response for creating a container

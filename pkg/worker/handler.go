@@ -25,6 +25,7 @@ type CreateContainerRequest struct {
 	Command []string          `json:"command" validate:"required"`
 	Env     map[string]string `json:"env,omitempty"`
 	WorkDir string            `json:"workdir,omitempty"`
+	GPU     int               `json:"gpu,omitempty"` // Number of GPUs
 }
 
 // CreateContainerResponse represents the response for creating a container
@@ -54,6 +55,7 @@ func (h *Handler) CreateContainer(ctx echo.Context) error {
 		Command: req.Command,
 		Env:     req.Env,
 		WorkDir: req.WorkDir,
+		GPU:     req.GPU,
 	}
 
 	// Create container

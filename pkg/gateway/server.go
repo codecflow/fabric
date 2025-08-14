@@ -111,8 +111,8 @@ func (s *Server) CreateContainer(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
 	}
 
-	// Select a worker
-	worker, err := s.scheduler.SelectWorker()
+	// Select a worker with GPU support if needed
+	worker, err := s.scheduler.SelectWorkerWithGPU(req.GPU)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusServiceUnavailable, err.Error())
 	}
@@ -126,7 +126,11 @@ func (s *Server) CreateContainer(ctx echo.Context) error {
 	// Add worker ID to response
 	response.WorkerID = worker.ID
 
-	fmt.Printf("📦 Container %s scheduled to worker %s\n", response.ID, worker.ID)
+	if req.GPU > 0 {
+		fmt.Printf("📦 Container %s scheduled to worker %s (GPU: %d)\n", response.ID, worker.ID, req.GPU)
+	} else {
+		fmt.Printf("📦 Container %s scheduled to worker %s\n", response.ID, worker.ID)
+	}
 
 	return ctx.JSON(http.StatusCreated, response)
 }
