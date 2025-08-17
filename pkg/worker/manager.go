@@ -12,15 +12,17 @@ import (
 
 // ContainerState represents the state of a container
 type ContainerState struct {
-	ID        string                `json:"id"`
-	Spec      *container.Spec       `json:"spec"`
-	Status    string                `json:"status"` // created, running, completed, failed
-	Result    *container.Result     `json:"result,omitempty"`
-	Error     string                `json:"error,omitempty"`
-	CreatedAt time.Time             `json:"created_at"`
-	StartedAt *time.Time            `json:"started_at,omitempty"`
-	EndedAt   *time.Time            `json:"ended_at,omitempty"`
-	cancelFn  context.CancelFunc    // internal - not exported
+	ID          string                `json:"id"`
+	ContainerID string                `json:"container_id,omitempty"` // Docker container ID
+	Spec        *container.Spec       `json:"spec"`
+	Status      string                `json:"status"` // created, running, completed, failed, stopped
+	Result      *container.Result     `json:"result,omitempty"`
+	Error       string                `json:"error,omitempty"`
+	Ports       map[int]int           `json:"ports,omitempty"` // container port -> host port
+	CreatedAt   time.Time             `json:"created_at"`
+	StartedAt   *time.Time            `json:"started_at,omitempty"`
+	EndedAt     *time.Time            `json:"ended_at,omitempty"`
+	cancelFn    context.CancelFunc    // internal - not exported
 }
 
 // Manager manages container lifecycle
@@ -38,7 +40,7 @@ func NewManager(runner container.Runner) *Manager {
 	}
 }
 
-// Create creates and starts a container asynchronously
+// Create creates and starts a container
 func (m *Manager) Create(ctx context.Context, spec *container.Spec) (*ContainerState, error) {
 	// Generate unique container ID
 	id := uuid.New().String()
@@ -56,12 +58,48 @@ func (m *Manager) Create(ctx context.Context, spec *container.Spec) (*ContainerS
 	m.containers[id] = state
 	m.mu.Unlock()
 
-	// Create cancellable context for this container
+	// Handle persistent vs ephemeral containers
+	if spec.Persistent {
+		// Start persistent container immediately and get port mappings
+		return m.startPersistent(ctx, state)
+	}
+
+	// Create cancellable context for ephemeral container
 	containerCtx, cancel := context.WithCancel(ctx)
 	state.cancelFn = cancel
 
-	// Run container asynchronously
+	// Run ephemeral container asynchronously
 	go m.runContainer(containerCtx, state)
+
+	return state, nil
+}
+
+// startPersistent starts a persistent container and returns immediately with port info
+func (m *Manager) startPersistent(ctx context.Context, state *ContainerState) (*ContainerState, error) {
+	// Type assert to get access to Start method
+	dockerRunner, ok := m.runner.(*container.DockerRunner)
+	if !ok {
+		return nil, fmt.Errorf("persistent containers require DockerRunner")
+	}
+
+	// Start the container
+	containerID, ports, err := dockerRunner.Start(ctx, state.Spec)
+	if err != nil {
+		m.mu.Lock()
+		state.Status = "failed"
+		state.Error = err.Error()
+		m.mu.Unlock()
+		return state, err
+	}
+
+	// Update state with container ID and ports
+	m.mu.Lock()
+	state.ContainerID = containerID
+	state.Ports = ports
+	state.Status = "running"
+	now := time.Now()
+	state.StartedAt = &now
+	m.mu.Unlock()
 
 	return state, nil
 }
@@ -122,10 +160,10 @@ func (m *Manager) List() []*ContainerState {
 
 // Stop stops a running container
 func (m *Manager) Stop(id string) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
+	m.mu.RLock()
 	state, ok := m.containers[id]
+	m.mu.RUnlock()
+
 	if !ok {
 		return fmt.Errorf("container not found: %s", id)
 	}
@@ -134,14 +172,36 @@ func (m *Manager) Stop(id string) error {
 		return fmt.Errorf("container is not running: %s (status: %s)", id, state.Status)
 	}
 
-	// Cancel the context to stop the container
-	if state.cancelFn != nil {
-		state.cancelFn()
+	// Handle persistent containers differently
+	if state.Spec.Persistent && state.ContainerID != "" {
+		dockerRunner, ok := m.runner.(*container.DockerRunner)
+		if !ok {
+			return fmt.Errorf("cannot stop persistent container: runner is not DockerRunner")
+		}
+
+		// Stop the Docker container
+		ctx := context.Background()
+		if err := dockerRunner.Stop(ctx, state.ContainerID); err != nil {
+			return fmt.Errorf("failed to stop container: %w", err)
+		}
+
+		// Remove the container
+		if err := dockerRunner.Remove(ctx, state.ContainerID); err != nil {
+			return fmt.Errorf("failed to remove container: %w", err)
+		}
+	} else {
+		// For ephemeral containers, cancel the context
+		if state.cancelFn != nil {
+			state.cancelFn()
+		}
 	}
 
+	// Update state
+	m.mu.Lock()
 	state.Status = "stopped"
 	now := time.Now()
 	state.EndedAt = &now
+	m.mu.Unlock()
 
 	return nil
 }

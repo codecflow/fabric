@@ -21,17 +21,21 @@ func NewHandler(manager *Manager) *Handler {
 
 // CreateContainerRequest represents the request body for creating a container
 type CreateContainerRequest struct {
-	Image   string            `json:"image" validate:"required"`
-	Command []string          `json:"command" validate:"required"`
-	Env     map[string]string `json:"env,omitempty"`
-	WorkDir string            `json:"workdir,omitempty"`
-	GPU     int               `json:"gpu,omitempty"` // Number of GPUs
+	Image      string            `json:"image" validate:"required"`
+	Command    []string          `json:"command" validate:"required"`
+	Env        map[string]string `json:"env,omitempty"`
+	WorkDir    string            `json:"workdir,omitempty"`
+	GPU        int               `json:"gpu,omitempty"`        // Number of GPUs
+	Persistent bool              `json:"persistent,omitempty"` // Long-running container
+	Ports      []int             `json:"ports,omitempty"`      // Container ports to expose
 }
 
 // CreateContainerResponse represents the response for creating a container
 type CreateContainerResponse struct {
-	ID     string `json:"id"`
-	Status string `json:"status"`
+	ID          string      `json:"id"`
+	ContainerID string      `json:"container_id,omitempty"`
+	Status      string      `json:"status"`
+	Ports       map[int]int `json:"ports,omitempty"` // container port -> host port
 }
 
 // CreateContainer handles POST /containers
@@ -49,13 +53,24 @@ func (h *Handler) CreateContainer(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Command is required")
 	}
 
+	// Convert ports to PortSpec
+	portSpecs := make([]container.PortSpec, 0, len(req.Ports))
+	for _, port := range req.Ports {
+		portSpecs = append(portSpecs, container.PortSpec{
+			Container: port,
+			Protocol:  "tcp", // Default to TCP
+		})
+	}
+
 	// Create container spec
 	spec := &container.Spec{
-		Image:   req.Image,
-		Command: req.Command,
-		Env:     req.Env,
-		WorkDir: req.WorkDir,
-		GPU:     req.GPU,
+		Image:      req.Image,
+		Command:    req.Command,
+		Env:        req.Env,
+		WorkDir:    req.WorkDir,
+		GPU:        req.GPU,
+		Persistent: req.Persistent,
+		Ports:      portSpecs,
 	}
 
 	// Create container
@@ -64,10 +79,18 @@ func (h *Handler) CreateContainer(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	return ctx.JSON(http.StatusCreated, CreateContainerResponse{
+	response := CreateContainerResponse{
 		ID:     state.ID,
 		Status: state.Status,
-	})
+	}
+
+	// Include container ID and ports for persistent containers
+	if state.Spec.Persistent {
+		response.ContainerID = state.ContainerID
+		response.Ports = state.Ports
+	}
+
+	return ctx.JSON(http.StatusCreated, response)
 }
 
 // GetContainer handles GET /containers/:id

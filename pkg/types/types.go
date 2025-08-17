@@ -33,16 +33,20 @@ type RegisterWorkerResponse struct {
 
 // CreateContainerRequest represents a request to create a container
 type CreateContainerRequest struct {
-	Image   string            `json:"image"`
-	Command []string          `json:"command"`
-	Env     map[string]string `json:"env,omitempty"`
-	WorkDir string            `json:"workdir,omitempty"`
-	GPU     int               `json:"gpu,omitempty"` // Number of GPUs required
+	Image      string            `json:"image"`
+	Command    []string          `json:"command"`
+	Env        map[string]string `json:"env,omitempty"`
+	WorkDir    string            `json:"workdir,omitempty"`
+	GPU        int               `json:"gpu,omitempty"`        // Number of GPUs required
+	Persistent bool              `json:"persistent,omitempty"` // Long-running container
+	Ports      []int             `json:"ports,omitempty"`      // Container ports to expose
 }
 
 // CreateContainerResponse represents the response for creating a container
 type CreateContainerResponse struct {
-	ID       string `json:"id"`
-	Status   string `json:"status"`
-	WorkerID string `json:"worker_id,omitempty"`
+	ID          string      `json:"id"`
+	ContainerID string      `json:"container_id,omitempty"` // Docker container ID (for persistent containers)
+	Status      string      `json:"status"`
+	WorkerID    string      `json:"worker_id,omitempty"`
+	Ports       map[int]int `json:"ports,omitempty"` // container port -> host port (for persistent containers)
 }

@@ -16,6 +16,21 @@ type Spec struct {
 
 	// GPU is the number of GPUs to allocate (0 = no GPU)
 	GPU int
+
+	// Persistent indicates if the container should keep running (not auto-remove)
+	Persistent bool
+
+	// Ports are the container ports to expose
+	Ports []PortSpec
+}
+
+// PortSpec defines a port to expose from the container
+type PortSpec struct {
+	// Container is the port number inside the container
+	Container int
+
+	// Protocol is the protocol (tcp or udp)
+	Protocol string
 }
 
 // Result contains the output from a container execution
