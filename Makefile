@@ -1,4 +1,4 @@
-.PHONY: all build clean fabric worker gateway test deps fmt lint
+.PHONY: all build clean fabric worker gateway test deps fmt lint kind-up kind-down kind-status
 
 all: build
 
@@ -31,5 +31,20 @@ clean:
 
 deps:
 	go mod tidy
+
+# Kubernetes (kind) cluster management
+kind-up:
+	@echo "Creating kind cluster 'fabric'..."
+	kind create cluster --name fabric --wait 5m
+	@echo "Cluster ready!"
+	kubectl cluster-info --context kind-fabric
+
+kind-down:
+	@echo "Deleting kind cluster 'fabric'..."
+	kind delete cluster --name fabric
+
+kind-status:
+	@echo "Checking kind cluster status..."
+	kubectl get nodes --context kind-fabric || echo "Cluster not running"
 
 .DEFAULT_GOAL := build

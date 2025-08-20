@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/codecflow/fabric/pkg/container"
+	"github.com/codecflow/fabric/pkg/placement"
 	"github.com/codecflow/fabric/pkg/types"
 	"github.com/codecflow/fabric/pkg/worker"
 	"github.com/google/uuid"
@@ -23,6 +24,7 @@ var (
 	port       int
 	gatewayURL string
 	workerID   string
+	provider   string
 )
 
 func main() {
@@ -36,6 +38,7 @@ func main() {
 	rootCmd.Flags().IntVar(&port, "port", 8081, "Port to listen on")
 	rootCmd.Flags().StringVar(&gatewayURL, "gateway", "", "Gateway URL to register with (optional)")
 	rootCmd.Flags().StringVar(&workerID, "worker-id", "", "Worker ID (auto-generated if not provided)")
+	rootCmd.Flags().StringVar(&provider, "provider", "docker", "Provider backend (docker or kubernetes)")
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
@@ -49,7 +52,30 @@ func runWorker(cmd *cobra.Command, args []string) error {
 		workerID = fmt.Sprintf("worker-%s", uuid.New().String()[:8])
 	}
 
-	// Create Docker runner
+	fmt.Printf("🚀 Starting Fabric Worker\n")
+	fmt.Printf("   Provider: %s\n", provider)
+	fmt.Printf("   Port: %d\n", port)
+	fmt.Printf("   Worker ID: %s\n", workerID)
+
+	// Validate provider (placement strategies exist but not integrated yet)
+	switch provider {
+	case "docker":
+		fmt.Println("✅ Using Docker provider")
+		// Check if docker strategy can be created
+		if _, err := placement.NewDockerStrategy(); err != nil {
+			return fmt.Errorf("failed to initialize docker strategy: %w", err)
+		}
+	case "kubernetes", "k8s":
+		fmt.Println("✅ Using Kubernetes provider")
+		// Check if kubernetes strategy can be created
+		if _, err := placement.NewKubernetesStrategy("default"); err != nil {
+			return fmt.Errorf("failed to initialize kubernetes strategy: %w", err)
+		}
+	default:
+		return fmt.Errorf("unknown provider: %s (supported: docker, kubernetes)", provider)
+	}
+
+	// Create DockerRunner for now (TODO: integrate placement.Strategy)
 	runner, err := container.NewDockerRunner()
 	if err != nil {
 		return fmt.Errorf("failed to create docker runner: %w", err)
