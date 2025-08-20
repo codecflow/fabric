@@ -12,7 +12,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/codecflow/fabric/pkg/container"
 	"github.com/codecflow/fabric/pkg/placement"
 	"github.com/codecflow/fabric/pkg/types"
 	"github.com/codecflow/fabric/pkg/worker"
@@ -57,33 +56,41 @@ func runWorker(cmd *cobra.Command, args []string) error {
 	fmt.Printf("   Port: %d\n", port)
 	fmt.Printf("   Worker ID: %s\n", workerID)
 
-	// Validate provider (placement strategies exist but not integrated yet)
+	// Create placement strategy based on provider
+	var strategy placement.Strategy
+	var err error
+
 	switch provider {
 	case "docker":
 		fmt.Println("✅ Using Docker provider")
-		// Check if docker strategy can be created
-		if _, err := placement.NewDockerStrategy(); err != nil {
+		strategy, err = placement.NewDockerStrategy()
+		if err != nil {
 			return fmt.Errorf("failed to initialize docker strategy: %w", err)
 		}
 	case "kubernetes", "k8s":
 		fmt.Println("✅ Using Kubernetes provider")
-		// Check if kubernetes strategy can be created
-		if _, err := placement.NewKubernetesStrategy("default"); err != nil {
+		strategy, err = placement.NewKubernetesStrategy("default")
+		if err != nil {
 			return fmt.Errorf("failed to initialize kubernetes strategy: %w", err)
 		}
+	case "runpod":
+		fmt.Println("✅ Using RunPod provider")
+		// Get API key from environment
+		apiKey := os.Getenv("RUNPOD_API_KEY")
+		if apiKey == "" {
+			return fmt.Errorf("RUNPOD_API_KEY environment variable is required for RunPod provider")
+		}
+		strategy, err = placement.NewRunPodStrategy(apiKey)
+		if err != nil {
+			return fmt.Errorf("failed to initialize runpod strategy: %w", err)
+		}
+		fmt.Println("   Note: RunPod creates cloud GPUs - make sure you have credits!")
 	default:
-		return fmt.Errorf("unknown provider: %s (supported: docker, kubernetes)", provider)
+		return fmt.Errorf("unknown provider: %s (supported: docker, kubernetes, runpod)", provider)
 	}
 
-	// Create DockerRunner for now (TODO: integrate placement.Strategy)
-	runner, err := container.NewDockerRunner()
-	if err != nil {
-		return fmt.Errorf("failed to create docker runner: %w", err)
-	}
-	defer runner.Close()
-
-	// Create worker server
-	server := worker.NewServer(runner, port)
+	// Create worker server with placement strategy
+	server := worker.NewServer(strategy, port)
 
 	// Register with gateway if provided
 	if gatewayURL != "" {

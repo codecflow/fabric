@@ -6,23 +6,22 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/codecflow/fabric/pkg/container"
+	"github.com/codecflow/fabric/pkg/placement"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
 // Server represents the worker HTTP server
 type Server struct {
-	echo    *echo.Echo
-	handler *Handler
-	manager *Manager
-	port    int
+	echo     *echo.Echo
+	handler  *Handler
+	strategy placement.Strategy
+	port     int
 }
 
 // NewServer creates a new worker server
-func NewServer(runner container.Runner, port int) *Server {
-	manager := NewManager(runner)
-	handler := NewHandler(manager)
+func NewServer(strategy placement.Strategy, port int) *Server {
+	handler := NewHandler(strategy)
 
 	e := echo.New()
 	e.HideBanner = true
@@ -45,10 +44,10 @@ func NewServer(runner container.Runner, port int) *Server {
 	e.DELETE("/containers/:id", handler.StopContainer)
 
 	return &Server{
-		echo:    e,
-		handler: handler,
-		manager: manager,
-		port:    port,
+		echo:     e,
+		handler:  handler,
+		strategy: strategy,
+		port:     port,
 	}
 }
 

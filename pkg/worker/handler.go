@@ -4,18 +4,19 @@ import (
 	"net/http"
 
 	"github.com/codecflow/fabric/pkg/container"
+	"github.com/codecflow/fabric/pkg/placement"
 	"github.com/labstack/echo/v4"
 )
 
 // Handler handles HTTP requests for the worker API
 type Handler struct {
-	manager *Manager
+	strategy placement.Strategy
 }
 
 // NewHandler creates a new API handler
-func NewHandler(manager *Manager) *Handler {
+func NewHandler(strategy placement.Strategy) *Handler {
 	return &Handler{
-		manager: manager,
+		strategy: strategy,
 	}
 }
 
@@ -73,21 +74,23 @@ func (h *Handler) CreateContainer(ctx echo.Context) error {
 		Ports:      portSpecs,
 	}
 
-	// Create container
-	state, err := h.manager.Create(ctx.Request().Context(), spec)
+	// Create placement request
+	placementReq := &placement.Request{
+		Spec:     spec,
+		Provider: h.strategy.Name(),
+	}
+
+	// Create placement using strategy
+	placementResp, err := h.strategy.Create(ctx.Request().Context(), placementReq)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	response := CreateContainerResponse{
-		ID:     state.ID,
-		Status: state.Status,
-	}
-
-	// Include container ID and ports for persistent containers
-	if state.Spec.Persistent {
-		response.ContainerID = state.ContainerID
-		response.Ports = state.Ports
+		ID:          placementResp.ID,
+		ContainerID: placementResp.ContainerID,
+		Status:      placementResp.Status,
+		Ports:       placementResp.Ports,
 	}
 
 	return ctx.JSON(http.StatusCreated, response)
@@ -100,27 +103,24 @@ func (h *Handler) GetContainer(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Container ID is required")
 	}
 
-	state, err := h.manager.Get(id)
+	placement, err := h.strategy.Get(ctx.Request().Context(), id)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
 
-	return ctx.JSON(http.StatusOK, state)
-}
-
-// ListContainersResponse represents the response for listing containers
-type ListContainersResponse struct {
-	Containers []*ContainerState `json:"containers"`
-	Count      int               `json:"count"`
+	return ctx.JSON(http.StatusOK, placement)
 }
 
 // ListContainers handles GET /containers
 func (h *Handler) ListContainers(ctx echo.Context) error {
-	states := h.manager.List()
+	placements, err := h.strategy.List(ctx.Request().Context())
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
 
-	return ctx.JSON(http.StatusOK, ListContainersResponse{
-		Containers: states,
-		Count:      len(states),
+	return ctx.JSON(http.StatusOK, map[string]interface{}{
+		"placements": placements,
+		"count":      len(placements),
 	})
 }
 
@@ -131,7 +131,7 @@ func (h *Handler) StopContainer(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Container ID is required")
 	}
 
-	err := h.manager.Stop(id)
+	err := h.strategy.Stop(ctx.Request().Context(), id)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
