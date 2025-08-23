@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/codecflow/fabric/pkg/container"
@@ -36,6 +37,7 @@ type CreateContainerResponse struct {
 	ID          string      `json:"id"`
 	ContainerID string      `json:"container_id,omitempty"`
 	Status      string      `json:"status"`
+	URL         string      `json:"url,omitempty"`   // URL to access the container
 	Ports       map[int]int `json:"ports,omitempty"` // container port -> host port
 }
 
@@ -86,10 +88,20 @@ func (h *Handler) CreateContainer(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
+	// Build URL from first mapped port
+	url := ""
+	if len(placementResp.Ports) > 0 {
+		for _, hostPort := range placementResp.Ports {
+			url = fmt.Sprintf("http://localhost:%d", hostPort)
+			break
+		}
+	}
+
 	response := CreateContainerResponse{
 		ID:          placementResp.ID,
 		ContainerID: placementResp.ContainerID,
 		Status:      placementResp.Status,
+		URL:         url,
 		Ports:       placementResp.Ports,
 	}
 

@@ -38,3 +38,5 @@ go.work.sum
 coverage.txt
 *.cover
 *.coverprofile
+*.egg-info
+__pycache__
