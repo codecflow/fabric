@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/codecflow/fabric/pkg/container"
+	"github.com/codecflow/fabric/pkg/types"
 )
 
 // PlacementStrategy defines how to acquire compute resources (WHERE to run)
@@ -64,7 +65,32 @@ type Catalogue interface {
 	EstimateCost(ctx context.Context, req *PlacementRequest) (float64, error)
 }
 
-// Provider bundles all provider-specific implementations
+// WorkloadProvider is a lightweight interface for new-style providers
+// that directly deploy workloads without the placement/execution abstraction
+type WorkloadProvider interface {
+	// Name returns the provider name (e.g., "docker", "kubernetes")
+	Name() string
+
+	// Deploy deploys a workload
+	Deploy(ctx context.Context, workload *types.Workload) (*types.Deployment, error)
+
+	// Status retrieves deployment status
+	Status(ctx context.Context, deploymentID string) (*types.Deployment, error)
+
+	// Stop stops a running deployment
+	Stop(ctx context.Context, deploymentID string) error
+
+	// Delete removes a deployment
+	Delete(ctx context.Context, deploymentID string) error
+
+	// List lists deployments
+	List(ctx context.Context, filter *DeploymentFilter) ([]*types.Deployment, error)
+
+	// Capabilities returns provider capabilities
+	Capabilities() Capabilities
+}
+
+// Provider bundles all provider-specific implementations (legacy + new)
 type Provider interface {
 	// Name returns the provider name (e.g., "runpod", "ec2", "kubernetes")
 	Name() string
@@ -78,6 +104,9 @@ type Provider interface {
 
 	// Catalogue returns pricing/availability info
 	Catalogue() Catalogue
+	
+	// WorkloadProvider methods (embedded for compatibility)
+	WorkloadProvider
 }
 
 // PlacementRequest describes desired compute resources
@@ -160,4 +189,26 @@ type Resource struct {
 	MemoryGB int
 	Available bool
 	Pricing  *Pricing
+}
+
+// Capabilities describes what a provider supports (new architecture)
+type Capabilities struct {
+	GPU         bool
+	GPUTypes    []string
+	MaxCPU      int64
+	MaxMemory   int64
+	Regions     []string
+	
+	// Features
+	Volumes     bool
+	Networking  bool
+	Checkpoint  bool
+	Autoscaling bool
+}
+
+// DeploymentFilter is used to filter deployments when listing
+type DeploymentFilter struct {
+	WorkspaceID string
+	WorkloadID  string
+	Status      string
 }
