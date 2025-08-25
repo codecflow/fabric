@@ -1,0 +1,50 @@
+server:
+  mode: slave
+  diskCacheDir: /blobcache-data
+  diskCacheMaxUsagePct: 0.95
+  token:
+  rttThresholdMilliseconds: 100
+  hostStorageCapacityThresholdPct: 0.95
+  pageSizeBytes: 4000000 # 4MB
+  maxCachePct: 60
+  options: []
+  downloadConcurrency: 16
+  downloadChunkSize: 64000000 # 64MB
+  metadata:
+    redisAddr:
+    redisPasswd:
+    redisTLSEnabled: false
+  regions:
+    default:
+      token:
+      rttThresholdMilliseconds: 40
+      hostStorageCapacityThresholdPct: 0.5
+      maxCachePct: 50
+client:
+  token:
+  nTopHosts: 3
+  minRetryLengthBytes: 10000000 # 10MB
+  maxGetContentAttempts: 3
+  blobfs:
+    directIO: false
+    mountPoint: /tmp/test
+    maxBackgroundTasks: 512
+    maxReadAheadKB: 128
+global:
+  defaultLocality: default
+  coordinatorHost:
+  serverPort: 2049
+  discoveryIntervalS: 5
+  rttThresholdMilliseconds: 100
+  hostStorageCapacityThresholdPct: 0.95
+  grpcDialTimeoutS: 1
+  grpcMessageSizeBytes: 1000000000
+  grpcInitialWindowSize: 4194304
+  grpcInitialConnWindowSize: 33554432
+  grpcWriteBufferSize: 262144
+  grpcReadBufferSize: 262144
+  grpcMaxConcurrentStreams: 1024
+  grpcNumStreamWorkers: 0
+  debugMode: false
+  prettyLogs: false
+  sources: []
