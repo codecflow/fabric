@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+option go_package = "github.com/codecflow/fabric/stash/proto";
+
+package stash;
+
+
+service Stash {
+
+}
+
+message Address {
+  string public = 1;
+  string private = 2;
+}
+
+message Capacity {
+  int64 used = 1;
+  int64 total = 2;
+}
+
+message Host {
+  string id = 1;
+  Address address = 2;
+  Capacity capacity = 3;
+}
