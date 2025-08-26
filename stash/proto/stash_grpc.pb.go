@@ -7,7 +7,10 @@
 package proto
 
 import (
+	context "context"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -15,10 +18,47 @@ import (
 // Requires gRPC-Go v1.64.0 or later.
 const _ = grpc.SupportPackageIsVersion9
 
+const (
+	Stash_AddHostToIndex_FullMethodName              = "/stash.Stash/AddHostToIndex"
+	Stash_SetHostKeepAlive_FullMethodName            = "/stash.Stash/SetHostKeepAlive"
+	Stash_GetAvailableHosts_FullMethodName           = "/stash.Stash/GetAvailableHosts"
+	Stash_GetRegionConfig_FullMethodName             = "/stash.Stash/GetRegionConfig"
+	Stash_SetClientLock_FullMethodName               = "/stash.Stash/SetClientLock"
+	Stash_RemoveClientLock_FullMethodName            = "/stash.Stash/RemoveClientLock"
+	Stash_SetStoreFromContentLock_FullMethodName     = "/stash.Stash/SetStoreFromContentLock"
+	Stash_RemoveStoreFromContentLock_FullMethodName  = "/stash.Stash/RemoveStoreFromContentLock"
+	Stash_RefreshStoreFromContentLock_FullMethodName = "/stash.Stash/RefreshStoreFromContentLock"
+	Stash_GetFsNode_FullMethodName                   = "/stash.Stash/GetFsNode"
+	Stash_SetFsNode_FullMethodName                   = "/stash.Stash/SetFsNode"
+	Stash_RemoveFsNode_FullMethodName                = "/stash.Stash/RemoveFsNode"
+	Stash_GetFsNodeChildren_FullMethodName           = "/stash.Stash/GetFsNodeChildren"
+	Stash_AddFsNodeChild_FullMethodName              = "/stash.Stash/AddFsNodeChild"
+	Stash_RemoveFsNodeChild_FullMethodName           = "/stash.Stash/RemoveFsNodeChild"
+)
+
 // StashClient is the client API for Stash service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type StashClient interface {
+	// Host operations
+	AddHostToIndex(ctx context.Context, in *AddHostToIndexRequest, opts ...grpc.CallOption) (*AddHostToIndexResponse, error)
+	SetHostKeepAlive(ctx context.Context, in *SetHostKeepAliveRequest, opts ...grpc.CallOption) (*SetHostKeepAliveResponse, error)
+	GetAvailableHosts(ctx context.Context, in *GetAvailableHostsRequest, opts ...grpc.CallOption) (*GetAvailableHostsResponse, error)
+	GetRegionConfig(ctx context.Context, in *GetRegionConfigRequest, opts ...grpc.CallOption) (*GetRegionConfigResponse, error)
+	// Client locking
+	SetClientLock(ctx context.Context, in *SetClientLockRequest, opts ...grpc.CallOption) (*SetClientLockResponse, error)
+	RemoveClientLock(ctx context.Context, in *RemoveClientLockRequest, opts ...grpc.CallOption) (*RemoveClientLockResponse, error)
+	// Content locking
+	SetStoreFromContentLock(ctx context.Context, in *SetStoreFromContentLockRequest, opts ...grpc.CallOption) (*SetStoreFromContentLockResponse, error)
+	RemoveStoreFromContentLock(ctx context.Context, in *RemoveStoreFromContentLockRequest, opts ...grpc.CallOption) (*RemoveStoreFromContentLockResponse, error)
+	RefreshStoreFromContentLock(ctx context.Context, in *RefreshStoreFromContentLockRequest, opts ...grpc.CallOption) (*RefreshStoreFromContentLockResponse, error)
+	// Filesystem operations
+	GetFsNode(ctx context.Context, in *GetFsNodeRequest, opts ...grpc.CallOption) (*GetFsNodeResponse, error)
+	SetFsNode(ctx context.Context, in *SetFsNodeRequest, opts ...grpc.CallOption) (*SetFsNodeResponse, error)
+	RemoveFsNode(ctx context.Context, in *RemoveFsNodeRequest, opts ...grpc.CallOption) (*RemoveFsNodeResponse, error)
+	GetFsNodeChildren(ctx context.Context, in *GetFsNodeChildrenRequest, opts ...grpc.CallOption) (*GetFsNodeChildrenResponse, error)
+	AddFsNodeChild(ctx context.Context, in *AddFsNodeChildRequest, opts ...grpc.CallOption) (*AddFsNodeChildResponse, error)
+	RemoveFsNodeChild(ctx context.Context, in *RemoveFsNodeChildRequest, opts ...grpc.CallOption) (*RemoveFsNodeChildResponse, error)
 }
 
 type stashClient struct {
@@ -29,10 +69,179 @@ func NewStashClient(cc grpc.ClientConnInterface) StashClient {
 	return &stashClient{cc}
 }
 
+func (c *stashClient) AddHostToIndex(ctx context.Context, in *AddHostToIndexRequest, opts ...grpc.CallOption) (*AddHostToIndexResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AddHostToIndexResponse)
+	err := c.cc.Invoke(ctx, Stash_AddHostToIndex_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stashClient) SetHostKeepAlive(ctx context.Context, in *SetHostKeepAliveRequest, opts ...grpc.CallOption) (*SetHostKeepAliveResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetHostKeepAliveResponse)
+	err := c.cc.Invoke(ctx, Stash_SetHostKeepAlive_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stashClient) GetAvailableHosts(ctx context.Context, in *GetAvailableHostsRequest, opts ...grpc.CallOption) (*GetAvailableHostsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAvailableHostsResponse)
+	err := c.cc.Invoke(ctx, Stash_GetAvailableHosts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stashClient) GetRegionConfig(ctx context.Context, in *GetRegionConfigRequest, opts ...grpc.CallOption) (*GetRegionConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRegionConfigResponse)
+	err := c.cc.Invoke(ctx, Stash_GetRegionConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stashClient) SetClientLock(ctx context.Context, in *SetClientLockRequest, opts ...grpc.CallOption) (*SetClientLockResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetClientLockResponse)
+	err := c.cc.Invoke(ctx, Stash_SetClientLock_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stashClient) RemoveClientLock(ctx context.Context, in *RemoveClientLockRequest, opts ...grpc.CallOption) (*RemoveClientLockResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RemoveClientLockResponse)
+	err := c.cc.Invoke(ctx, Stash_RemoveClientLock_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stashClient) SetStoreFromContentLock(ctx context.Context, in *SetStoreFromContentLockRequest, opts ...grpc.CallOption) (*SetStoreFromContentLockResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetStoreFromContentLockResponse)
+	err := c.cc.Invoke(ctx, Stash_SetStoreFromContentLock_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stashClient) RemoveStoreFromContentLock(ctx context.Context, in *RemoveStoreFromContentLockRequest, opts ...grpc.CallOption) (*RemoveStoreFromContentLockResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RemoveStoreFromContentLockResponse)
+	err := c.cc.Invoke(ctx, Stash_RemoveStoreFromContentLock_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stashClient) RefreshStoreFromContentLock(ctx context.Context, in *RefreshStoreFromContentLockRequest, opts ...grpc.CallOption) (*RefreshStoreFromContentLockResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RefreshStoreFromContentLockResponse)
+	err := c.cc.Invoke(ctx, Stash_RefreshStoreFromContentLock_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stashClient) GetFsNode(ctx context.Context, in *GetFsNodeRequest, opts ...grpc.CallOption) (*GetFsNodeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFsNodeResponse)
+	err := c.cc.Invoke(ctx, Stash_GetFsNode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stashClient) SetFsNode(ctx context.Context, in *SetFsNodeRequest, opts ...grpc.CallOption) (*SetFsNodeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetFsNodeResponse)
+	err := c.cc.Invoke(ctx, Stash_SetFsNode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stashClient) RemoveFsNode(ctx context.Context, in *RemoveFsNodeRequest, opts ...grpc.CallOption) (*RemoveFsNodeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RemoveFsNodeResponse)
+	err := c.cc.Invoke(ctx, Stash_RemoveFsNode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stashClient) GetFsNodeChildren(ctx context.Context, in *GetFsNodeChildrenRequest, opts ...grpc.CallOption) (*GetFsNodeChildrenResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFsNodeChildrenResponse)
+	err := c.cc.Invoke(ctx, Stash_GetFsNodeChildren_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stashClient) AddFsNodeChild(ctx context.Context, in *AddFsNodeChildRequest, opts ...grpc.CallOption) (*AddFsNodeChildResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AddFsNodeChildResponse)
+	err := c.cc.Invoke(ctx, Stash_AddFsNodeChild_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stashClient) RemoveFsNodeChild(ctx context.Context, in *RemoveFsNodeChildRequest, opts ...grpc.CallOption) (*RemoveFsNodeChildResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RemoveFsNodeChildResponse)
+	err := c.cc.Invoke(ctx, Stash_RemoveFsNodeChild_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StashServer is the server API for Stash service.
 // All implementations must embed UnimplementedStashServer
 // for forward compatibility.
 type StashServer interface {
+	// Host operations
+	AddHostToIndex(context.Context, *AddHostToIndexRequest) (*AddHostToIndexResponse, error)
+	SetHostKeepAlive(context.Context, *SetHostKeepAliveRequest) (*SetHostKeepAliveResponse, error)
+	GetAvailableHosts(context.Context, *GetAvailableHostsRequest) (*GetAvailableHostsResponse, error)
+	GetRegionConfig(context.Context, *GetRegionConfigRequest) (*GetRegionConfigResponse, error)
+	// Client locking
+	SetClientLock(context.Context, *SetClientLockRequest) (*SetClientLockResponse, error)
+	RemoveClientLock(context.Context, *RemoveClientLockRequest) (*RemoveClientLockResponse, error)
+	// Content locking
+	SetStoreFromContentLock(context.Context, *SetStoreFromContentLockRequest) (*SetStoreFromContentLockResponse, error)
+	RemoveStoreFromContentLock(context.Context, *RemoveStoreFromContentLockRequest) (*RemoveStoreFromContentLockResponse, error)
+	RefreshStoreFromContentLock(context.Context, *RefreshStoreFromContentLockRequest) (*RefreshStoreFromContentLockResponse, error)
+	// Filesystem operations
+	GetFsNode(context.Context, *GetFsNodeRequest) (*GetFsNodeResponse, error)
+	SetFsNode(context.Context, *SetFsNodeRequest) (*SetFsNodeResponse, error)
+	RemoveFsNode(context.Context, *RemoveFsNodeRequest) (*RemoveFsNodeResponse, error)
+	GetFsNodeChildren(context.Context, *GetFsNodeChildrenRequest) (*GetFsNodeChildrenResponse, error)
+	AddFsNodeChild(context.Context, *AddFsNodeChildRequest) (*AddFsNodeChildResponse, error)
+	RemoveFsNodeChild(context.Context, *RemoveFsNodeChildRequest) (*RemoveFsNodeChildResponse, error)
 	mustEmbedUnimplementedStashServer()
 }
 
@@ -43,6 +252,51 @@ type StashServer interface {
 // pointer dereference when methods are called.
 type UnimplementedStashServer struct{}
 
+func (UnimplementedStashServer) AddHostToIndex(context.Context, *AddHostToIndexRequest) (*AddHostToIndexResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AddHostToIndex not implemented")
+}
+func (UnimplementedStashServer) SetHostKeepAlive(context.Context, *SetHostKeepAliveRequest) (*SetHostKeepAliveResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetHostKeepAlive not implemented")
+}
+func (UnimplementedStashServer) GetAvailableHosts(context.Context, *GetAvailableHostsRequest) (*GetAvailableHostsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAvailableHosts not implemented")
+}
+func (UnimplementedStashServer) GetRegionConfig(context.Context, *GetRegionConfigRequest) (*GetRegionConfigResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetRegionConfig not implemented")
+}
+func (UnimplementedStashServer) SetClientLock(context.Context, *SetClientLockRequest) (*SetClientLockResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetClientLock not implemented")
+}
+func (UnimplementedStashServer) RemoveClientLock(context.Context, *RemoveClientLockRequest) (*RemoveClientLockResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RemoveClientLock not implemented")
+}
+func (UnimplementedStashServer) SetStoreFromContentLock(context.Context, *SetStoreFromContentLockRequest) (*SetStoreFromContentLockResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetStoreFromContentLock not implemented")
+}
+func (UnimplementedStashServer) RemoveStoreFromContentLock(context.Context, *RemoveStoreFromContentLockRequest) (*RemoveStoreFromContentLockResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RemoveStoreFromContentLock not implemented")
+}
+func (UnimplementedStashServer) RefreshStoreFromContentLock(context.Context, *RefreshStoreFromContentLockRequest) (*RefreshStoreFromContentLockResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RefreshStoreFromContentLock not implemented")
+}
+func (UnimplementedStashServer) GetFsNode(context.Context, *GetFsNodeRequest) (*GetFsNodeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetFsNode not implemented")
+}
+func (UnimplementedStashServer) SetFsNode(context.Context, *SetFsNodeRequest) (*SetFsNodeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetFsNode not implemented")
+}
+func (UnimplementedStashServer) RemoveFsNode(context.Context, *RemoveFsNodeRequest) (*RemoveFsNodeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RemoveFsNode not implemented")
+}
+func (UnimplementedStashServer) GetFsNodeChildren(context.Context, *GetFsNodeChildrenRequest) (*GetFsNodeChildrenResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetFsNodeChildren not implemented")
+}
+func (UnimplementedStashServer) AddFsNodeChild(context.Context, *AddFsNodeChildRequest) (*AddFsNodeChildResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AddFsNodeChild not implemented")
+}
+func (UnimplementedStashServer) RemoveFsNodeChild(context.Context, *RemoveFsNodeChildRequest) (*RemoveFsNodeChildResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RemoveFsNodeChild not implemented")
+}
 func (UnimplementedStashServer) mustEmbedUnimplementedStashServer() {}
 func (UnimplementedStashServer) testEmbeddedByValue()               {}
 
@@ -64,13 +318,344 @@ func RegisterStashServer(s grpc.ServiceRegistrar, srv StashServer) {
 	s.RegisterService(&Stash_ServiceDesc, srv)
 }
 
+func _Stash_AddHostToIndex_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddHostToIndexRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StashServer).AddHostToIndex(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Stash_AddHostToIndex_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StashServer).AddHostToIndex(ctx, req.(*AddHostToIndexRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Stash_SetHostKeepAlive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetHostKeepAliveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StashServer).SetHostKeepAlive(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Stash_SetHostKeepAlive_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StashServer).SetHostKeepAlive(ctx, req.(*SetHostKeepAliveRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Stash_GetAvailableHosts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAvailableHostsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StashServer).GetAvailableHosts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Stash_GetAvailableHosts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StashServer).GetAvailableHosts(ctx, req.(*GetAvailableHostsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Stash_GetRegionConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRegionConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StashServer).GetRegionConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Stash_GetRegionConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StashServer).GetRegionConfig(ctx, req.(*GetRegionConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Stash_SetClientLock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetClientLockRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StashServer).SetClientLock(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Stash_SetClientLock_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StashServer).SetClientLock(ctx, req.(*SetClientLockRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Stash_RemoveClientLock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveClientLockRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StashServer).RemoveClientLock(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Stash_RemoveClientLock_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StashServer).RemoveClientLock(ctx, req.(*RemoveClientLockRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Stash_SetStoreFromContentLock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetStoreFromContentLockRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StashServer).SetStoreFromContentLock(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Stash_SetStoreFromContentLock_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StashServer).SetStoreFromContentLock(ctx, req.(*SetStoreFromContentLockRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Stash_RemoveStoreFromContentLock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveStoreFromContentLockRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StashServer).RemoveStoreFromContentLock(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Stash_RemoveStoreFromContentLock_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StashServer).RemoveStoreFromContentLock(ctx, req.(*RemoveStoreFromContentLockRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Stash_RefreshStoreFromContentLock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RefreshStoreFromContentLockRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StashServer).RefreshStoreFromContentLock(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Stash_RefreshStoreFromContentLock_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StashServer).RefreshStoreFromContentLock(ctx, req.(*RefreshStoreFromContentLockRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Stash_GetFsNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFsNodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StashServer).GetFsNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Stash_GetFsNode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StashServer).GetFsNode(ctx, req.(*GetFsNodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Stash_SetFsNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetFsNodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StashServer).SetFsNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Stash_SetFsNode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StashServer).SetFsNode(ctx, req.(*SetFsNodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Stash_RemoveFsNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveFsNodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StashServer).RemoveFsNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Stash_RemoveFsNode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StashServer).RemoveFsNode(ctx, req.(*RemoveFsNodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Stash_GetFsNodeChildren_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFsNodeChildrenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StashServer).GetFsNodeChildren(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Stash_GetFsNodeChildren_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StashServer).GetFsNodeChildren(ctx, req.(*GetFsNodeChildrenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Stash_AddFsNodeChild_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddFsNodeChildRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StashServer).AddFsNodeChild(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Stash_AddFsNodeChild_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StashServer).AddFsNodeChild(ctx, req.(*AddFsNodeChildRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Stash_RemoveFsNodeChild_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveFsNodeChildRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StashServer).RemoveFsNodeChild(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Stash_RemoveFsNodeChild_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StashServer).RemoveFsNodeChild(ctx, req.(*RemoveFsNodeChildRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Stash_ServiceDesc is the grpc.ServiceDesc for Stash service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Stash_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "stash.Stash",
 	HandlerType: (*StashServer)(nil),
-	Methods:     []grpc.MethodDesc{},
-	Streams:     []grpc.StreamDesc{},
-	Metadata:    "stash.proto",
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "AddHostToIndex",
+			Handler:    _Stash_AddHostToIndex_Handler,
+		},
+		{
+			MethodName: "SetHostKeepAlive",
+			Handler:    _Stash_SetHostKeepAlive_Handler,
+		},
+		{
+			MethodName: "GetAvailableHosts",
+			Handler:    _Stash_GetAvailableHosts_Handler,
+		},
+		{
+			MethodName: "GetRegionConfig",
+			Handler:    _Stash_GetRegionConfig_Handler,
+		},
+		{
+			MethodName: "SetClientLock",
+			Handler:    _Stash_SetClientLock_Handler,
+		},
+		{
+			MethodName: "RemoveClientLock",
+			Handler:    _Stash_RemoveClientLock_Handler,
+		},
+		{
+			MethodName: "SetStoreFromContentLock",
+			Handler:    _Stash_SetStoreFromContentLock_Handler,
+		},
+		{
+			MethodName: "RemoveStoreFromContentLock",
+			Handler:    _Stash_RemoveStoreFromContentLock_Handler,
+		},
+		{
+			MethodName: "RefreshStoreFromContentLock",
+			Handler:    _Stash_RefreshStoreFromContentLock_Handler,
+		},
+		{
+			MethodName: "GetFsNode",
+			Handler:    _Stash_GetFsNode_Handler,
+		},
+		{
+			MethodName: "SetFsNode",
+			Handler:    _Stash_SetFsNode_Handler,
+		},
+		{
+			MethodName: "RemoveFsNode",
+			Handler:    _Stash_RemoveFsNode_Handler,
+		},
+		{
+			MethodName: "GetFsNodeChildren",
+			Handler:    _Stash_GetFsNodeChildren_Handler,
+		},
+		{
+			MethodName: "AddFsNodeChild",
+			Handler:    _Stash_AddFsNodeChild_Handler,
+		},
+		{
+			MethodName: "RemoveFsNodeChild",
+			Handler:    _Stash_RemoveFsNodeChild_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "stash.proto",
 }

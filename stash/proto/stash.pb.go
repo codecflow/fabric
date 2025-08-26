@@ -185,6 +185,1654 @@ func (x *Host) GetCapacity() *Capacity {
 	return nil
 }
 
+// Host operations
+type AddHostToIndexRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Locality      string                 `protobuf:"bytes,1,opt,name=locality,proto3" json:"locality,omitempty"`
+	Host          *Host                  `protobuf:"bytes,2,opt,name=host,proto3" json:"host,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddHostToIndexRequest) Reset() {
+	*x = AddHostToIndexRequest{}
+	mi := &file_stash_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddHostToIndexRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddHostToIndexRequest) ProtoMessage() {}
+
+func (x *AddHostToIndexRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddHostToIndexRequest.ProtoReflect.Descriptor instead.
+func (*AddHostToIndexRequest) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *AddHostToIndexRequest) GetLocality() string {
+	if x != nil {
+		return x.Locality
+	}
+	return ""
+}
+
+func (x *AddHostToIndexRequest) GetHost() *Host {
+	if x != nil {
+		return x.Host
+	}
+	return nil
+}
+
+type AddHostToIndexResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddHostToIndexResponse) Reset() {
+	*x = AddHostToIndexResponse{}
+	mi := &file_stash_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddHostToIndexResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddHostToIndexResponse) ProtoMessage() {}
+
+func (x *AddHostToIndexResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddHostToIndexResponse.ProtoReflect.Descriptor instead.
+func (*AddHostToIndexResponse) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *AddHostToIndexResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+type SetHostKeepAliveRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Locality      string                 `protobuf:"bytes,1,opt,name=locality,proto3" json:"locality,omitempty"`
+	Host          *Host                  `protobuf:"bytes,2,opt,name=host,proto3" json:"host,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetHostKeepAliveRequest) Reset() {
+	*x = SetHostKeepAliveRequest{}
+	mi := &file_stash_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetHostKeepAliveRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetHostKeepAliveRequest) ProtoMessage() {}
+
+func (x *SetHostKeepAliveRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetHostKeepAliveRequest.ProtoReflect.Descriptor instead.
+func (*SetHostKeepAliveRequest) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *SetHostKeepAliveRequest) GetLocality() string {
+	if x != nil {
+		return x.Locality
+	}
+	return ""
+}
+
+func (x *SetHostKeepAliveRequest) GetHost() *Host {
+	if x != nil {
+		return x.Host
+	}
+	return nil
+}
+
+type SetHostKeepAliveResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetHostKeepAliveResponse) Reset() {
+	*x = SetHostKeepAliveResponse{}
+	mi := &file_stash_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetHostKeepAliveResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetHostKeepAliveResponse) ProtoMessage() {}
+
+func (x *SetHostKeepAliveResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetHostKeepAliveResponse.ProtoReflect.Descriptor instead.
+func (*SetHostKeepAliveResponse) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *SetHostKeepAliveResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+type GetAvailableHostsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Locality      string                 `protobuf:"bytes,1,opt,name=locality,proto3" json:"locality,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAvailableHostsRequest) Reset() {
+	*x = GetAvailableHostsRequest{}
+	mi := &file_stash_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAvailableHostsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAvailableHostsRequest) ProtoMessage() {}
+
+func (x *GetAvailableHostsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAvailableHostsRequest.ProtoReflect.Descriptor instead.
+func (*GetAvailableHostsRequest) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *GetAvailableHostsRequest) GetLocality() string {
+	if x != nil {
+		return x.Locality
+	}
+	return ""
+}
+
+type GetAvailableHostsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Hosts         []*Host                `protobuf:"bytes,1,rep,name=hosts,proto3" json:"hosts,omitempty"`
+	Ok            bool                   `protobuf:"varint,2,opt,name=ok,proto3" json:"ok,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAvailableHostsResponse) Reset() {
+	*x = GetAvailableHostsResponse{}
+	mi := &file_stash_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAvailableHostsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAvailableHostsResponse) ProtoMessage() {}
+
+func (x *GetAvailableHostsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAvailableHostsResponse.ProtoReflect.Descriptor instead.
+func (*GetAvailableHostsResponse) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *GetAvailableHostsResponse) GetHosts() []*Host {
+	if x != nil {
+		return x.Hosts
+	}
+	return nil
+}
+
+func (x *GetAvailableHostsResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+type GetRegionConfigRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Locality      string                 `protobuf:"bytes,1,opt,name=locality,proto3" json:"locality,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRegionConfigRequest) Reset() {
+	*x = GetRegionConfigRequest{}
+	mi := &file_stash_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRegionConfigRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRegionConfigRequest) ProtoMessage() {}
+
+func (x *GetRegionConfigRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRegionConfigRequest.ProtoReflect.Descriptor instead.
+func (*GetRegionConfigRequest) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetRegionConfigRequest) GetLocality() string {
+	if x != nil {
+		return x.Locality
+	}
+	return ""
+}
+
+type GetRegionConfigResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ConfigJson    string                 `protobuf:"bytes,1,opt,name=config_json,json=configJson,proto3" json:"config_json,omitempty"` // JSON-encoded server config
+	Ok            bool                   `protobuf:"varint,2,opt,name=ok,proto3" json:"ok,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRegionConfigResponse) Reset() {
+	*x = GetRegionConfigResponse{}
+	mi := &file_stash_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRegionConfigResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRegionConfigResponse) ProtoMessage() {}
+
+func (x *GetRegionConfigResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRegionConfigResponse.ProtoReflect.Descriptor instead.
+func (*GetRegionConfigResponse) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetRegionConfigResponse) GetConfigJson() string {
+	if x != nil {
+		return x.ConfigJson
+	}
+	return ""
+}
+
+func (x *GetRegionConfigResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+// Client locking
+type SetClientLockRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Hash          string                 `protobuf:"bytes,1,opt,name=hash,proto3" json:"hash,omitempty"`
+	HostId        string                 `protobuf:"bytes,2,opt,name=host_id,json=hostId,proto3" json:"host_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetClientLockRequest) Reset() {
+	*x = SetClientLockRequest{}
+	mi := &file_stash_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetClientLockRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetClientLockRequest) ProtoMessage() {}
+
+func (x *SetClientLockRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetClientLockRequest.ProtoReflect.Descriptor instead.
+func (*SetClientLockRequest) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *SetClientLockRequest) GetHash() string {
+	if x != nil {
+		return x.Hash
+	}
+	return ""
+}
+
+func (x *SetClientLockRequest) GetHostId() string {
+	if x != nil {
+		return x.HostId
+	}
+	return ""
+}
+
+type SetClientLockResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetClientLockResponse) Reset() {
+	*x = SetClientLockResponse{}
+	mi := &file_stash_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetClientLockResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetClientLockResponse) ProtoMessage() {}
+
+func (x *SetClientLockResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetClientLockResponse.ProtoReflect.Descriptor instead.
+func (*SetClientLockResponse) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *SetClientLockResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+type RemoveClientLockRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Hash          string                 `protobuf:"bytes,1,opt,name=hash,proto3" json:"hash,omitempty"`
+	HostId        string                 `protobuf:"bytes,2,opt,name=host_id,json=hostId,proto3" json:"host_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveClientLockRequest) Reset() {
+	*x = RemoveClientLockRequest{}
+	mi := &file_stash_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveClientLockRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveClientLockRequest) ProtoMessage() {}
+
+func (x *RemoveClientLockRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveClientLockRequest.ProtoReflect.Descriptor instead.
+func (*RemoveClientLockRequest) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *RemoveClientLockRequest) GetHash() string {
+	if x != nil {
+		return x.Hash
+	}
+	return ""
+}
+
+func (x *RemoveClientLockRequest) GetHostId() string {
+	if x != nil {
+		return x.HostId
+	}
+	return ""
+}
+
+type RemoveClientLockResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveClientLockResponse) Reset() {
+	*x = RemoveClientLockResponse{}
+	mi := &file_stash_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveClientLockResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveClientLockResponse) ProtoMessage() {}
+
+func (x *RemoveClientLockResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveClientLockResponse.ProtoReflect.Descriptor instead.
+func (*RemoveClientLockResponse) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *RemoveClientLockResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+// Content locking
+type SetStoreFromContentLockRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Locality      string                 `protobuf:"bytes,1,opt,name=locality,proto3" json:"locality,omitempty"`
+	SourcePath    string                 `protobuf:"bytes,2,opt,name=source_path,json=sourcePath,proto3" json:"source_path,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetStoreFromContentLockRequest) Reset() {
+	*x = SetStoreFromContentLockRequest{}
+	mi := &file_stash_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetStoreFromContentLockRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetStoreFromContentLockRequest) ProtoMessage() {}
+
+func (x *SetStoreFromContentLockRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetStoreFromContentLockRequest.ProtoReflect.Descriptor instead.
+func (*SetStoreFromContentLockRequest) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *SetStoreFromContentLockRequest) GetLocality() string {
+	if x != nil {
+		return x.Locality
+	}
+	return ""
+}
+
+func (x *SetStoreFromContentLockRequest) GetSourcePath() string {
+	if x != nil {
+		return x.SourcePath
+	}
+	return ""
+}
+
+type SetStoreFromContentLockResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetStoreFromContentLockResponse) Reset() {
+	*x = SetStoreFromContentLockResponse{}
+	mi := &file_stash_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetStoreFromContentLockResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetStoreFromContentLockResponse) ProtoMessage() {}
+
+func (x *SetStoreFromContentLockResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetStoreFromContentLockResponse.ProtoReflect.Descriptor instead.
+func (*SetStoreFromContentLockResponse) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *SetStoreFromContentLockResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+type RemoveStoreFromContentLockRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Locality      string                 `protobuf:"bytes,1,opt,name=locality,proto3" json:"locality,omitempty"`
+	SourcePath    string                 `protobuf:"bytes,2,opt,name=source_path,json=sourcePath,proto3" json:"source_path,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveStoreFromContentLockRequest) Reset() {
+	*x = RemoveStoreFromContentLockRequest{}
+	mi := &file_stash_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveStoreFromContentLockRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveStoreFromContentLockRequest) ProtoMessage() {}
+
+func (x *RemoveStoreFromContentLockRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveStoreFromContentLockRequest.ProtoReflect.Descriptor instead.
+func (*RemoveStoreFromContentLockRequest) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *RemoveStoreFromContentLockRequest) GetLocality() string {
+	if x != nil {
+		return x.Locality
+	}
+	return ""
+}
+
+func (x *RemoveStoreFromContentLockRequest) GetSourcePath() string {
+	if x != nil {
+		return x.SourcePath
+	}
+	return ""
+}
+
+type RemoveStoreFromContentLockResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveStoreFromContentLockResponse) Reset() {
+	*x = RemoveStoreFromContentLockResponse{}
+	mi := &file_stash_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveStoreFromContentLockResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveStoreFromContentLockResponse) ProtoMessage() {}
+
+func (x *RemoveStoreFromContentLockResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveStoreFromContentLockResponse.ProtoReflect.Descriptor instead.
+func (*RemoveStoreFromContentLockResponse) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *RemoveStoreFromContentLockResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+type RefreshStoreFromContentLockRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Locality      string                 `protobuf:"bytes,1,opt,name=locality,proto3" json:"locality,omitempty"`
+	SourcePath    string                 `protobuf:"bytes,2,opt,name=source_path,json=sourcePath,proto3" json:"source_path,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RefreshStoreFromContentLockRequest) Reset() {
+	*x = RefreshStoreFromContentLockRequest{}
+	mi := &file_stash_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RefreshStoreFromContentLockRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RefreshStoreFromContentLockRequest) ProtoMessage() {}
+
+func (x *RefreshStoreFromContentLockRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RefreshStoreFromContentLockRequest.ProtoReflect.Descriptor instead.
+func (*RefreshStoreFromContentLockRequest) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *RefreshStoreFromContentLockRequest) GetLocality() string {
+	if x != nil {
+		return x.Locality
+	}
+	return ""
+}
+
+func (x *RefreshStoreFromContentLockRequest) GetSourcePath() string {
+	if x != nil {
+		return x.SourcePath
+	}
+	return ""
+}
+
+type RefreshStoreFromContentLockResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RefreshStoreFromContentLockResponse) Reset() {
+	*x = RefreshStoreFromContentLockResponse{}
+	mi := &file_stash_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RefreshStoreFromContentLockResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RefreshStoreFromContentLockResponse) ProtoMessage() {}
+
+func (x *RefreshStoreFromContentLockResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RefreshStoreFromContentLockResponse.ProtoReflect.Descriptor instead.
+func (*RefreshStoreFromContentLockResponse) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *RefreshStoreFromContentLockResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+// Filesystem operations
+type FsMetadata struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Pid           string                 `protobuf:"bytes,1,opt,name=pid,proto3" json:"pid,omitempty"`
+	Id            string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Path          string                 `protobuf:"bytes,4,opt,name=path,proto3" json:"path,omitempty"`
+	Hash          string                 `protobuf:"bytes,5,opt,name=hash,proto3" json:"hash,omitempty"`
+	Ino           uint64                 `protobuf:"varint,6,opt,name=ino,proto3" json:"ino,omitempty"`
+	Size          uint64                 `protobuf:"varint,7,opt,name=size,proto3" json:"size,omitempty"`
+	Blocks        uint64                 `protobuf:"varint,8,opt,name=blocks,proto3" json:"blocks,omitempty"`
+	Atime         uint64                 `protobuf:"varint,9,opt,name=atime,proto3" json:"atime,omitempty"`
+	Mtime         uint64                 `protobuf:"varint,10,opt,name=mtime,proto3" json:"mtime,omitempty"`
+	Ctime         uint64                 `protobuf:"varint,11,opt,name=ctime,proto3" json:"ctime,omitempty"`
+	Atimensec     uint32                 `protobuf:"varint,12,opt,name=atimensec,proto3" json:"atimensec,omitempty"`
+	Mtimensec     uint32                 `protobuf:"varint,13,opt,name=mtimensec,proto3" json:"mtimensec,omitempty"`
+	Ctimensec     uint32                 `protobuf:"varint,14,opt,name=ctimensec,proto3" json:"ctimensec,omitempty"`
+	Mode          uint32                 `protobuf:"varint,15,opt,name=mode,proto3" json:"mode,omitempty"`
+	Nlink         uint32                 `protobuf:"varint,16,opt,name=nlink,proto3" json:"nlink,omitempty"`
+	Rdev          uint32                 `protobuf:"varint,17,opt,name=rdev,proto3" json:"rdev,omitempty"`
+	Blksize       uint32                 `protobuf:"varint,18,opt,name=blksize,proto3" json:"blksize,omitempty"`
+	Padding       uint32                 `protobuf:"varint,19,opt,name=padding,proto3" json:"padding,omitempty"`
+	Uid           uint32                 `protobuf:"varint,20,opt,name=uid,proto3" json:"uid,omitempty"`
+	Gid           uint32                 `protobuf:"varint,21,opt,name=gid,proto3" json:"gid,omitempty"`
+	Gen           uint64                 `protobuf:"varint,22,opt,name=gen,proto3" json:"gen,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FsMetadata) Reset() {
+	*x = FsMetadata{}
+	mi := &file_stash_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FsMetadata) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FsMetadata) ProtoMessage() {}
+
+func (x *FsMetadata) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FsMetadata.ProtoReflect.Descriptor instead.
+func (*FsMetadata) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *FsMetadata) GetPid() string {
+	if x != nil {
+		return x.Pid
+	}
+	return ""
+}
+
+func (x *FsMetadata) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *FsMetadata) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *FsMetadata) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+func (x *FsMetadata) GetHash() string {
+	if x != nil {
+		return x.Hash
+	}
+	return ""
+}
+
+func (x *FsMetadata) GetIno() uint64 {
+	if x != nil {
+		return x.Ino
+	}
+	return 0
+}
+
+func (x *FsMetadata) GetSize() uint64 {
+	if x != nil {
+		return x.Size
+	}
+	return 0
+}
+
+func (x *FsMetadata) GetBlocks() uint64 {
+	if x != nil {
+		return x.Blocks
+	}
+	return 0
+}
+
+func (x *FsMetadata) GetAtime() uint64 {
+	if x != nil {
+		return x.Atime
+	}
+	return 0
+}
+
+func (x *FsMetadata) GetMtime() uint64 {
+	if x != nil {
+		return x.Mtime
+	}
+	return 0
+}
+
+func (x *FsMetadata) GetCtime() uint64 {
+	if x != nil {
+		return x.Ctime
+	}
+	return 0
+}
+
+func (x *FsMetadata) GetAtimensec() uint32 {
+	if x != nil {
+		return x.Atimensec
+	}
+	return 0
+}
+
+func (x *FsMetadata) GetMtimensec() uint32 {
+	if x != nil {
+		return x.Mtimensec
+	}
+	return 0
+}
+
+func (x *FsMetadata) GetCtimensec() uint32 {
+	if x != nil {
+		return x.Ctimensec
+	}
+	return 0
+}
+
+func (x *FsMetadata) GetMode() uint32 {
+	if x != nil {
+		return x.Mode
+	}
+	return 0
+}
+
+func (x *FsMetadata) GetNlink() uint32 {
+	if x != nil {
+		return x.Nlink
+	}
+	return 0
+}
+
+func (x *FsMetadata) GetRdev() uint32 {
+	if x != nil {
+		return x.Rdev
+	}
+	return 0
+}
+
+func (x *FsMetadata) GetBlksize() uint32 {
+	if x != nil {
+		return x.Blksize
+	}
+	return 0
+}
+
+func (x *FsMetadata) GetPadding() uint32 {
+	if x != nil {
+		return x.Padding
+	}
+	return 0
+}
+
+func (x *FsMetadata) GetUid() uint32 {
+	if x != nil {
+		return x.Uid
+	}
+	return 0
+}
+
+func (x *FsMetadata) GetGid() uint32 {
+	if x != nil {
+		return x.Gid
+	}
+	return 0
+}
+
+func (x *FsMetadata) GetGen() uint64 {
+	if x != nil {
+		return x.Gen
+	}
+	return 0
+}
+
+type GetFsNodeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFsNodeRequest) Reset() {
+	*x = GetFsNodeRequest{}
+	mi := &file_stash_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFsNodeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFsNodeRequest) ProtoMessage() {}
+
+func (x *GetFsNodeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFsNodeRequest.ProtoReflect.Descriptor instead.
+func (*GetFsNodeRequest) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *GetFsNodeRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type GetFsNodeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Metadata      *FsMetadata            `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Ok            bool                   `protobuf:"varint,2,opt,name=ok,proto3" json:"ok,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFsNodeResponse) Reset() {
+	*x = GetFsNodeResponse{}
+	mi := &file_stash_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFsNodeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFsNodeResponse) ProtoMessage() {}
+
+func (x *GetFsNodeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFsNodeResponse.ProtoReflect.Descriptor instead.
+func (*GetFsNodeResponse) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *GetFsNodeResponse) GetMetadata() *FsMetadata {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+func (x *GetFsNodeResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+type SetFsNodeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Metadata      *FsMetadata            `protobuf:"bytes,2,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetFsNodeRequest) Reset() {
+	*x = SetFsNodeRequest{}
+	mi := &file_stash_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetFsNodeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetFsNodeRequest) ProtoMessage() {}
+
+func (x *SetFsNodeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetFsNodeRequest.ProtoReflect.Descriptor instead.
+func (*SetFsNodeRequest) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *SetFsNodeRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *SetFsNodeRequest) GetMetadata() *FsMetadata {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+type SetFsNodeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetFsNodeResponse) Reset() {
+	*x = SetFsNodeResponse{}
+	mi := &file_stash_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetFsNodeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetFsNodeResponse) ProtoMessage() {}
+
+func (x *SetFsNodeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetFsNodeResponse.ProtoReflect.Descriptor instead.
+func (*SetFsNodeResponse) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *SetFsNodeResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+type RemoveFsNodeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveFsNodeRequest) Reset() {
+	*x = RemoveFsNodeRequest{}
+	mi := &file_stash_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveFsNodeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveFsNodeRequest) ProtoMessage() {}
+
+func (x *RemoveFsNodeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveFsNodeRequest.ProtoReflect.Descriptor instead.
+func (*RemoveFsNodeRequest) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *RemoveFsNodeRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type RemoveFsNodeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveFsNodeResponse) Reset() {
+	*x = RemoveFsNodeResponse{}
+	mi := &file_stash_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveFsNodeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveFsNodeResponse) ProtoMessage() {}
+
+func (x *RemoveFsNodeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveFsNodeResponse.ProtoReflect.Descriptor instead.
+func (*RemoveFsNodeResponse) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *RemoveFsNodeResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+type GetFsNodeChildrenRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFsNodeChildrenRequest) Reset() {
+	*x = GetFsNodeChildrenRequest{}
+	mi := &file_stash_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFsNodeChildrenRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFsNodeChildrenRequest) ProtoMessage() {}
+
+func (x *GetFsNodeChildrenRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFsNodeChildrenRequest.ProtoReflect.Descriptor instead.
+func (*GetFsNodeChildrenRequest) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *GetFsNodeChildrenRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type GetFsNodeChildrenResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Children      []*FsMetadata          `protobuf:"bytes,1,rep,name=children,proto3" json:"children,omitempty"`
+	Ok            bool                   `protobuf:"varint,2,opt,name=ok,proto3" json:"ok,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFsNodeChildrenResponse) Reset() {
+	*x = GetFsNodeChildrenResponse{}
+	mi := &file_stash_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFsNodeChildrenResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFsNodeChildrenResponse) ProtoMessage() {}
+
+func (x *GetFsNodeChildrenResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFsNodeChildrenResponse.ProtoReflect.Descriptor instead.
+func (*GetFsNodeChildrenResponse) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *GetFsNodeChildrenResponse) GetChildren() []*FsMetadata {
+	if x != nil {
+		return x.Children
+	}
+	return nil
+}
+
+func (x *GetFsNodeChildrenResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+type AddFsNodeChildRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ParentId      string                 `protobuf:"bytes,1,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
+	ChildId       string                 `protobuf:"bytes,2,opt,name=child_id,json=childId,proto3" json:"child_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddFsNodeChildRequest) Reset() {
+	*x = AddFsNodeChildRequest{}
+	mi := &file_stash_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddFsNodeChildRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddFsNodeChildRequest) ProtoMessage() {}
+
+func (x *AddFsNodeChildRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddFsNodeChildRequest.ProtoReflect.Descriptor instead.
+func (*AddFsNodeChildRequest) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *AddFsNodeChildRequest) GetParentId() string {
+	if x != nil {
+		return x.ParentId
+	}
+	return ""
+}
+
+func (x *AddFsNodeChildRequest) GetChildId() string {
+	if x != nil {
+		return x.ChildId
+	}
+	return ""
+}
+
+type AddFsNodeChildResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddFsNodeChildResponse) Reset() {
+	*x = AddFsNodeChildResponse{}
+	mi := &file_stash_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddFsNodeChildResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddFsNodeChildResponse) ProtoMessage() {}
+
+func (x *AddFsNodeChildResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddFsNodeChildResponse.ProtoReflect.Descriptor instead.
+func (*AddFsNodeChildResponse) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *AddFsNodeChildResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
+type RemoveFsNodeChildRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ParentId      string                 `protobuf:"bytes,1,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
+	ChildId       string                 `protobuf:"bytes,2,opt,name=child_id,json=childId,proto3" json:"child_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveFsNodeChildRequest) Reset() {
+	*x = RemoveFsNodeChildRequest{}
+	mi := &file_stash_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveFsNodeChildRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveFsNodeChildRequest) ProtoMessage() {}
+
+func (x *RemoveFsNodeChildRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveFsNodeChildRequest.ProtoReflect.Descriptor instead.
+func (*RemoveFsNodeChildRequest) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *RemoveFsNodeChildRequest) GetParentId() string {
+	if x != nil {
+		return x.ParentId
+	}
+	return ""
+}
+
+func (x *RemoveFsNodeChildRequest) GetChildId() string {
+	if x != nil {
+		return x.ChildId
+	}
+	return ""
+}
+
+type RemoveFsNodeChildResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveFsNodeChildResponse) Reset() {
+	*x = RemoveFsNodeChildResponse{}
+	mi := &file_stash_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveFsNodeChildResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveFsNodeChildResponse) ProtoMessage() {}
+
+func (x *RemoveFsNodeChildResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_stash_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveFsNodeChildResponse.ProtoReflect.Descriptor instead.
+func (*RemoveFsNodeChildResponse) Descriptor() ([]byte, []int) {
+	return file_stash_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *RemoveFsNodeChildResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
 var File_stash_proto protoreflect.FileDescriptor
 
 const file_stash_proto_rawDesc = "" +
@@ -199,8 +1847,127 @@ const file_stash_proto_rawDesc = "" +
 	"\x04Host\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12(\n" +
 	"\aaddress\x18\x02 \x01(\v2\x0e.stash.AddressR\aaddress\x12+\n" +
-	"\bcapacity\x18\x03 \x01(\v2\x0f.stash.CapacityR\bcapacity2\a\n" +
-	"\x05StashB)Z'github.com/codecflow/fabric/stash/protob\x06proto3"
+	"\bcapacity\x18\x03 \x01(\v2\x0f.stash.CapacityR\bcapacity\"T\n" +
+	"\x15AddHostToIndexRequest\x12\x1a\n" +
+	"\blocality\x18\x01 \x01(\tR\blocality\x12\x1f\n" +
+	"\x04host\x18\x02 \x01(\v2\v.stash.HostR\x04host\"(\n" +
+	"\x16AddHostToIndexResponse\x12\x0e\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok\"V\n" +
+	"\x17SetHostKeepAliveRequest\x12\x1a\n" +
+	"\blocality\x18\x01 \x01(\tR\blocality\x12\x1f\n" +
+	"\x04host\x18\x02 \x01(\v2\v.stash.HostR\x04host\"*\n" +
+	"\x18SetHostKeepAliveResponse\x12\x0e\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok\"6\n" +
+	"\x18GetAvailableHostsRequest\x12\x1a\n" +
+	"\blocality\x18\x01 \x01(\tR\blocality\"N\n" +
+	"\x19GetAvailableHostsResponse\x12!\n" +
+	"\x05hosts\x18\x01 \x03(\v2\v.stash.HostR\x05hosts\x12\x0e\n" +
+	"\x02ok\x18\x02 \x01(\bR\x02ok\"4\n" +
+	"\x16GetRegionConfigRequest\x12\x1a\n" +
+	"\blocality\x18\x01 \x01(\tR\blocality\"J\n" +
+	"\x17GetRegionConfigResponse\x12\x1f\n" +
+	"\vconfig_json\x18\x01 \x01(\tR\n" +
+	"configJson\x12\x0e\n" +
+	"\x02ok\x18\x02 \x01(\bR\x02ok\"C\n" +
+	"\x14SetClientLockRequest\x12\x12\n" +
+	"\x04hash\x18\x01 \x01(\tR\x04hash\x12\x17\n" +
+	"\ahost_id\x18\x02 \x01(\tR\x06hostId\"'\n" +
+	"\x15SetClientLockResponse\x12\x0e\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok\"F\n" +
+	"\x17RemoveClientLockRequest\x12\x12\n" +
+	"\x04hash\x18\x01 \x01(\tR\x04hash\x12\x17\n" +
+	"\ahost_id\x18\x02 \x01(\tR\x06hostId\"*\n" +
+	"\x18RemoveClientLockResponse\x12\x0e\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok\"]\n" +
+	"\x1eSetStoreFromContentLockRequest\x12\x1a\n" +
+	"\blocality\x18\x01 \x01(\tR\blocality\x12\x1f\n" +
+	"\vsource_path\x18\x02 \x01(\tR\n" +
+	"sourcePath\"1\n" +
+	"\x1fSetStoreFromContentLockResponse\x12\x0e\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok\"`\n" +
+	"!RemoveStoreFromContentLockRequest\x12\x1a\n" +
+	"\blocality\x18\x01 \x01(\tR\blocality\x12\x1f\n" +
+	"\vsource_path\x18\x02 \x01(\tR\n" +
+	"sourcePath\"4\n" +
+	"\"RemoveStoreFromContentLockResponse\x12\x0e\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok\"a\n" +
+	"\"RefreshStoreFromContentLockRequest\x12\x1a\n" +
+	"\blocality\x18\x01 \x01(\tR\blocality\x12\x1f\n" +
+	"\vsource_path\x18\x02 \x01(\tR\n" +
+	"sourcePath\"5\n" +
+	"#RefreshStoreFromContentLockResponse\x12\x0e\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok\"\xec\x03\n" +
+	"\n" +
+	"FsMetadata\x12\x10\n" +
+	"\x03pid\x18\x01 \x01(\tR\x03pid\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x12\n" +
+	"\x04path\x18\x04 \x01(\tR\x04path\x12\x12\n" +
+	"\x04hash\x18\x05 \x01(\tR\x04hash\x12\x10\n" +
+	"\x03ino\x18\x06 \x01(\x04R\x03ino\x12\x12\n" +
+	"\x04size\x18\a \x01(\x04R\x04size\x12\x16\n" +
+	"\x06blocks\x18\b \x01(\x04R\x06blocks\x12\x14\n" +
+	"\x05atime\x18\t \x01(\x04R\x05atime\x12\x14\n" +
+	"\x05mtime\x18\n" +
+	" \x01(\x04R\x05mtime\x12\x14\n" +
+	"\x05ctime\x18\v \x01(\x04R\x05ctime\x12\x1c\n" +
+	"\tatimensec\x18\f \x01(\rR\tatimensec\x12\x1c\n" +
+	"\tmtimensec\x18\r \x01(\rR\tmtimensec\x12\x1c\n" +
+	"\tctimensec\x18\x0e \x01(\rR\tctimensec\x12\x12\n" +
+	"\x04mode\x18\x0f \x01(\rR\x04mode\x12\x14\n" +
+	"\x05nlink\x18\x10 \x01(\rR\x05nlink\x12\x12\n" +
+	"\x04rdev\x18\x11 \x01(\rR\x04rdev\x12\x18\n" +
+	"\ablksize\x18\x12 \x01(\rR\ablksize\x12\x18\n" +
+	"\apadding\x18\x13 \x01(\rR\apadding\x12\x10\n" +
+	"\x03uid\x18\x14 \x01(\rR\x03uid\x12\x10\n" +
+	"\x03gid\x18\x15 \x01(\rR\x03gid\x12\x10\n" +
+	"\x03gen\x18\x16 \x01(\x04R\x03gen\"\"\n" +
+	"\x10GetFsNodeRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"R\n" +
+	"\x11GetFsNodeResponse\x12-\n" +
+	"\bmetadata\x18\x01 \x01(\v2\x11.stash.FsMetadataR\bmetadata\x12\x0e\n" +
+	"\x02ok\x18\x02 \x01(\bR\x02ok\"Q\n" +
+	"\x10SetFsNodeRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12-\n" +
+	"\bmetadata\x18\x02 \x01(\v2\x11.stash.FsMetadataR\bmetadata\"#\n" +
+	"\x11SetFsNodeResponse\x12\x0e\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok\"%\n" +
+	"\x13RemoveFsNodeRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"&\n" +
+	"\x14RemoveFsNodeResponse\x12\x0e\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok\"*\n" +
+	"\x18GetFsNodeChildrenRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"Z\n" +
+	"\x19GetFsNodeChildrenResponse\x12-\n" +
+	"\bchildren\x18\x01 \x03(\v2\x11.stash.FsMetadataR\bchildren\x12\x0e\n" +
+	"\x02ok\x18\x02 \x01(\bR\x02ok\"O\n" +
+	"\x15AddFsNodeChildRequest\x12\x1b\n" +
+	"\tparent_id\x18\x01 \x01(\tR\bparentId\x12\x19\n" +
+	"\bchild_id\x18\x02 \x01(\tR\achildId\"(\n" +
+	"\x16AddFsNodeChildResponse\x12\x0e\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok\"R\n" +
+	"\x18RemoveFsNodeChildRequest\x12\x1b\n" +
+	"\tparent_id\x18\x01 \x01(\tR\bparentId\x12\x19\n" +
+	"\bchild_id\x18\x02 \x01(\tR\achildId\"+\n" +
+	"\x19RemoveFsNodeChildResponse\x12\x0e\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok2\x91\n" +
+	"\n" +
+	"\x05Stash\x12M\n" +
+	"\x0eAddHostToIndex\x12\x1c.stash.AddHostToIndexRequest\x1a\x1d.stash.AddHostToIndexResponse\x12S\n" +
+	"\x10SetHostKeepAlive\x12\x1e.stash.SetHostKeepAliveRequest\x1a\x1f.stash.SetHostKeepAliveResponse\x12V\n" +
+	"\x11GetAvailableHosts\x12\x1f.stash.GetAvailableHostsRequest\x1a .stash.GetAvailableHostsResponse\x12P\n" +
+	"\x0fGetRegionConfig\x12\x1d.stash.GetRegionConfigRequest\x1a\x1e.stash.GetRegionConfigResponse\x12J\n" +
+	"\rSetClientLock\x12\x1b.stash.SetClientLockRequest\x1a\x1c.stash.SetClientLockResponse\x12S\n" +
+	"\x10RemoveClientLock\x12\x1e.stash.RemoveClientLockRequest\x1a\x1f.stash.RemoveClientLockResponse\x12h\n" +
+	"\x17SetStoreFromContentLock\x12%.stash.SetStoreFromContentLockRequest\x1a&.stash.SetStoreFromContentLockResponse\x12q\n" +
+	"\x1aRemoveStoreFromContentLock\x12(.stash.RemoveStoreFromContentLockRequest\x1a).stash.RemoveStoreFromContentLockResponse\x12t\n" +
+	"\x1bRefreshStoreFromContentLock\x12).stash.RefreshStoreFromContentLockRequest\x1a*.stash.RefreshStoreFromContentLockResponse\x12>\n" +
+	"\tGetFsNode\x12\x17.stash.GetFsNodeRequest\x1a\x18.stash.GetFsNodeResponse\x12>\n" +
+	"\tSetFsNode\x12\x17.stash.SetFsNodeRequest\x1a\x18.stash.SetFsNodeResponse\x12G\n" +
+	"\fRemoveFsNode\x12\x1a.stash.RemoveFsNodeRequest\x1a\x1b.stash.RemoveFsNodeResponse\x12V\n" +
+	"\x11GetFsNodeChildren\x12\x1f.stash.GetFsNodeChildrenRequest\x1a .stash.GetFsNodeChildrenResponse\x12M\n" +
+	"\x0eAddFsNodeChild\x12\x1c.stash.AddFsNodeChildRequest\x1a\x1d.stash.AddFsNodeChildResponse\x12V\n" +
+	"\x11RemoveFsNodeChild\x12\x1f.stash.RemoveFsNodeChildRequest\x1a .stash.RemoveFsNodeChildResponseB)Z'github.com/codecflow/fabric/stash/protob\x06proto3"
 
 var (
 	file_stash_proto_rawDescOnce sync.Once
@@ -214,20 +1981,87 @@ func file_stash_proto_rawDescGZIP() []byte {
 	return file_stash_proto_rawDescData
 }
 
-var file_stash_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_stash_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
 var file_stash_proto_goTypes = []any{
-	(*Address)(nil),  // 0: stash.Address
-	(*Capacity)(nil), // 1: stash.Capacity
-	(*Host)(nil),     // 2: stash.Host
+	(*Address)(nil),                             // 0: stash.Address
+	(*Capacity)(nil),                            // 1: stash.Capacity
+	(*Host)(nil),                                // 2: stash.Host
+	(*AddHostToIndexRequest)(nil),               // 3: stash.AddHostToIndexRequest
+	(*AddHostToIndexResponse)(nil),              // 4: stash.AddHostToIndexResponse
+	(*SetHostKeepAliveRequest)(nil),             // 5: stash.SetHostKeepAliveRequest
+	(*SetHostKeepAliveResponse)(nil),            // 6: stash.SetHostKeepAliveResponse
+	(*GetAvailableHostsRequest)(nil),            // 7: stash.GetAvailableHostsRequest
+	(*GetAvailableHostsResponse)(nil),           // 8: stash.GetAvailableHostsResponse
+	(*GetRegionConfigRequest)(nil),              // 9: stash.GetRegionConfigRequest
+	(*GetRegionConfigResponse)(nil),             // 10: stash.GetRegionConfigResponse
+	(*SetClientLockRequest)(nil),                // 11: stash.SetClientLockRequest
+	(*SetClientLockResponse)(nil),               // 12: stash.SetClientLockResponse
+	(*RemoveClientLockRequest)(nil),             // 13: stash.RemoveClientLockRequest
+	(*RemoveClientLockResponse)(nil),            // 14: stash.RemoveClientLockResponse
+	(*SetStoreFromContentLockRequest)(nil),      // 15: stash.SetStoreFromContentLockRequest
+	(*SetStoreFromContentLockResponse)(nil),     // 16: stash.SetStoreFromContentLockResponse
+	(*RemoveStoreFromContentLockRequest)(nil),   // 17: stash.RemoveStoreFromContentLockRequest
+	(*RemoveStoreFromContentLockResponse)(nil),  // 18: stash.RemoveStoreFromContentLockResponse
+	(*RefreshStoreFromContentLockRequest)(nil),  // 19: stash.RefreshStoreFromContentLockRequest
+	(*RefreshStoreFromContentLockResponse)(nil), // 20: stash.RefreshStoreFromContentLockResponse
+	(*FsMetadata)(nil),                          // 21: stash.FsMetadata
+	(*GetFsNodeRequest)(nil),                    // 22: stash.GetFsNodeRequest
+	(*GetFsNodeResponse)(nil),                   // 23: stash.GetFsNodeResponse
+	(*SetFsNodeRequest)(nil),                    // 24: stash.SetFsNodeRequest
+	(*SetFsNodeResponse)(nil),                   // 25: stash.SetFsNodeResponse
+	(*RemoveFsNodeRequest)(nil),                 // 26: stash.RemoveFsNodeRequest
+	(*RemoveFsNodeResponse)(nil),                // 27: stash.RemoveFsNodeResponse
+	(*GetFsNodeChildrenRequest)(nil),            // 28: stash.GetFsNodeChildrenRequest
+	(*GetFsNodeChildrenResponse)(nil),           // 29: stash.GetFsNodeChildrenResponse
+	(*AddFsNodeChildRequest)(nil),               // 30: stash.AddFsNodeChildRequest
+	(*AddFsNodeChildResponse)(nil),              // 31: stash.AddFsNodeChildResponse
+	(*RemoveFsNodeChildRequest)(nil),            // 32: stash.RemoveFsNodeChildRequest
+	(*RemoveFsNodeChildResponse)(nil),           // 33: stash.RemoveFsNodeChildResponse
 }
 var file_stash_proto_depIdxs = []int32{
-	0, // 0: stash.Host.address:type_name -> stash.Address
-	1, // 1: stash.Host.capacity:type_name -> stash.Capacity
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	0,  // 0: stash.Host.address:type_name -> stash.Address
+	1,  // 1: stash.Host.capacity:type_name -> stash.Capacity
+	2,  // 2: stash.AddHostToIndexRequest.host:type_name -> stash.Host
+	2,  // 3: stash.SetHostKeepAliveRequest.host:type_name -> stash.Host
+	2,  // 4: stash.GetAvailableHostsResponse.hosts:type_name -> stash.Host
+	21, // 5: stash.GetFsNodeResponse.metadata:type_name -> stash.FsMetadata
+	21, // 6: stash.SetFsNodeRequest.metadata:type_name -> stash.FsMetadata
+	21, // 7: stash.GetFsNodeChildrenResponse.children:type_name -> stash.FsMetadata
+	3,  // 8: stash.Stash.AddHostToIndex:input_type -> stash.AddHostToIndexRequest
+	5,  // 9: stash.Stash.SetHostKeepAlive:input_type -> stash.SetHostKeepAliveRequest
+	7,  // 10: stash.Stash.GetAvailableHosts:input_type -> stash.GetAvailableHostsRequest
+	9,  // 11: stash.Stash.GetRegionConfig:input_type -> stash.GetRegionConfigRequest
+	11, // 12: stash.Stash.SetClientLock:input_type -> stash.SetClientLockRequest
+	13, // 13: stash.Stash.RemoveClientLock:input_type -> stash.RemoveClientLockRequest
+	15, // 14: stash.Stash.SetStoreFromContentLock:input_type -> stash.SetStoreFromContentLockRequest
+	17, // 15: stash.Stash.RemoveStoreFromContentLock:input_type -> stash.RemoveStoreFromContentLockRequest
+	19, // 16: stash.Stash.RefreshStoreFromContentLock:input_type -> stash.RefreshStoreFromContentLockRequest
+	22, // 17: stash.Stash.GetFsNode:input_type -> stash.GetFsNodeRequest
+	24, // 18: stash.Stash.SetFsNode:input_type -> stash.SetFsNodeRequest
+	26, // 19: stash.Stash.RemoveFsNode:input_type -> stash.RemoveFsNodeRequest
+	28, // 20: stash.Stash.GetFsNodeChildren:input_type -> stash.GetFsNodeChildrenRequest
+	30, // 21: stash.Stash.AddFsNodeChild:input_type -> stash.AddFsNodeChildRequest
+	32, // 22: stash.Stash.RemoveFsNodeChild:input_type -> stash.RemoveFsNodeChildRequest
+	4,  // 23: stash.Stash.AddHostToIndex:output_type -> stash.AddHostToIndexResponse
+	6,  // 24: stash.Stash.SetHostKeepAlive:output_type -> stash.SetHostKeepAliveResponse
+	8,  // 25: stash.Stash.GetAvailableHosts:output_type -> stash.GetAvailableHostsResponse
+	10, // 26: stash.Stash.GetRegionConfig:output_type -> stash.GetRegionConfigResponse
+	12, // 27: stash.Stash.SetClientLock:output_type -> stash.SetClientLockResponse
+	14, // 28: stash.Stash.RemoveClientLock:output_type -> stash.RemoveClientLockResponse
+	16, // 29: stash.Stash.SetStoreFromContentLock:output_type -> stash.SetStoreFromContentLockResponse
+	18, // 30: stash.Stash.RemoveStoreFromContentLock:output_type -> stash.RemoveStoreFromContentLockResponse
+	20, // 31: stash.Stash.RefreshStoreFromContentLock:output_type -> stash.RefreshStoreFromContentLockResponse
+	23, // 32: stash.Stash.GetFsNode:output_type -> stash.GetFsNodeResponse
+	25, // 33: stash.Stash.SetFsNode:output_type -> stash.SetFsNodeResponse
+	27, // 34: stash.Stash.RemoveFsNode:output_type -> stash.RemoveFsNodeResponse
+	29, // 35: stash.Stash.GetFsNodeChildren:output_type -> stash.GetFsNodeChildrenResponse
+	31, // 36: stash.Stash.AddFsNodeChild:output_type -> stash.AddFsNodeChildResponse
+	33, // 37: stash.Stash.RemoveFsNodeChild:output_type -> stash.RemoveFsNodeChildResponse
+	23, // [23:38] is the sub-list for method output_type
+	8,  // [8:23] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_stash_proto_init() }
@@ -241,7 +2075,7 @@ func file_stash_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_stash_proto_rawDesc), len(file_stash_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   34,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

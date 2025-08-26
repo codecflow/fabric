@@ -6,7 +6,28 @@ package stash;
 
 
 service Stash {
-
+  // Host operations
+  rpc AddHostToIndex(AddHostToIndexRequest) returns (AddHostToIndexResponse);
+  rpc SetHostKeepAlive(SetHostKeepAliveRequest) returns (SetHostKeepAliveResponse);
+  rpc GetAvailableHosts(GetAvailableHostsRequest) returns (GetAvailableHostsResponse);
+  rpc GetRegionConfig(GetRegionConfigRequest) returns (GetRegionConfigResponse);
+  
+  // Client locking
+  rpc SetClientLock(SetClientLockRequest) returns (SetClientLockResponse);
+  rpc RemoveClientLock(RemoveClientLockRequest) returns (RemoveClientLockResponse);
+  
+  // Content locking
+  rpc SetStoreFromContentLock(SetStoreFromContentLockRequest) returns (SetStoreFromContentLockResponse);
+  rpc RemoveStoreFromContentLock(RemoveStoreFromContentLockRequest) returns (RemoveStoreFromContentLockResponse);
+  rpc RefreshStoreFromContentLock(RefreshStoreFromContentLockRequest) returns (RefreshStoreFromContentLockResponse);
+  
+  // Filesystem operations
+  rpc GetFsNode(GetFsNodeRequest) returns (GetFsNodeResponse);
+  rpc SetFsNode(SetFsNodeRequest) returns (SetFsNodeResponse);
+  rpc RemoveFsNode(RemoveFsNodeRequest) returns (RemoveFsNodeResponse);
+  rpc GetFsNodeChildren(GetFsNodeChildrenRequest) returns (GetFsNodeChildrenResponse);
+  rpc AddFsNodeChild(AddFsNodeChildRequest) returns (AddFsNodeChildResponse);
+  rpc RemoveFsNodeChild(RemoveFsNodeChildRequest) returns (RemoveFsNodeChildResponse);
 }
 
 message Address {
@@ -23,4 +44,167 @@ message Host {
   string id = 1;
   Address address = 2;
   Capacity capacity = 3;
+}
+
+// Host operations
+message AddHostToIndexRequest {
+  string locality = 1;
+  Host host = 2;
+}
+
+message AddHostToIndexResponse {
+  bool ok = 1;
+}
+
+message SetHostKeepAliveRequest {
+  string locality = 1;
+  Host host = 2;
+}
+
+message SetHostKeepAliveResponse {
+  bool ok = 1;
+}
+
+message GetAvailableHostsRequest {
+  string locality = 1;
+}
+
+message GetAvailableHostsResponse {
+  repeated Host hosts = 1;
+  bool ok = 2;
+}
+
+message GetRegionConfigRequest {
+  string locality = 1;
+}
+
+message GetRegionConfigResponse {
+  string config_json = 1;  // JSON-encoded server config
+  bool ok = 2;
+}
+
+// Client locking
+message SetClientLockRequest {
+  string hash = 1;
+  string host_id = 2;
+}
+
+message SetClientLockResponse {
+  bool ok = 1;
+}
+
+message RemoveClientLockRequest {
+  string hash = 1;
+  string host_id = 2;
+}
+
+message RemoveClientLockResponse {
+  bool ok = 1;
+}
+
+// Content locking
+message SetStoreFromContentLockRequest {
+  string locality = 1;
+  string source_path = 2;
+}
+
+message SetStoreFromContentLockResponse {
+  bool ok = 1;
+}
+
+message RemoveStoreFromContentLockRequest {
+  string locality = 1;
+  string source_path = 2;
+}
+
+message RemoveStoreFromContentLockResponse {
+  bool ok = 1;
+}
+
+message RefreshStoreFromContentLockRequest {
+  string locality = 1;
+  string source_path = 2;
+}
+
+message RefreshStoreFromContentLockResponse {
+  bool ok = 1;
+}
+
+// Filesystem operations
+message FsMetadata {
+  string pid = 1;
+  string id = 2;
+  string name = 3;
+  string path = 4;
+  string hash = 5;
+  uint64 ino = 6;
+  uint64 size = 7;
+  uint64 blocks = 8;
+  uint64 atime = 9;
+  uint64 mtime = 10;
+  uint64 ctime = 11;
+  uint32 atimensec = 12;
+  uint32 mtimensec = 13;
+  uint32 ctimensec = 14;
+  uint32 mode = 15;
+  uint32 nlink = 16;
+  uint32 rdev = 17;
+  uint32 blksize = 18;
+  uint32 padding = 19;
+  uint32 uid = 20;
+  uint32 gid = 21;
+  uint64 gen = 22;
+}
+
+message GetFsNodeRequest {
+  string id = 1;
+}
+
+message GetFsNodeResponse {
+  FsMetadata metadata = 1;
+  bool ok = 2;
+}
+
+message SetFsNodeRequest {
+  string id = 1;
+  FsMetadata metadata = 2;
+}
+
+message SetFsNodeResponse {
+  bool ok = 1;
+}
+
+message RemoveFsNodeRequest {
+  string id = 1;
+}
+
+message RemoveFsNodeResponse {
+  bool ok = 1;
+}
+
+message GetFsNodeChildrenRequest {
+  string id = 1;
+}
+
+message GetFsNodeChildrenResponse {
+  repeated FsMetadata children = 1;
+  bool ok = 2;
+}
+
+message AddFsNodeChildRequest {
+  string parent_id = 1;
+  string child_id = 2;
+}
+
+message AddFsNodeChildResponse {
+  bool ok = 1;
+}
+
+message RemoveFsNodeChildRequest {
+  string parent_id = 1;
+  string child_id = 2;
+}
+
+message RemoveFsNodeChildResponse {
+  bool ok = 1;
 }
