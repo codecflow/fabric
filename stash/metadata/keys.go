@@ -1,9 +1,13 @@
 package metadata
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
+
+// ErrKeyNotFound is returned when a key doesn't exist in the backend.
+var ErrKeyNotFound = errors.New("key not found")
 
 // Keys provides methods to generate Redis keys for the stash metadata store.
 var Keys = &keys{}

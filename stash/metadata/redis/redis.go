@@ -121,6 +121,29 @@ func (b *Backend) HGetAll(ctx context.Context, key string) (map[string]string, e
 	return b.client.HGetAll(ctx, key).Result()
 }
 
+// SetObject stores a struct as a Redis hash using redis tags.
+// The struct fields must have `redis:"fieldname"` tags.
+func (b *Backend) SetObject(ctx context.Context, key string, v interface{}) error {
+	fields := toHash(v)
+	return b.client.HSet(ctx, key, fields).Err()
+}
+
+// GetObject retrieves a Redis hash into a struct using redis tags.
+// Returns metadata.ErrKeyNotFound if the key doesn't exist or hash is empty.
+func (b *Backend) GetObject(ctx context.Context, key string, out interface{}) error {
+	data, err := b.client.HGetAll(ctx, key).Result()
+	if err != nil {
+		if err == redis.Nil {
+			return metadata.ErrKeyNotFound
+		}
+		return err
+	}
+	if len(data) == 0 {
+		return metadata.ErrKeyNotFound
+	}
+	return fromHash(data, out)
+}
+
 // Lock acquires a distributed lock.
 // Returns an unlock function that should be called to release the lock.
 func (b *Backend) Lock(ctx context.Context, key string, ttl time.Duration, retries int) (func() error, error) {

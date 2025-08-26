@@ -2,12 +2,8 @@ package metadata
 
 import (
 	"context"
-	"errors"
 	"time"
 )
-
-// ErrKeyNotFound is returned when a key doesn't exist in the backend.
-var ErrKeyNotFound = errors.New("key not found")
 
 // Backend defines the interface for metadata storage.
 // Implementations can use Redis, in-memory maps, etcd, or any other K/V store.
@@ -34,6 +30,12 @@ type Backend interface {
 	// Used for: filesystem node metadata (ino, size, mode, etc.)
 	HSet(ctx context.Context, key string, fields map[string]interface{}) error
 	HGetAll(ctx context.Context, key string) (map[string]string, error)
+
+	// Object storage (backends handle serialization internally)
+	// Used for: storing structured data like FsMetadata
+	// Each backend can optimize storage (Redis: hash, Memory: direct, etcd: JSON)
+	SetObject(ctx context.Context, key string, v interface{}) error
+	GetObject(ctx context.Context, key string, out interface{}) error
 
 	// Distributed locking
 	// Lock attempts to acquire a lock and returns an unlock function
