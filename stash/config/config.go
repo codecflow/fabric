@@ -2,6 +2,7 @@ package config
 
 import (
 	_ "embed"
+	"os"
 
 	"github.com/knadh/koanf/v2"
 )
@@ -58,6 +59,16 @@ type Global struct {
 	GRPCNumStreamWorkers            int     `key:"grpcNumStreamWorkers" json:"grpc_num_stream_workers"`
 	DebugMode                       bool    `key:"debugMode" json:"debug_mode"`
 	PrettyLogs                      bool    `key:"prettyLogs" json:"pretty_logs"`
+}
+
+// GetLocality returns the default locality.
+func (g *Global) GetLocality() string {
+	locality := os.Getenv("STASH_LOCALITY")
+	if locality != "" {
+		return locality
+	}
+
+	return g.DefaultLocality
 }
 
 type Metrics struct {
