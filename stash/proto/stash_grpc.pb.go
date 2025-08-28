@@ -19,27 +19,42 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Stash_AddHostToIndex_FullMethodName              = "/stash.Stash/AddHostToIndex"
-	Stash_SetHostKeepAlive_FullMethodName            = "/stash.Stash/SetHostKeepAlive"
-	Stash_GetAvailableHosts_FullMethodName           = "/stash.Stash/GetAvailableHosts"
-	Stash_GetRegionConfig_FullMethodName             = "/stash.Stash/GetRegionConfig"
-	Stash_SetClientLock_FullMethodName               = "/stash.Stash/SetClientLock"
-	Stash_RemoveClientLock_FullMethodName            = "/stash.Stash/RemoveClientLock"
-	Stash_SetStoreFromContentLock_FullMethodName     = "/stash.Stash/SetStoreFromContentLock"
-	Stash_RemoveStoreFromContentLock_FullMethodName  = "/stash.Stash/RemoveStoreFromContentLock"
-	Stash_RefreshStoreFromContentLock_FullMethodName = "/stash.Stash/RefreshStoreFromContentLock"
-	Stash_GetFsNode_FullMethodName                   = "/stash.Stash/GetFsNode"
-	Stash_SetFsNode_FullMethodName                   = "/stash.Stash/SetFsNode"
-	Stash_RemoveFsNode_FullMethodName                = "/stash.Stash/RemoveFsNode"
-	Stash_GetFsNodeChildren_FullMethodName           = "/stash.Stash/GetFsNodeChildren"
-	Stash_AddFsNodeChild_FullMethodName              = "/stash.Stash/AddFsNodeChild"
-	Stash_RemoveFsNodeChild_FullMethodName           = "/stash.Stash/RemoveFsNodeChild"
+	Stash_GetContent_FullMethodName                     = "/stash.Stash/GetContent"
+	Stash_HasContent_FullMethodName                     = "/stash.Stash/HasContent"
+	Stash_GetContentStream_FullMethodName               = "/stash.Stash/GetContentStream"
+	Stash_StoreContent_FullMethodName                   = "/stash.Stash/StoreContent"
+	Stash_StoreContentFromSource_FullMethodName         = "/stash.Stash/StoreContentFromSource"
+	Stash_StoreContentFromSourceWithLock_FullMethodName = "/stash.Stash/StoreContentFromSourceWithLock"
+	Stash_GetState_FullMethodName                       = "/stash.Stash/GetState"
+	Stash_AddHostToIndex_FullMethodName                 = "/stash.Stash/AddHostToIndex"
+	Stash_SetHostKeepAlive_FullMethodName               = "/stash.Stash/SetHostKeepAlive"
+	Stash_GetAvailableHosts_FullMethodName              = "/stash.Stash/GetAvailableHosts"
+	Stash_GetRegionConfig_FullMethodName                = "/stash.Stash/GetRegionConfig"
+	Stash_SetClientLock_FullMethodName                  = "/stash.Stash/SetClientLock"
+	Stash_RemoveClientLock_FullMethodName               = "/stash.Stash/RemoveClientLock"
+	Stash_SetStoreFromContentLock_FullMethodName        = "/stash.Stash/SetStoreFromContentLock"
+	Stash_RemoveStoreFromContentLock_FullMethodName     = "/stash.Stash/RemoveStoreFromContentLock"
+	Stash_RefreshStoreFromContentLock_FullMethodName    = "/stash.Stash/RefreshStoreFromContentLock"
+	Stash_GetFsNode_FullMethodName                      = "/stash.Stash/GetFsNode"
+	Stash_SetFsNode_FullMethodName                      = "/stash.Stash/SetFsNode"
+	Stash_RemoveFsNode_FullMethodName                   = "/stash.Stash/RemoveFsNode"
+	Stash_GetFsNodeChildren_FullMethodName              = "/stash.Stash/GetFsNodeChildren"
+	Stash_AddFsNodeChild_FullMethodName                 = "/stash.Stash/AddFsNodeChild"
+	Stash_RemoveFsNodeChild_FullMethodName              = "/stash.Stash/RemoveFsNodeChild"
 )
 
 // StashClient is the client API for Stash service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type StashClient interface {
+	// Cache operations
+	GetContent(ctx context.Context, in *GetContentRequest, opts ...grpc.CallOption) (*GetContentResponse, error)
+	HasContent(ctx context.Context, in *HasContentRequest, opts ...grpc.CallOption) (*HasContentResponse, error)
+	GetContentStream(ctx context.Context, in *GetContentRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetContentResponse], error)
+	StoreContent(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[StoreContentRequest, StoreContentResponse], error)
+	StoreContentFromSource(ctx context.Context, in *StoreContentFromSourceRequest, opts ...grpc.CallOption) (*StoreContentFromSourceResponse, error)
+	StoreContentFromSourceWithLock(ctx context.Context, in *StoreContentFromSourceRequest, opts ...grpc.CallOption) (*StoreContentFromSourceWithLockResponse, error)
+	GetState(ctx context.Context, in *GetStateRequest, opts ...grpc.CallOption) (*GetStateResponse, error)
 	// Host operations
 	AddHostToIndex(ctx context.Context, in *AddHostToIndexRequest, opts ...grpc.CallOption) (*AddHostToIndexResponse, error)
 	SetHostKeepAlive(ctx context.Context, in *SetHostKeepAliveRequest, opts ...grpc.CallOption) (*SetHostKeepAliveResponse, error)
@@ -67,6 +82,88 @@ type stashClient struct {
 
 func NewStashClient(cc grpc.ClientConnInterface) StashClient {
 	return &stashClient{cc}
+}
+
+func (c *stashClient) GetContent(ctx context.Context, in *GetContentRequest, opts ...grpc.CallOption) (*GetContentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetContentResponse)
+	err := c.cc.Invoke(ctx, Stash_GetContent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stashClient) HasContent(ctx context.Context, in *HasContentRequest, opts ...grpc.CallOption) (*HasContentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(HasContentResponse)
+	err := c.cc.Invoke(ctx, Stash_HasContent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stashClient) GetContentStream(ctx context.Context, in *GetContentRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetContentResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Stash_ServiceDesc.Streams[0], Stash_GetContentStream_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[GetContentRequest, GetContentResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Stash_GetContentStreamClient = grpc.ServerStreamingClient[GetContentResponse]
+
+func (c *stashClient) StoreContent(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[StoreContentRequest, StoreContentResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Stash_ServiceDesc.Streams[1], Stash_StoreContent_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StoreContentRequest, StoreContentResponse]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Stash_StoreContentClient = grpc.ClientStreamingClient[StoreContentRequest, StoreContentResponse]
+
+func (c *stashClient) StoreContentFromSource(ctx context.Context, in *StoreContentFromSourceRequest, opts ...grpc.CallOption) (*StoreContentFromSourceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StoreContentFromSourceResponse)
+	err := c.cc.Invoke(ctx, Stash_StoreContentFromSource_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stashClient) StoreContentFromSourceWithLock(ctx context.Context, in *StoreContentFromSourceRequest, opts ...grpc.CallOption) (*StoreContentFromSourceWithLockResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StoreContentFromSourceWithLockResponse)
+	err := c.cc.Invoke(ctx, Stash_StoreContentFromSourceWithLock_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *stashClient) GetState(ctx context.Context, in *GetStateRequest, opts ...grpc.CallOption) (*GetStateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetStateResponse)
+	err := c.cc.Invoke(ctx, Stash_GetState_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *stashClient) AddHostToIndex(ctx context.Context, in *AddHostToIndexRequest, opts ...grpc.CallOption) (*AddHostToIndexResponse, error) {
@@ -223,6 +320,14 @@ func (c *stashClient) RemoveFsNodeChild(ctx context.Context, in *RemoveFsNodeChi
 // All implementations must embed UnimplementedStashServer
 // for forward compatibility.
 type StashServer interface {
+	// Cache operations
+	GetContent(context.Context, *GetContentRequest) (*GetContentResponse, error)
+	HasContent(context.Context, *HasContentRequest) (*HasContentResponse, error)
+	GetContentStream(*GetContentRequest, grpc.ServerStreamingServer[GetContentResponse]) error
+	StoreContent(grpc.ClientStreamingServer[StoreContentRequest, StoreContentResponse]) error
+	StoreContentFromSource(context.Context, *StoreContentFromSourceRequest) (*StoreContentFromSourceResponse, error)
+	StoreContentFromSourceWithLock(context.Context, *StoreContentFromSourceRequest) (*StoreContentFromSourceWithLockResponse, error)
+	GetState(context.Context, *GetStateRequest) (*GetStateResponse, error)
 	// Host operations
 	AddHostToIndex(context.Context, *AddHostToIndexRequest) (*AddHostToIndexResponse, error)
 	SetHostKeepAlive(context.Context, *SetHostKeepAliveRequest) (*SetHostKeepAliveResponse, error)
@@ -252,6 +357,27 @@ type StashServer interface {
 // pointer dereference when methods are called.
 type UnimplementedStashServer struct{}
 
+func (UnimplementedStashServer) GetContent(context.Context, *GetContentRequest) (*GetContentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetContent not implemented")
+}
+func (UnimplementedStashServer) HasContent(context.Context, *HasContentRequest) (*HasContentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method HasContent not implemented")
+}
+func (UnimplementedStashServer) GetContentStream(*GetContentRequest, grpc.ServerStreamingServer[GetContentResponse]) error {
+	return status.Error(codes.Unimplemented, "method GetContentStream not implemented")
+}
+func (UnimplementedStashServer) StoreContent(grpc.ClientStreamingServer[StoreContentRequest, StoreContentResponse]) error {
+	return status.Error(codes.Unimplemented, "method StoreContent not implemented")
+}
+func (UnimplementedStashServer) StoreContentFromSource(context.Context, *StoreContentFromSourceRequest) (*StoreContentFromSourceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method StoreContentFromSource not implemented")
+}
+func (UnimplementedStashServer) StoreContentFromSourceWithLock(context.Context, *StoreContentFromSourceRequest) (*StoreContentFromSourceWithLockResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method StoreContentFromSourceWithLock not implemented")
+}
+func (UnimplementedStashServer) GetState(context.Context, *GetStateRequest) (*GetStateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetState not implemented")
+}
 func (UnimplementedStashServer) AddHostToIndex(context.Context, *AddHostToIndexRequest) (*AddHostToIndexResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddHostToIndex not implemented")
 }
@@ -316,6 +442,114 @@ func RegisterStashServer(s grpc.ServiceRegistrar, srv StashServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&Stash_ServiceDesc, srv)
+}
+
+func _Stash_GetContent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetContentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StashServer).GetContent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Stash_GetContent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StashServer).GetContent(ctx, req.(*GetContentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Stash_HasContent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HasContentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StashServer).HasContent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Stash_HasContent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StashServer).HasContent(ctx, req.(*HasContentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Stash_GetContentStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetContentRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StashServer).GetContentStream(m, &grpc.GenericServerStream[GetContentRequest, GetContentResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Stash_GetContentStreamServer = grpc.ServerStreamingServer[GetContentResponse]
+
+func _Stash_StoreContent_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(StashServer).StoreContent(&grpc.GenericServerStream[StoreContentRequest, StoreContentResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Stash_StoreContentServer = grpc.ClientStreamingServer[StoreContentRequest, StoreContentResponse]
+
+func _Stash_StoreContentFromSource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StoreContentFromSourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StashServer).StoreContentFromSource(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Stash_StoreContentFromSource_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StashServer).StoreContentFromSource(ctx, req.(*StoreContentFromSourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Stash_StoreContentFromSourceWithLock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StoreContentFromSourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StashServer).StoreContentFromSourceWithLock(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Stash_StoreContentFromSourceWithLock_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StashServer).StoreContentFromSourceWithLock(ctx, req.(*StoreContentFromSourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Stash_GetState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetStateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StashServer).GetState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Stash_GetState_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StashServer).GetState(ctx, req.(*GetStateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Stash_AddHostToIndex_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -596,6 +830,26 @@ var Stash_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*StashServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
+			MethodName: "GetContent",
+			Handler:    _Stash_GetContent_Handler,
+		},
+		{
+			MethodName: "HasContent",
+			Handler:    _Stash_HasContent_Handler,
+		},
+		{
+			MethodName: "StoreContentFromSource",
+			Handler:    _Stash_StoreContentFromSource_Handler,
+		},
+		{
+			MethodName: "StoreContentFromSourceWithLock",
+			Handler:    _Stash_StoreContentFromSourceWithLock_Handler,
+		},
+		{
+			MethodName: "GetState",
+			Handler:    _Stash_GetState_Handler,
+		},
+		{
 			MethodName: "AddHostToIndex",
 			Handler:    _Stash_AddHostToIndex_Handler,
 		},
@@ -656,6 +910,17 @@ var Stash_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Stash_RemoveFsNodeChild_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetContentStream",
+			Handler:       _Stash_GetContentStream_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "StoreContent",
+			Handler:       _Stash_StoreContent_Handler,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "stash.proto",
 }

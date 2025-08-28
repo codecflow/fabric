@@ -6,6 +6,15 @@ package stash;
 
 
 service Stash {
+  // Cache operations
+  rpc GetContent(GetContentRequest) returns (GetContentResponse);
+  rpc HasContent(HasContentRequest) returns (HasContentResponse);
+  rpc GetContentStream(GetContentRequest) returns (stream GetContentResponse);
+  rpc StoreContent(stream StoreContentRequest) returns (StoreContentResponse);
+  rpc StoreContentFromSource(StoreContentFromSourceRequest) returns (StoreContentFromSourceResponse);
+  rpc StoreContentFromSourceWithLock(StoreContentFromSourceRequest) returns (StoreContentFromSourceWithLockResponse);
+  rpc GetState(GetStateRequest) returns (GetStateResponse);
+  
   // Host operations
   rpc AddHostToIndex(AddHostToIndexRequest) returns (AddHostToIndexResponse);
   rpc SetHostKeepAlive(SetHostKeepAliveRequest) returns (SetHostKeepAliveResponse);
@@ -28,6 +37,71 @@ service Stash {
   rpc GetFsNodeChildren(GetFsNodeChildrenRequest) returns (GetFsNodeChildrenResponse);
   rpc AddFsNodeChild(AddFsNodeChildRequest) returns (AddFsNodeChildResponse);
   rpc RemoveFsNodeChild(RemoveFsNodeChildRequest) returns (RemoveFsNodeChildResponse);
+}
+
+// Cache operations
+message GetContentRequest {
+  string hash = 1;
+  int64 offset = 2;
+  int64 length = 3;
+}
+
+message GetContentResponse {
+  bool ok = 1;
+  bytes content = 2;
+}
+
+message HasContentRequest {
+  string hash = 1;
+}
+
+message HasContentResponse {
+  bool ok = 1;
+  bool exists = 2;
+}
+
+message StoreContentRequest {
+  bytes content = 1;
+}
+
+message StoreContentResponse {
+  bool ok = 1;
+  string hash = 2;
+}
+
+message CacheSource {
+  string path = 1;
+  string bucket_name = 2;
+  string region = 3;
+  string endpoint_url = 4;
+  string access_key = 5;
+  string secret_key = 6;
+}
+
+message StoreContentFromSourceRequest {
+  CacheSource source = 1;
+}
+
+message StoreContentFromSourceResponse {
+  bool ok = 1;
+  string hash = 2;
+  string error_msg = 3;
+}
+
+message StoreContentFromSourceWithLockResponse {
+  string hash = 1;
+  bool ok = 2;
+  bool failed_to_acquire_lock = 3;
+  string error_msg = 4;
+}
+
+message GetStateRequest {}
+
+message GetStateResponse {
+  bool ok = 1;
+  string version = 2;
+  float capacity_usage_pct = 3;
+  string private_ip_addr = 4;
 }
 
 message Address {
