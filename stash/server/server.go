@@ -275,16 +275,45 @@ func (s *Server) StoreContent(stream proto.Stash_StoreContentServer) error {
 
 // StoreContentFromSource stores content from a source path.
 func (s *Server) StoreContentFromSource(ctx context.Context, req *proto.StoreContentFromSourceRequest) (*proto.StoreContentFromSourceResponse, error) {
-	path := filepath.Join("/", req.Source.Path)
-	s.logger.Info("store from source", "path", path)
+	var content []byte
+	var err error
 
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return &proto.StoreContentFromSourceResponse{Ok: false, ErrorMsg: "source not found"}, nil
-	}
+	// Check if S3 source
+	if req.Source.BucketName != "" {
+		s.logger.Info("store from S3", "bucket", req.Source.BucketName, "key", req.Source.Path)
 
-	content, err := os.ReadFile(path)
-	if err != nil {
-		return &proto.StoreContentFromSourceResponse{Ok: false, ErrorMsg: err.Error()}, nil
+		s3Config := S3Config{
+			BucketName:  req.Source.BucketName,
+			Region:      req.Source.Region,
+			EndpointURL: req.Source.EndpointUrl,
+			AccessKey:   req.Source.AccessKey,
+			SecretKey:   req.Source.SecretKey,
+		}
+
+		s3Client, err := NewS3Client(ctx, s3Config, &s.cfg.Server)
+		if err != nil {
+			return &proto.StoreContentFromSourceResponse{Ok: false, ErrorMsg: err.Error()}, nil
+		}
+
+		var buffer bytes.Buffer
+		if err := s3Client.DownloadIntoBuffer(ctx, req.Source.Path, &buffer); err != nil {
+			return &proto.StoreContentFromSourceResponse{Ok: false, ErrorMsg: err.Error()}, nil
+		}
+
+		content = buffer.Bytes()
+	} else {
+		// Local filesystem source
+		path := filepath.Join("/", req.Source.Path)
+		s.logger.Info("store from source", "path", path)
+
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			return &proto.StoreContentFromSourceResponse{Ok: false, ErrorMsg: "source not found"}, nil
+		}
+
+		content, err = os.ReadFile(path)
+		if err != nil {
+			return &proto.StoreContentFromSourceResponse{Ok: false, ErrorMsg: err.Error()}, nil
+		}
 	}
 
 	hashBytes := sha256.Sum256(content)
