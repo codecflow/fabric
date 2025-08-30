@@ -4,22 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/codecflow/fabric/stash/coordinator"
 	"github.com/codecflow/fabric/stash/proto"
 )
-
-// Server implements the gRPC Stash service for coordinator operations.
-type Server struct {
-	proto.UnimplementedStashServer
-	coordinator coordinator.Client
-}
-
-// New creates a new coordinator gRPC server.
-func New(coord coordinator.Client) *Server {
-	return &Server{
-		coordinator: coord,
-	}
-}
 
 // AddHostToIndex adds a host to the locality index.
 func (s *Server) AddHostToIndex(ctx context.Context, req *proto.AddHostToIndexRequest) (*proto.AddHostToIndexResponse, error) {
