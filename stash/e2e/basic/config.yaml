@@ -1,0 +1,20 @@
+global:
+  serverPort: 6100
+  coordinatorHost: "localhost:6100"
+  debugMode: true
+  prettyLogs: true
+  grpcMessageSizeBytes: 104857600
+  grpcDialTimeoutS: 10
+  grpcInitialWindowSize: 1048576
+  grpcInitialConnWindowSize: 1048576
+
+server:
+  mode: "coordinator"
+  diskCacheDir: "/tmp/stash-e2e-cache"
+  maxCachePct: 80
+  metadata:
+    redisAddr: "localhost:6379"
+
+client:
+  token: "test-token"
+  nTopHosts: 3

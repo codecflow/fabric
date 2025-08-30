@@ -21,6 +21,8 @@ import (
 	"github.com/codecflow/fabric/stash/cache"
 	"github.com/codecflow/fabric/stash/config"
 	"github.com/codecflow/fabric/stash/coordinator"
+	"github.com/codecflow/fabric/stash/metadata"
+	"github.com/codecflow/fabric/stash/metadata/redis"
 	"github.com/codecflow/fabric/stash/proto"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
@@ -60,8 +62,24 @@ func NewServer(ctx context.Context, cfg *config.BlobCacheConfig, locality string
 
 	switch cfg.Server.Mode {
 	case config.ServerModeCoordinator:
-		// For coordinator mode, we need metadata - will implement later
-		return nil, fmt.Errorf("coordinator mode requires metadata initialization")
+		// Create Redis backend for metadata
+		redisBackend, err := redis.New(redis.Config{
+			Mode:       redis.ModeSingle,
+			Addr:       cfg.Server.Metadata.RedisAddr,
+			Password:   cfg.Server.Metadata.RedisPasswd,
+			TLSEnabled: cfg.Server.Metadata.RedisTLSEnabled,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to create redis backend: %w", err)
+		}
+
+		// Create metadata instance
+		meta := metadata.New(redisBackend, metadata.DefaultConfig())
+
+		// Create local coordinator with metadata
+		coord = coordinator.NewLocal(meta, &cfg.Server)
+		logger.Info("coordinator mode enabled", "redis", cfg.Server.Metadata.RedisAddr)
+
 	default:
 		coord, err = coordinator.NewRemote(cfg.Global.CoordinatorHost, cfg.Client.Token, &cfg.Global)
 		if err != nil {
