@@ -9,6 +9,7 @@ require (
 )
 
 require (
+	github.com/google/go-containerregistry v0.20.7 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	golang.org/x/sys v0.40.0 // indirect
 )
